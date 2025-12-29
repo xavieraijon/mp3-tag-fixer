@@ -90,4 +90,19 @@ export class FileCardComponent {
   formatDuration(duration: string | undefined): string {
       return duration || '--:--';
   }
+
+  /**
+   * Get effective BPM considering tagOverrides.
+   * If bpm was explicitly cleared in editor, show 'BPM' (the key exists but value is undefined).
+   * If bpm was never edited, show currentTags.bpm.
+   */
+  getEffectiveBpm(): string | number {
+    const item = this.item();
+    // If tagOverrides has the 'bpm' key (even if undefined), use that value
+    if (item.tagOverrides && 'bpm' in item.tagOverrides) {
+      return item.tagOverrides.bpm ?? 'BPM';
+    }
+    // Otherwise fallback to currentTags
+    return item.currentTags?.bpm ?? 'BPM';
+  }
 }

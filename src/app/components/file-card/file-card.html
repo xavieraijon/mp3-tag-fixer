@@ -190,7 +190,7 @@
               class="flex items-center gap-1.5 px-3 py-2 backdrop-blur-md bg-white/40 hover:bg-purple-500/20 text-slate-500 hover:text-purple-600 rounded-xl border border-white/50 hover:border-purple-400/50 transition-all text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               title="Detect BPM">
               <lucide-icon name="activity" class="w-3.5 h-3.5"></lucide-icon>
-              {{ item().tagOverrides?.bpm || item().currentTags?.bpm || 'BPM' }}
+              {{ getEffectiveBpm() }}
           </button>
 
           <!-- Edit Button -->

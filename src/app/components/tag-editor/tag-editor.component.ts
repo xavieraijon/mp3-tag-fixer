@@ -1,4 +1,4 @@
-import { Component, model, output, input, effect, signal } from '@angular/core';
+import { Component, output, input, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -12,8 +12,8 @@ import { Mp3Tags } from '../../models/mp3-tags.model';
   styleUrls: ['./tag-editor.css']
 })
 export class TagEditorComponent {
-  // Input from parent
-  tags = model.required<Mp3Tags>();
+  // Inputs from parent
+  tags = input.required<Mp3Tags>();
   coverImageUrl = input<string>();
 
   // Local form state
@@ -25,9 +25,13 @@ export class TagEditorComponent {
   bpm = signal<number | undefined>(undefined);
   label = signal('');
   albumArtist = signal('');
+  trackNumber = signal<number | undefined>(undefined);
+  discNumber = signal('');
+  composer = signal('');
+  comment = signal('');
 
-  // Outputs
-  save = output<void>();
+  // Outputs - save emits the edited tags
+  save = output<Mp3Tags>();
   cancel = output<void>();
 
   constructor() {
@@ -42,23 +46,39 @@ export class TagEditorComponent {
       this.bpm.set(t.bpm);
       this.label.set(t.label || '');
       this.albumArtist.set(t.albumArtist || '');
+      this.trackNumber.set(t.trackNumber);
+      this.discNumber.set(t.discNumber || '');
+      this.composer.set(t.composer || '');
+      this.comment.set(t.comment || '');
     });
   }
 
   onSave() {
-    // Update the model with local values before emitting save
-    this.tags.set({
-      ...this.tags(),
-      artist: this.artist(),
-      title: this.title(),
-      album: this.album(),
-      year: this.year(),
-      genre: this.genre(),
-      bpm: this.bpm(),
-      label: this.label() || undefined,
-      albumArtist: this.albumArtist() || undefined
-    });
-    this.save.emit();
+    // Helper to normalize empty values
+    const str = (v: string): string | undefined => v?.trim() || undefined;
+    const num = (v: number | undefined | null): number | undefined =>
+      (v !== undefined && v !== null && !isNaN(v)) ? v : undefined;
+
+    // Build the updated tags object (don't spread original - we want explicit values)
+    const updatedTags: Mp3Tags = {
+      artist: str(this.artist()),
+      title: str(this.title()),
+      album: str(this.album()),
+      year: num(this.year()),
+      genre: str(this.genre()),
+      bpm: num(this.bpm()),
+      label: str(this.label()),
+      albumArtist: str(this.albumArtist()),
+      trackNumber: num(this.trackNumber()),
+      discNumber: str(this.discNumber()),
+      composer: str(this.composer()),
+      comment: str(this.comment()),
+      // Preserve image from original
+      image: this.tags().image
+    };
+
+    console.log('[TagEditor] Saving:', updatedTags);
+    this.save.emit(updatedTags);
   }
 }
 

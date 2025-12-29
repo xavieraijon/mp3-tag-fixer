@@ -65,9 +65,15 @@ export class FileProcessorService {
     let cleaned = str.trim();
     let prev = '';
 
+    // Limpiar comillas/apóstrofes al inicio
+    cleaned = cleaned.replace(/^['"`]+/, '');
+
     // Iterar hasta que no haya más cambios
     while (cleaned !== prev) {
       prev = cleaned;
+
+      // Año al inicio con separador: 1996 - , 2010 -
+      cleaned = cleaned.replace(/^(19[89]\d|20[0-2]\d)\s*[-:]\s*/i, '');
 
       // Códigos de vinilo: (A1), [B2], (A2), [A1], etc.
       // Incluye superíndices: ¹²³ (códigos Unicode 185, 178, 179)
@@ -116,8 +122,11 @@ export class FileProcessorService {
       // Solo año al final: -2010, -1998 (pero solo si hay algo antes)
       cleaned = cleaned.replace(/(.{5,})[-_]\d{4}$/, '$1');
 
-      // Duración y códigos: -6.47-212-003781
+      // Duración y códigos (3 partes): -6.47-212-003781
       cleaned = cleaned.replace(/[-_]\d+\.\d+[-_]\d+[-_]\d+$/, '');
+
+      // Duración y bitrate (2 partes): -8.51-128, -6.47-320
+      cleaned = cleaned.replace(/[-_]\d{1,2}\.\d{2}[-_]\d{2,3}$/, '');
 
       // Duración simple al final: -6.47, -5.23
       cleaned = cleaned.replace(/[-_]\d{1,2}\.\d{2}$/, '');
@@ -133,6 +142,11 @@ export class FileProcessorService {
 
       // Sufijos simples: -mp3, -wav, etc
       cleaned = cleaned.replace(/[-_](?:mp3|wav|flac|aiff|lyrics|vinyl|Other)$/i, '');
+
+      // Paréntesis con indicadores de calidad: (Hq Quality), (HQ), (High Quality), (320kbps), (128), etc
+      cleaned = cleaned.replace(/\s*\((?:hq|lq|high|low|med)(?:\s+quality)?\)$/i, '');
+      cleaned = cleaned.replace(/\s*\(\d{2,3}\s*(?:kbps|kb\/s|kbs)?\)$/i, '');
+      cleaned = cleaned.replace(/\s*\((?:mp3|wav|flac|aac|ogg|wma)\)$/i, '');
 
       // Atribución "-by username" o "-by_username": -by bazofia, -by_dj123
       cleaned = cleaned.replace(/[-_]by[\s_]+[a-zA-Z0-9_]+[-_]?\d*$/i, '');
@@ -165,6 +179,32 @@ export class FileProcessorService {
   }
 
   /**
+   * Verifica si un string parece metadata (año, track, código) y NO un artista
+   * Usado para saltar partes irrelevantes en filenames con múltiples " - "
+   */
+  private looksLikeMetadataNotArtist(str: string): boolean {
+    // Limpiar comillas, apóstrofes y espacios
+    const trimmed = str.trim().replace(/^['"`]+|['"`]+$/g, '');
+
+    // Track numbers: 01, 1, 12, 001
+    if (/^\d{1,3}$/.test(trimmed)) return true;
+
+    // Número con punto: 1.04, 01.
+    if (/^\d{1,2}\.\d{0,2}$/.test(trimmed)) return true;
+
+    // Código de vinilo: A1, B2
+    if (/^[A-D][1-9¹²³]$/i.test(trimmed)) return true;
+
+    // Años: 1990-2029
+    if (/^(19[89]\d|20[0-2]\d)$/.test(trimmed)) return true;
+
+    // Códigos numéricos largos: 003254, 000858
+    if (/^\d{5,}$/.test(trimmed)) return true;
+
+    return false;
+  }
+
+  /**
    * Intenta extraer artista y título de un string limpio
    */
   private extractArtistTitle(str: string): { artist: string, title: string, confidence: number } {
@@ -174,10 +214,10 @@ export class FileProcessorService {
     if (standardParts.length >= 2) {
       let artistIndex = 0;
 
-      // Si hay múltiples partes, verificar si la primera parece número de track
-      // Ejemplo: "02 - Datura - Angeli Domini" -> skip "02", artist="Datura"
-      if (standardParts.length >= 3 && this.looksLikeTrackNumber(standardParts[0])) {
-        artistIndex = 1;
+      // Saltar partes iniciales que parecen metadata (años, tracks, códigos) y no artistas
+      while (artistIndex < standardParts.length - 1 &&
+             this.looksLikeMetadataNotArtist(standardParts[artistIndex])) {
+        artistIndex++;
       }
 
       const artist = standardParts[artistIndex].trim();

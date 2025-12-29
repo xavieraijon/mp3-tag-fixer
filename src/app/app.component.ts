@@ -49,6 +49,9 @@ export class AppComponent {
   isAnalyzingBpm = signal(false);
   isDownloadingZip = signal(false);
 
+  // Global Notification (snackbar)
+  globalMessage = signal<{ text: string; type: 'info' | 'success' | 'error' } | null>(null);
+
   // Derived
   filteredFiles = computed(() => {
     const q = this.filterQuery().toLowerCase().trim();
@@ -96,14 +99,17 @@ export class AppComponent {
       // Ends with numeric suffix: -003971, _12345
       if (/[-_]\d{4,}$/.test(tag)) return true;
 
+      // Starts with track number: "05 - ", "1 - ", "12 - "
+      if (/^\d{1,2}\s+-\s+/.test(tag)) return true;
+
       // Starts with vinyl code: (A1), [B2], A1, etc.
       if (/^[\(\[]?[A-D][1-9²³¹][\)\]]?\s/i.test(tag)) return true;
 
       // Contains underscores in long strings (typical filename separator)
       if (/_/.test(tag) && tag.length > 25) return true;
 
-      // Contains multiple " - " separators with numbers (filename pattern)
-      if ((tag.match(/ - /g) || []).length >= 2 && /\d{4,}/.test(tag)) return true;
+      // Contains multiple " - " separators (common filename pattern)
+      if ((tag.match(/ - /g) || []).length >= 2) return true;
 
       return false;
     };
@@ -352,9 +358,20 @@ export class AppComponent {
     const titleParsed = this.extractParenthesisInfo(title);
 
     // === PHASE 1: Búsquedas con título base (sin paréntesis) ===
+    // Esto es CRÍTICO cuando el paréntesis contiene basura como "(Hq Quality)"
 
-    // 1.1 Query con título base
-    if (titleParsed.base !== title) {
+    if (titleParsed.base !== title && titleParsed.base.length > 2) {
+      // 1.1 Query directa con título base: "Artist - TitleBase"
+      strategies.push({
+        type: 'query',
+        artist: '',
+        title: `${artist} - ${titleParsed.base}`,
+        searchType: 'all',
+        description: `Direct base: "${artist} - ${titleParsed.base}"`,
+        priority: priority++
+      });
+
+      // 1.2 Query con título base sin guión
       strategies.push({
         type: 'query',
         artist: '',
@@ -364,13 +381,23 @@ export class AppComponent {
         priority: priority++
       });
 
-      // 1.2 Track con título base
+      // 1.3 Track con título base
       strategies.push({
         type: 'track',
         artist: artist,
         title: titleParsed.base,
         searchType: 'all',
         description: `Track base: "${artist}" - "${titleParsed.base}"`,
+        priority: priority++
+      });
+
+      // 1.4 Release/Master con título base
+      strategies.push({
+        type: 'release',
+        artist: artist,
+        title: titleParsed.base,
+        searchType: 'master',
+        description: `Master base: "${artist}" - "${titleParsed.base}"`,
         priority: priority++
       });
     }
@@ -877,17 +904,23 @@ export class AppComponent {
       const trackBase = trackVersionMatch ? trackVersionMatch[1].trim() : track.title;
       const trackVersion = trackVersionMatch ? trackVersionMatch[2].trim().toLowerCase() : '';
 
-      const searchBaseLower = searchBase.toLowerCase();
-      const trackBaseLower = trackBase.toLowerCase();
+      // Normalizar para comparación: quitar puntuación, apóstrofes, espacios extra
+      const normalizeTitle = (s: string) => s.toLowerCase()
+        .replace(/[.'!?,;:\-_'"]/g, '')  // Quitar puntuación
+        .replace(/\s+/g, ' ')             // Normalizar espacios
+        .trim();
+
+      const searchBaseNorm = normalizeTitle(searchBase);
+      const trackBaseNorm = normalizeTitle(trackBase);
 
       // === TÍTULO BASE (0-40 puntos) ===
-      if (searchBaseLower === trackBaseLower) {
-        score += 40; // Match exacto del título base
-      } else if (trackBaseLower.includes(searchBaseLower) || searchBaseLower.includes(trackBaseLower)) {
+      if (searchBaseNorm === trackBaseNorm) {
+        score += 40; // Match exacto del título base (normalizado)
+      } else if (trackBaseNorm.includes(searchBaseNorm) || searchBaseNorm.includes(trackBaseNorm)) {
         score += 30; // Uno contiene al otro
       } else {
         // Similitud parcial
-        const similarity = this.calculateStringSimilarity(searchBaseLower, trackBaseLower);
+        const similarity = this.calculateStringSimilarity(searchBaseNorm, trackBaseNorm);
         score += similarity * 25;
       }
 
@@ -1127,36 +1160,157 @@ export class AppComponent {
       });
   }
 
+  // --- Global Notification ---
+
+  showMessage(text: string, type: 'info' | 'success' | 'error' = 'info', duration: number = 4000) {
+    this.globalMessage.set({ text, type });
+    if (duration > 0) {
+      setTimeout(() => this.globalMessage.set(null), duration);
+    }
+  }
+
+  dismissMessage() {
+    this.globalMessage.set(null);
+  }
+
   async analyzeAllBpm() {
-      this.isAnalyzingBpm.set(true);
-      for (const f of this.filteredFiles()) {
-         if (!f.tagOverrides?.bpm && !f.currentTags?.bpm) {
-             await this.detectBpm(f);
-         }
+    const files = this.filteredFiles().filter(f => !f.tagOverrides?.bpm && !f.currentTags?.bpm);
+
+    if (files.length === 0) {
+      this.showMessage('All files already have BPM data.', 'info');
+      return;
+    }
+
+    this.isAnalyzingBpm.set(true);
+    this.showMessage(`Analyzing BPM for ${files.length} files...`, 'info', 0);
+
+    let completed = 0;
+    let failed = 0;
+
+    for (const f of files) {
+      try {
+        await this.detectBpm(f);
+        completed++;
+        this.showMessage(`Analyzing BPM: ${completed}/${files.length}...`, 'info', 0);
+      } catch (e) {
+        failed++;
+        console.error('BPM detection failed for', f.originalName, e);
       }
-      this.isAnalyzingBpm.set(false);
+    }
+
+    this.isAnalyzingBpm.set(false);
+
+    if (failed > 0) {
+      this.showMessage(`BPM analysis complete: ${completed} success, ${failed} failed.`, 'error');
+    } else {
+      this.showMessage(`BPM analysis complete: ${completed} files processed.`, 'success');
+    }
   }
 
   async downloadAllZip() {
-      this.isDownloadingZip.set(true);
-      const zip = new JSZip();
-      let count = 0;
+    const files = this.filteredFiles().filter(f => f.selectedTrack && f.selectedRelease);
 
-      for (const item of this.filteredFiles()) {
-          // Only download items that have a track selected
-          if (item.selectedTrack && item.selectedRelease) {
-             // Logic mirrors downloadFile but adds to zip
-             // ... for brevity, implementing single file download primarily first.
-             // If we really want zip, we duplicate logic or abstract "getProcessedBlob"
-             // Let's abstract it quickly:
-             try {
-                // ... logic ...
-             } catch(e) {}
-          }
+    if (files.length === 0) {
+      this.showMessage('No files ready to download. Search and select tracks first.', 'error');
+      return;
+    }
+
+    this.isDownloadingZip.set(true);
+    this.showMessage(`Preparing ${files.length} files for download...`, 'info', 0);
+
+    const zip = new JSZip();
+    let completed = 0;
+    let failed = 0;
+
+    for (const item of files) {
+      try {
+        const blob = await this.prepareFileBlob(item);
+        if (blob) {
+          const release = item.releaseDetails || item.selectedRelease!;
+          const track = item.selectedTrack!;
+          const artistFromRelease = this.normalizeSuperscripts(release.artist || '').replace(/\*+$/, '').trim();
+          const finalArtist = item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+          const cleanName = this.processor.sanitizeFileName(`${finalArtist} - ${track.title}`);
+          zip.file(`${cleanName}.mp3`, blob);
+          completed++;
+          this.showMessage(`Processing: ${completed}/${files.length}...`, 'info', 0);
+        }
+      } catch (e) {
+        failed++;
+        console.error('Failed to process', item.originalName, e);
       }
+    }
 
-      // Since abstracting is complex in one shot, let's just log or simplified implementation
-      this.isDownloadingZip.set(false);
+    if (completed > 0) {
+      this.showMessage('Generating ZIP file...', 'info', 0);
+      try {
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const timestamp = new Date().toISOString().slice(0, 10);
+        saveAs(zipBlob, `mp3-tagged-${timestamp}.zip`);
+        this.showMessage(`Download started: ${completed} files in ZIP.`, 'success');
+      } catch (e) {
+        this.showMessage('Failed to generate ZIP file.', 'error');
+      }
+    } else {
+      this.showMessage('No files could be processed.', 'error');
+    }
+
+    this.isDownloadingZip.set(false);
+  }
+
+  /**
+   * Prepares a file blob with tags written (used for both single and batch download)
+   */
+  private async prepareFileBlob(item: ProcessedFile): Promise<Blob | null> {
+    if (!item.selectedRelease || !item.selectedTrack) return null;
+
+    const release = item.releaseDetails || item.selectedRelease;
+    const track = item.selectedTrack;
+
+    // Build genre
+    let genre: string[] = [];
+    if (release.styles && release.styles.length > 0) {
+      genre = release.styles;
+    } else if (release.genres && release.genres.length > 0) {
+      genre = release.genres;
+    }
+
+    // Get label
+    const label = release.labels?.[0]?.name;
+
+    // Determine artist
+    const artistFromRelease = this.normalizeSuperscripts(release.artist || '').replace(/\*+$/, '').trim();
+    const detectedArtist = item.manualArtist || '';
+    const finalArtist = detectedArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+
+    const finalTags: Mp3Tags = {
+      title: track.title,
+      artist: finalArtist,
+      album: release.title,
+      year: release.year ? parseInt(String(release.year)) : undefined,
+      genre: genre.length > 0 ? genre : undefined,
+      label: label,
+      albumArtist: artistFromRelease || release.artist,
+      trackNumber: undefined,
+      bpm: item.tagOverrides?.bpm || item.currentTags?.bpm,
+      ...item.tagOverrides
+    };
+
+    // Parse track number
+    if (track.position) {
+      const num = parseInt(track.position.replace(/\D+/g, ''));
+      if (!isNaN(num) && num > 0) finalTags.trackNumber = num;
+    }
+
+    // Fetch cover image
+    if (release.cover_image && !finalTags.image) {
+      const coverBlob = await this.discogs.fetchCoverImage(release.cover_image);
+      if (coverBlob) {
+        finalTags.image = coverBlob;
+      }
+    }
+
+    return this.processor.writeTags(item.file, finalTags);
   }
 
   clearList() {
@@ -1169,9 +1323,21 @@ export class AppComponent {
 
   openEditor(item: ProcessedFile) {
       this.editingItem.set(item);
-      const source = item.tagOverrides || {};
+      const overrides = item.tagOverrides || {};
       const track = item.selectedTrack;
       const rel = item.releaseDetails || item.selectedRelease;
+
+      console.log('[AppComponent] Opening editor for:', item.originalName);
+      console.log('[AppComponent] tagOverrides:', overrides);
+
+      // Helper: use override if key exists (even if undefined), otherwise use fallback
+      const getVal = <T>(key: keyof Mp3Tags, ...fallbacks: (T | undefined)[]): T | undefined => {
+          if (key in overrides) return overrides[key] as T | undefined;
+          for (const fb of fallbacks) {
+              if (fb !== undefined && fb !== null && fb !== '') return fb;
+          }
+          return undefined;
+      };
 
       // Build genre from Discogs (prefer styles over genres)
       let discogsGenre: string | string[] | undefined;
@@ -1181,28 +1347,47 @@ export class AppComponent {
           discogsGenre = rel.genres;
       }
 
+      // Parse track number from position
+      let defaultTrackNum: number | undefined = item.currentTags?.trackNumber;
+      if (!defaultTrackNum && track?.position) {
+          const num = parseInt(track.position.replace(/\D+/g, ''));
+          if (!isNaN(num) && num > 0) defaultTrackNum = num;
+      }
+
       this.editForm.set({
-          artist: source.artist || track?.artists?.[0]?.name || rel?.artist || item.manualArtist,
-          title: source.title || track?.title || item.manualTitle,
-          album: source.album || rel?.title || item.currentTags?.album,
-          bpm: source.bpm || item.currentTags?.bpm,
-          genre: source.genre || discogsGenre || item.currentTags?.genre,
-          year: source.year || (rel?.year ? parseInt(String(rel.year)) : undefined) || item.currentTags?.year,
-          label: source.label || rel?.labels?.[0]?.name || item.currentTags?.label,
-          albumArtist: source.albumArtist || rel?.artist || item.currentTags?.albumArtist
+          artist: getVal('artist', track?.artists?.[0]?.name, rel?.artist, item.manualArtist),
+          title: getVal('title', track?.title, item.manualTitle),
+          album: getVal('album', rel?.title, item.currentTags?.album),
+          bpm: getVal('bpm', item.currentTags?.bpm),
+          genre: getVal('genre', discogsGenre, item.currentTags?.genre),
+          year: getVal('year', rel?.year ? parseInt(String(rel.year)) : undefined, item.currentTags?.year),
+          label: getVal('label', rel?.labels?.[0]?.name, item.currentTags?.label),
+          albumArtist: getVal('albumArtist', rel?.artist, item.currentTags?.albumArtist),
+          trackNumber: getVal('trackNumber', defaultTrackNum),
+          discNumber: getVal('discNumber', item.currentTags?.discNumber),
+          composer: getVal('composer', item.currentTags?.composer),
+          comment: getVal('comment', item.currentTags?.comment)
       });
   }
 
-  saveEditor() {
+  saveEditor(newTags: Mp3Tags) {
       const item = this.editingItem();
       if (item) {
-          const newTags = this.editForm();
+          console.log('[AppComponent] Received tags:', newTags);
+          console.log('[AppComponent] Current overrides:', item.tagOverrides);
+
+          // Replace tagOverrides entirely with the new values (not merge)
+          const updatedOverrides = { ...newTags };
+
+          console.log('[AppComponent] New overrides:', updatedOverrides);
+
           this.updateFileItem(item, {
-              tagOverrides: { ...item.tagOverrides, ...newTags },
+              tagOverrides: updatedOverrides,
               manualArtist: newTags.artist || item.manualArtist,
               manualTitle: newTags.title || item.manualTitle,
-              statusMessage: 'Manual tags saved.'
+              statusMessage: 'Tags saved.'
           });
+          this.showMessage('Tags saved successfully.', 'success');
       }
       this.editingItem.set(null);
   }

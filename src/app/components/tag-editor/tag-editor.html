@@ -111,6 +111,49 @@
                         placeholder="Album Artist">
                 </div>
             </div>
+
+            <!-- Track & Disc Number Row -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Track #</label>
+                    <input
+                        type="number"
+                        [ngModel]="trackNumber()"
+                        (ngModelChange)="trackNumber.set($event)"
+                        class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                        placeholder="1"
+                        min="1">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Disc #</label>
+                    <input
+                        type="text"
+                        [ngModel]="discNumber()"
+                        (ngModelChange)="discNumber.set($event)"
+                        class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                        placeholder="1/2">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Composer</label>
+                    <input
+                        type="text"
+                        [ngModel]="composer()"
+                        (ngModelChange)="composer.set($event)"
+                        class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+                        placeholder="Composer">
+                </div>
+            </div>
+
+            <!-- Comment Row -->
+            <div class="space-y-1.5">
+                <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Comment</label>
+                <textarea
+                    [ngModel]="comment()"
+                    (ngModelChange)="comment.set($event)"
+                    rows="2"
+                    class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all resize-none"
+                    placeholder="Additional notes..."></textarea>
+            </div>
         </div>
 
         <!-- Footer -->

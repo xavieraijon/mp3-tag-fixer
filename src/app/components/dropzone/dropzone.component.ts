@@ -6,8 +6,8 @@ import { LucideAngularModule } from 'lucide-angular';
   selector: 'app-dropzone',
   standalone: true,
   imports: [CommonModule, LucideAngularModule],
-  templateUrl: './dropzone.html',
-  styleUrls: ['./dropzone.css']
+  templateUrl: './dropzone.component.html',
+  styleUrl: './dropzone.component.css'
 })
 export class DropzoneComponent {
   filesDropped = output<File[]>();

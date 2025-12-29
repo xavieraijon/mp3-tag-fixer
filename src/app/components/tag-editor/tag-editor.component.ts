@@ -8,8 +8,8 @@ import { Mp3Tags } from '../../models/mp3-tags.model';
   selector: 'app-tag-editor',
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
-  templateUrl: './tag-editor.html',
-  styleUrls: ['./tag-editor.css']
+  templateUrl: './tag-editor.component.html',
+  styleUrl: './tag-editor.component.css'
 })
 export class TagEditorComponent {
   // Inputs from parent

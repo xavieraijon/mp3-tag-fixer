@@ -2,29 +2,7 @@
 <div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 font-sans p-6 md:p-10">
 
   <!-- Global Snackbar -->
-  @if (globalMessage()) {
-    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-slide-up">
-      <div class="flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl border backdrop-blur-xl"
-           [class]="globalMessage()!.type === 'success' ? 'bg-green-500/90 border-green-400 text-white' :
-                    globalMessage()!.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' :
-                    'bg-slate-800/90 border-slate-700 text-white'">
-        <!-- Icon -->
-        @if (globalMessage()!.type === 'success') {
-          <lucide-icon name="circle-check" class="w-5 h-5 flex-shrink-0"></lucide-icon>
-        } @else if (globalMessage()!.type === 'error') {
-          <lucide-icon name="circle-alert" class="w-5 h-5 flex-shrink-0"></lucide-icon>
-        } @else {
-          <lucide-icon name="loader-circle" class="w-5 h-5 flex-shrink-0 animate-spin"></lucide-icon>
-        }
-        <!-- Message -->
-        <span class="font-medium text-sm">{{ globalMessage()!.text }}</span>
-        <!-- Dismiss -->
-        <button (click)="dismissMessage()" class="ml-2 hover:opacity-70 transition-opacity">
-          <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-        </button>
-      </div>
-    </div>
-  }
+  <app-snackbar></app-snackbar>
 
   <!-- Decorative Blobs -->
   <div class="fixed inset-0 overflow-hidden pointer-events-none">
@@ -67,8 +45,8 @@
     @if (files().length > 0) {
 
       <app-filter-bar
-        [filterText]="filterQuery()"
-        (filterTextChange)="filterQuery.set($event)"
+        [filterText]="filterQuery"
+        (filterTextChange)="filterQuery = $event"
         (processVisible)="autoProcessAll()"
         (analyzeBpmAll)="analyzeAllBpm()"
         (downloadAll)="downloadAllZip()"

@@ -8,8 +8,8 @@ import { ProcessedFile } from '../../models/processed-file.model';
   selector: 'app-filter-bar',
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
-  templateUrl: './filter-bar.html',
-  styleUrls: ['./filter-bar.css']
+  templateUrl: './filter-bar.component.html',
+  styleUrl: './filter-bar.component.css'
 })
 export class FilterBarComponent {
   // Inputs/Models

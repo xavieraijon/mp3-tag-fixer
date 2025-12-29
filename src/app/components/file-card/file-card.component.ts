@@ -13,8 +13,8 @@ import { DiscogsRelease, DiscogsTrack } from '../../models/discogs.model';
   selector: 'app-file-card',
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule],
-  templateUrl: './file-card.html',
-  styleUrls: ['./file-card.css']
+  templateUrl: './file-card.component.html',
+  styleUrl: './file-card.component.css'
 })
 export class FileCardComponent {
   item = input.required<ProcessedFile>();

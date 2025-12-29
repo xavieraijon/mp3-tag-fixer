@@ -1,0 +1,11 @@
+{
+  "/discogs-images": {
+    "target": "https://i.discogs.com",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/discogs-images": ""
+    },
+    "logLevel": "debug"
+  }
+}

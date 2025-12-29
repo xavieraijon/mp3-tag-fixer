@@ -152,15 +152,21 @@ export class DiscogsService {
   }
 
   /**
-   * Fetch cover image as Blob using authenticated request
-   * Discogs images require authentication headers to bypass CORS
+   * Fetch cover image as Blob via proxy to bypass CORS
+   * Discogs CDN (i.discogs.com) blocks cross-origin requests
    */
   async fetchCoverImage(imageUrl: string): Promise<Blob | null> {
       if (!imageUrl) return null;
 
       try {
-          const obs = this.http.get(imageUrl, {
-              headers: this.getHeaders(),
+          // Transform Discogs image URL to use local proxy
+          // https://i.discogs.com/xxx → /discogs-images/xxx
+          let proxyUrl = imageUrl;
+          if (imageUrl.includes('i.discogs.com')) {
+              proxyUrl = imageUrl.replace('https://i.discogs.com', '/discogs-images');
+          }
+
+          const obs = this.http.get(proxyUrl, {
               responseType: 'blob'
           });
           return await lastValueFrom(obs);

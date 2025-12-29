@@ -1,0 +1,216 @@
+<!-- Liquid Glass Card -->
+<div class="group relative backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-5 shadow-xl shadow-black/5 hover:bg-white/25 hover:border-white/40 hover:shadow-2xl transition-all duration-300">
+
+  <!-- Remove Button -->
+  <button
+      (click)="remove.emit()"
+      class="absolute -top-2 -right-2 p-1.5 backdrop-blur-md bg-white/30 text-slate-500 rounded-full hover:bg-red-500/80 hover:text-white opacity-0 group-hover:opacity-100 transition-all shadow-lg border border-white/20 z-10"
+      title="Remove file">
+      <lucide-icon name="x" class="w-3 h-3"></lucide-icon>
+  </button>
+
+  <!-- Header Row: Cover/Status + Title + Info -->
+  <div class="flex items-center gap-3 mb-4">
+      <!-- Cover Image or Status Icon -->
+      <div class="flex-shrink-0">
+          @if (item().coverImageUrl) {
+              <!-- Cover Image with Status Overlay -->
+              <div class="relative w-14 h-14">
+                  <img
+                      [src]="item().coverImageUrl"
+                      alt="Cover"
+                      class="w-14 h-14 rounded-xl object-cover shadow-lg border border-white/30"
+                  >
+                  <!-- Status indicator overlay -->
+                  @if (item().status === 'searching' || item().status === 'loading_details' || item().isAnalyzingBpm) {
+                      <div class="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center">
+                          <lucide-icon name="loader-circle" class="w-5 h-5 text-white animate-spin"></lucide-icon>
+                      </div>
+                  } @else if (item().status === 'done') {
+                      <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow">
+                          <lucide-icon name="check" class="w-3 h-3 text-white"></lucide-icon>
+                      </div>
+                  } @else if (item().status === 'error') {
+                      <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white shadow">
+                          <lucide-icon name="circle-alert" class="w-3 h-3 text-white"></lucide-icon>
+                      </div>
+                  }
+              </div>
+          } @else {
+              <!-- Fallback: Status Icon Only -->
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30 transition-all duration-300"
+                  [class.bg-blue-500/20]="item().status === 'searching' || item().status === 'loading_details'"
+                  [class.text-blue-600]="item().status === 'searching' || item().status === 'loading_details'"
+                  [class.bg-emerald-500/20]="item().status === 'done'"
+                  [class.text-emerald-600]="item().status === 'done'"
+                  [class.bg-red-500/20]="item().status === 'error'"
+                  [class.text-red-600]="item().status === 'error'"
+                  [class.bg-purple-500/20]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
+                  [class.text-purple-600]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
+                  [class.bg-slate-500/10]="item().status === 'pending' || item().status === 'ready'"
+                  [class.text-slate-500]="item().status === 'pending' || item().status === 'ready'">
+
+                  @if (item().status === 'searching' || item().status === 'loading_details' || item().isAnalyzingBpm) {
+                      <lucide-icon name="loader-circle" class="w-5 h-5 animate-spin"></lucide-icon>
+                  } @else if (item().status === 'done') {
+                      <lucide-icon name="check" class="w-5 h-5"></lucide-icon>
+                  } @else if (item().status === 'error') {
+                      <lucide-icon name="circle-alert" class="w-5 h-5"></lucide-icon>
+                  } @else if (!!item().selectedTrack) {
+                      <lucide-icon name="music" class="w-5 h-5"></lucide-icon>
+                  } @else {
+                      <lucide-icon name="file-audio" class="w-5 h-5"></lucide-icon>
+                  }
+              </div>
+          }
+      </div>
+
+      <!-- Title & Artist Info -->
+      <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+              <h3 class="font-bold text-slate-800 truncate text-base">
+                  {{ item().selectedTrack?.title || item().manualTitle || item().originalName }}
+              </h3>
+              <div class="group/info relative">
+                  <lucide-icon name="info" class="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help"></lucide-icon>
+                  <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 backdrop-blur-xl bg-white/90 border border-white/50 text-xs rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 whitespace-nowrap z-[60]">
+                      <span class="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5">Original</span>
+                      <span class="text-slate-700 font-medium">{{ item().originalName }}</span>
+                  </div>
+              </div>
+          </div>
+          <p class="text-slate-500 text-sm truncate">
+              {{ item().selectedRelease?.artist || item().manualArtist || 'Unknown Artist' }}
+              @if (item().selectedRelease) {
+                <span class="text-slate-400"> · {{ item().selectedRelease!.title }}</span>
+              }
+          </p>
+      </div>
+
+      <!-- Status Badge -->
+      @if (item().statusMessage) {
+        <div class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md border"
+            [class.bg-blue-500/10]="item().status === 'searching' || item().status === 'loading_details'"
+            [class.text-blue-700]="item().status === 'searching' || item().status === 'loading_details'"
+            [class.border-blue-300/50]="item().status === 'searching' || item().status === 'loading_details'"
+            [class.bg-emerald-500/10]="item().status === 'done'"
+            [class.text-emerald-700]="item().status === 'done'"
+            [class.border-emerald-300/50]="item().status === 'done'"
+            [class.bg-red-500/10]="item().status === 'error'"
+            [class.text-red-700]="item().status === 'error'"
+            [class.border-red-300/50]="item().status === 'error'"
+            [class.bg-slate-500/10]="item().status === 'pending' || item().status === 'ready'"
+            [class.text-slate-600]="item().status === 'pending' || item().status === 'ready'"
+            [class.border-slate-300/50]="item().status === 'pending' || item().status === 'ready'">
+            {{ item().statusMessage }}
+        </div>
+      }
+  </div>
+
+  <!-- Controls Row: Inputs + Selects + Buttons (Horizontal Layout) -->
+  <div class="flex flex-wrap items-end gap-3">
+
+      <!-- Artist Input -->
+      <div class="flex-1 min-w-[120px] max-w-[180px]">
+          <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Artist</label>
+          <input
+              type="text"
+              [value]="item().manualArtist"
+              (input)="onArtistChange($any($event.target).value)"
+              placeholder="Artist..."
+              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
+          >
+      </div>
+
+      <!-- Title Input -->
+      <div class="flex-1 min-w-[120px] max-w-[180px]">
+          <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Title</label>
+          <input
+              type="text"
+              [value]="item().manualTitle"
+              (input)="onTitleChange($any($event.target).value)"
+              placeholder="Title..."
+              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
+          >
+      </div>
+
+      <!-- Release Select -->
+      @if (item().searchResults && item().searchResults.length > 0) {
+        <div class="flex-1 min-w-[200px]">
+            <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Release</label>
+            <select
+              [ngModel]="getSelectedReleaseId()"
+              (ngModelChange)="onReleaseSelectChange($event)"
+              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all cursor-pointer">
+              <option value="">-- Select --</option>
+              @for (release of item().searchResults; track release.id) {
+                <option [ngValue]="release.id.toString()">
+                  {{ release.artist }} - {{ release.title }}@if (release.year) { ({{ release.year }}) }
+                </option>
+              }
+            </select>
+        </div>
+      }
+
+      <!-- Track Select -->
+      @if (item().tracks && item().tracks.length > 0) {
+        <div class="flex-1 min-w-[180px]">
+            <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Track ({{ getRealTracks(item().tracks).length }})</label>
+            <select
+              [ngModel]="item().selectedTrack?.position || ''"
+              (ngModelChange)="onTrackSelectChange($event)"
+              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20 transition-all cursor-pointer">
+              <option value="">-- Select --</option>
+              @for (track of item().tracks; track track.position + track.title) {
+                @if (track.type_ === 'track') {
+                  <option [ngValue]="track.position">
+                    {{ track.position }}. {{ track.title }}@if (track.duration) { ({{ track.duration }}) }
+                  </option>
+                }
+              }
+            </select>
+        </div>
+      }
+
+      <!-- Action Buttons -->
+      <div class="flex items-center gap-2">
+          <!-- Search Button -->
+          <button
+              (click)="search.emit()"
+              [disabled]="item().status === 'searching'"
+              class="p-2.5 backdrop-blur-md bg-white/40 hover:bg-blue-500/20 text-slate-500 hover:text-blue-600 rounded-xl border border-white/50 hover:border-blue-400/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Search Discogs">
+              <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
+          </button>
+
+          <!-- BPM Button -->
+          <button
+              (click)="detectBpm.emit()"
+              [disabled]="item().isAnalyzingBpm"
+              class="flex items-center gap-1.5 px-3 py-2 backdrop-blur-md bg-white/40 hover:bg-purple-500/20 text-slate-500 hover:text-purple-600 rounded-xl border border-white/50 hover:border-purple-400/50 transition-all text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Detect BPM">
+              <lucide-icon name="activity" class="w-3.5 h-3.5"></lucide-icon>
+              {{ item().tagOverrides?.bpm || item().currentTags?.bpm || 'BPM' }}
+          </button>
+
+          <!-- Edit Button -->
+          <button
+              (click)="edit.emit()"
+              class="p-2.5 backdrop-blur-md bg-white/40 hover:bg-slate-500/20 text-slate-500 hover:text-slate-700 rounded-xl border border-white/50 hover:border-slate-400/50 transition-all"
+              title="Edit Tags">
+              <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>
+          </button>
+
+          <!-- Download Button -->
+          @if (item().selectedTrack && item().status !== 'done') {
+            <button
+                (click)="download.emit()"
+                class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-gradient-to-r from-blue-500/80 to-indigo-500/80 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl border border-white/30 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all text-xs font-bold"
+                title="Download with tags">
+                <lucide-icon name="download" class="w-4 h-4"></lucide-icon>
+                Download
+            </button>
+          }
+      </div>
+  </div>
+</div>

@@ -1,0 +1,93 @@
+import { Component, input, output, computed, model } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import {
+  LucideAngularModule,
+  X, LoaderCircle, Check, CircleCheck, CircleAlert, Music, FileAudio, Info, Mic2, Search, Activity, Pencil, Download
+} from 'lucide-angular';
+import { ProcessedFile } from '../../models/processed-file.model';
+import { Mp3Tags } from '../../models/mp3-tags.model';
+import { DiscogsRelease, DiscogsTrack } from '../../models/discogs.model';
+
+@Component({
+  selector: 'app-file-card',
+  standalone: true,
+  imports: [CommonModule, FormsModule, LucideAngularModule],
+  templateUrl: './file-card.html',
+  styleUrls: ['./file-card.css']
+})
+export class FileCardComponent {
+  item = input.required<ProcessedFile>();
+
+  // Events
+  search = output<void>();
+  edit = output<void>();
+  remove = output<void>();
+  download = output<void>();
+  selectRelease = output<DiscogsRelease>();
+  selectTrack = output<DiscogsTrack>();
+  detectBpm = output<void>();
+  artistChange = output<string>();
+  titleChange = output<string>();
+
+  // Helpers
+  hasMatch = computed(() => !!this.item().selectedTrack);
+
+  onArtistChange(value: string) {
+    this.artistChange.emit(value);
+  }
+
+  onTitleChange(value: string) {
+    this.titleChange.emit(value);
+  }
+
+  onSelectRelease(release: DiscogsRelease) {
+    this.selectRelease.emit(release);
+  }
+
+  onSelectTrack(track: DiscogsTrack) {
+    this.selectTrack.emit(track);
+  }
+
+  onReleaseSelectChange(releaseId: string) {
+    if (!releaseId) return;
+    const release = this.item().searchResults?.find(r => r.id === parseInt(releaseId, 10));
+    if (release) {
+      this.selectRelease.emit(release);
+    }
+  }
+
+  onTrackSelectChange(position: string) {
+    if (!position) return;
+    const track = this.item().tracks?.find(t => t.position === position);
+    if (track) {
+      this.selectTrack.emit(track);
+    }
+  }
+
+  getRealTracks(tracks: DiscogsTrack[]): DiscogsTrack[] {
+    return tracks?.filter(t => t.type_ === 'track') || [];
+  }
+
+  getSelectedReleaseId(): string {
+    const id = this.item().selectedRelease?.id;
+    return id ? id.toString() : '';
+  }
+
+  getDisplaySubtitle(item: ProcessedFile): string {
+       if (item.selectedRelease && item.selectedTrack) {
+           const rel = item.selectedRelease;
+           const track = item.selectedTrack;
+           // Display: "Release Title (Label) [Year] • Track 01"
+           const label = rel.labels?.[0]?.name ? ` (${rel.labels[0].name})` : '';
+           const year = rel.year ? ` [${rel.year}]` : '';
+           return `${rel.title}${label}${year} • ${track.position}`;
+       }
+       return item.originalName;
+  }
+
+  // Format helper
+  formatDuration(duration: string | undefined): string {
+      return duration || '--:--';
+  }
+}

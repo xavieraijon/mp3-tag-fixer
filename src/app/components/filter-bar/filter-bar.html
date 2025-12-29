@@ -1,0 +1,53 @@
+<div class="sticky top-0 z-40 backdrop-blur-xl bg-white/30 border border-white/40 rounded-2xl p-4 mb-6 shadow-xl flex flex-wrap gap-3 items-center justify-between">
+    <!-- Search/Filter Input -->
+    <div class="flex-1 min-w-[250px] relative group">
+        <lucide-icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
+        <input
+            type="text"
+            [ngModel]="filterText()"
+            (ngModelChange)="filterText.set($event)"
+            placeholder="Filter by filename, artist, title..."
+            class="w-full pl-10 pr-10 py-2.5 backdrop-blur-md bg-white/50 border border-white/50 rounded-xl focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 text-slate-700 placeholder-slate-400 text-sm transition-all"
+        >
+        @if (filterText()) {
+            <button (click)="filterText.set('')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-lg transition-all">
+                <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+            </button>
+        }
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-2">
+      <!-- Process Visible -->
+      <button
+          (click)="processVisible.emit()"
+          class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-blue-500/20 text-slate-600 hover:text-blue-700 rounded-xl border border-white/50 hover:border-blue-400/50 transition-all group">
+          <lucide-icon name="sparkles" class="w-4 h-4 group-hover:animate-pulse"></lucide-icon>
+          <span class="font-medium text-sm">Process All</span>
+      </button>
+
+      <!-- Analyze BPM -->
+      <button
+        (click)="analyzeBpmAll.emit()"
+        class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-purple-500/20 text-slate-600 hover:text-purple-700 rounded-xl border border-white/50 hover:border-purple-400/50 transition-all">
+        <lucide-icon name="activity" class="w-4 h-4"></lucide-icon>
+        <span class="font-medium text-sm">BPM All</span>
+      </button>
+
+      <!-- Download All -->
+      <button
+          (click)="downloadAll.emit()"
+          class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-emerald-500/20 text-slate-600 hover:text-emerald-700 rounded-xl border border-white/50 hover:border-emerald-400/50 transition-all">
+          <lucide-icon name="download" class="w-4 h-4"></lucide-icon>
+          <span class="font-medium text-sm">Download All</span>
+      </button>
+
+      <!-- Clear List -->
+      <button
+          (click)="clearList.emit()"
+          class="p-2.5 backdrop-blur-md bg-white/40 hover:bg-red-500/20 text-slate-500 hover:text-red-600 rounded-xl border border-white/50 hover:border-red-400/50 transition-all"
+          title="Clear List">
+          <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+      </button>
+    </div>
+</div>

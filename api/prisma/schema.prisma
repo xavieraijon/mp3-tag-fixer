@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?   // Null if using OAuth only
+  name         String?
+  avatarUrl    String?
+
+  // OAuth providers
+  googleId String? @unique
+  githubId String? @unique
+
+  // Subscription (Stripe)
+  stripeCustomerId   String?             @unique
+  subscriptionStatus SubscriptionStatus  @default(FREE)
+  subscriptionEndsAt DateTime?
+
+  // Relations
+  tracks   Track[]
+  sessions Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ============================================
+// TRACKS
+// ============================================
+
+model Track {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Original file info
+  originalFilename String
+  fileHash         String? // For duplicate detection
+
+  // Extracted/Applied tags
+  title       String?
+  artist      String?
+  album       String?
+  year        Int?
+  genre       String?
+  bpm         Int?
+  label       String?
+  trackNumber Int?
+  albumArtist String?
+  composer    String?
+  comment     String?
+
+  // Discogs reference
+  discogsReleaseId Int?
+  discogsTrackPos  String?
+  coverImageUrl    String?
+
+  // Search metadata
+  searchQuery String?
+  searchScore Int?
+
+  // Status
+  status      TrackStatus @default(PENDING)
+  processedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([fileHash])
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  CANCELED
+  PAST_DUE
+}
+
+enum TrackStatus {
+  PENDING
+  SEARCHING
+  READY
+  DONE
+  ERROR
+}

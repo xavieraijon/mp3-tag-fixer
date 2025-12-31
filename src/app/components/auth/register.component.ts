@@ -12,7 +12,7 @@ import { ModalComponent } from '../modal/modal.component';
   template: `
     <app-modal [title]="'Create Account'" (close)="close.emit()">
       <!-- Form -->
-      <form (ngSubmit)="onSubmit()" class="space-y-4">
+      <form id="register-form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Name & Last Name Row -->
         <div class="grid grid-cols-2 gap-4">
           <div class="space-y-1.5">
@@ -117,45 +117,44 @@ import { ModalComponent } from '../modal/modal.component';
           </div>
         }
 
-        <!-- Actions & Switch to Login -->
-        <div footer class="space-y-4">
-          <div class="flex gap-3 px-5 pb-3">
-            <button
-              type="button"
-              (click)="close.emit()"
-              class="flex-1 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-white/60 text-slate-600 hover:text-slate-700 rounded-xl border border-white/50 transition-all disabled:opacity-50 text-sm font-medium"
-              [disabled]="isLoading()"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="flex-1 px-4 py-2.5 backdrop-blur-md bg-gradient-to-r from-blue-500/80 to-indigo-500/80 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl border border-white/30 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm font-bold"
-              [disabled]="!canSubmit()"
-            >
-              @if (isLoading()) {
-                <lucide-icon name="loader-circle" [size]="16" class="animate-spin"></lucide-icon>
-                <span>Creating...</span>
-              } @else {
-                <lucide-icon name="user-plus" [size]="16"></lucide-icon>
-                <span>Create Account</span>
-              }
-            </button>
-          </div>
-
-          <!-- Switch to Login -->
-          <div class="px-5 pb-5 text-center text-sm text-slate-600 border-t border-white/30 pt-4">
-            Already have an account?
-            <button
-              (click)="switchToLogin.emit()"
-              class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700"
-              type="button"
-            >
-              Sign in
-            </button>
-          </div>
+        <!-- Switch to Login -->
+        <div class="text-center text-sm text-slate-600 mt-6">
+          Already have an account?
+          <button
+            (click)="switchToLogin.emit()"
+            class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700"
+            type="button"
+          >
+            Sign in
+          </button>
         </div>
       </form>
+
+      <!-- Footer: Buttons -->
+      <div footer class="flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="close.emit()"
+          class="px-5 py-2.5 text-slate-600 hover:text-slate-800 font-medium hover:bg-white/50 rounded-xl transition-all"
+          [disabled]="isLoading()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          form="register-form"
+          class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all disabled:opacity-50 flex items-center gap-2"
+          [disabled]="!canSubmit()"
+        >
+          @if (isLoading()) {
+            <lucide-icon name="loader-circle" [size]="16" class="animate-spin"></lucide-icon>
+            <span>Creating...</span>
+          } @else {
+            <lucide-icon name="user-plus" [size]="16"></lucide-icon>
+            <span>Create Account</span>
+          }
+        </button>
+      </div>
     </app-modal>
   `,
 })

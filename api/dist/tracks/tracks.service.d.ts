@@ -9,10 +9,11 @@ export declare class TracksService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -20,7 +21,6 @@ export declare class TracksService {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -41,10 +41,11 @@ export declare class TracksService {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            userId: string;
+            year: number | null;
             title: string | null;
             artist: string | null;
             album: string | null;
-            year: number | null;
             bpm: number | null;
             albumArtist: string | null;
             genre: string | null;
@@ -52,7 +53,6 @@ export declare class TracksService {
             label: string | null;
             composer: string | null;
             comment: string | null;
-            userId: string;
             searchQuery: string | null;
             originalFilename: string;
             fileHash: string | null;
@@ -69,10 +69,11 @@ export declare class TracksService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -80,7 +81,6 @@ export declare class TracksService {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -95,10 +95,11 @@ export declare class TracksService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -106,7 +107,6 @@ export declare class TracksService {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -121,10 +121,11 @@ export declare class TracksService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -132,7 +133,6 @@ export declare class TracksService {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -147,10 +147,11 @@ export declare class TracksService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -158,7 +159,6 @@ export declare class TracksService {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -173,10 +173,11 @@ export declare class TracksService {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -184,7 +185,6 @@ export declare class TracksService {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;

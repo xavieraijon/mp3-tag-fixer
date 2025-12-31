@@ -6,17 +6,21 @@ import {
   UseGuards,
   Headers,
   RawBody,
+  NotFoundException,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
-import { ClerkAuthGuard } from '../auth/guards/clerk-auth.guard';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { UserId } from '../auth/decorators/user-id.decorator';
 import { Public } from '../auth/decorators/public.decorator';
-import type { ClerkUser } from '../auth/clerk.service';
+import { UsersService } from '../users/users.service';
 
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly usersService: UsersService,
+  ) {}
 
   /**
    * Get available subscription plans
@@ -30,20 +34,27 @@ export class PaymentsController {
   /**
    * Get current subscription status
    */
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('status')
-  async getStatus(@CurrentUser() user: ClerkUser) {
-    return this.paymentsService.getSubscriptionStatus(user.id);
+  async getStatus(@UserId() userId: string) {
+    return this.paymentsService.getSubscriptionStatus(userId);
   }
 
   /**
    * Create a checkout session for subscription
    */
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('checkout')
-  async createCheckout(@CurrentUser() user: ClerkUser, @Body() dto: CreateCheckoutDto) {
+  async createCheckout(@UserId() userId: string, @Body() dto: CreateCheckoutDto) {
+    // Get user email from database
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return this.paymentsService.createCheckoutSession(
-      user.id,
+      userId,
       user.email,
       dto.priceId,
       dto.successUrl,
@@ -55,19 +66,19 @@ export class PaymentsController {
   /**
    * Create a customer portal session for managing subscription
    */
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('portal')
-  async createPortal(@CurrentUser() user: ClerkUser) {
-    return this.paymentsService.createPortalSession(user.id);
+  async createPortal(@UserId() userId: string) {
+    return this.paymentsService.createPortalSession(userId);
   }
 
   /**
    * Cancel subscription at period end
    */
-  @UseGuards(ClerkAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post('cancel')
-  async cancelSubscription(@CurrentUser() user: ClerkUser) {
-    await this.paymentsService.cancelSubscription(user.id);
+  async cancelSubscription(@UserId() userId: string) {
+    await this.paymentsService.cancelSubscription(userId);
     return { message: 'Subscription will be canceled at the end of the billing period' };
   }
 

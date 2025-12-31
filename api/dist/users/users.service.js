@@ -17,33 +17,6 @@ let UsersService = class UsersService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findOrCreateFromClerk(clerkUser) {
-        const existingUser = await this.prisma.user.findUnique({
-            where: { id: clerkUser.id },
-        });
-        if (existingUser) {
-            return this.prisma.user.update({
-                where: { id: clerkUser.id },
-                data: {
-                    email: clerkUser.email,
-                    name: [clerkUser.firstName, clerkUser.lastName]
-                        .filter(Boolean)
-                        .join(' ') || null,
-                    avatarUrl: clerkUser.imageUrl,
-                },
-            });
-        }
-        return this.prisma.user.create({
-            data: {
-                id: clerkUser.id,
-                email: clerkUser.email,
-                name: [clerkUser.firstName, clerkUser.lastName]
-                    .filter(Boolean)
-                    .join(' ') || null,
-                avatarUrl: clerkUser.imageUrl,
-            },
-        });
-    }
     async findById(id) {
         return this.prisma.user.findUnique({
             where: { id },

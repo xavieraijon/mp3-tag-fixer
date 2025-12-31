@@ -15,13 +15,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FilesService, Mp3Tags } from './files.service';
 import { WriteTagsDto } from './dto/write-tags.dto';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import type { ClerkUser } from '../auth/clerk.service';
+import { UserId } from '../auth/decorators/user-id.decorator';
+import { UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 // In-memory storage for uploaded files (per session)
 const uploadedFiles = new Map<string, { buffer: Buffer; originalName: string; userId: string }>();
 
 @Controller('files')
+@UseGuards(JwtAuthGuard)
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
 
@@ -43,7 +45,7 @@ export class FilesController {
   )
   async upload(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentUser() user: ClerkUser,
+    @UserId() userId: string,
   ) {
     if (!file) {
       throw new BadRequestException('No file uploaded');
@@ -56,13 +58,13 @@ export class FilesController {
     const parsed = this.filesService.parseFilename(file.originalname);
 
     // Generate unique ID for this upload
-    const fileId = `${user.id}-${Date.now()}`;
+    const fileId = `${userId}-${Date.now()}`;
 
     // Store in memory (for processing)
     uploadedFiles.set(fileId, {
       buffer: file.buffer,
       originalName: file.originalname,
-      userId: user.id,
+      userId: userId,
     });
 
     // Auto-cleanup after 30 minutes
@@ -83,11 +85,11 @@ export class FilesController {
   @Get(':fileId/tags')
   async getTags(
     @Param('fileId') fileId: string,
-    @CurrentUser() user: ClerkUser,
+    @UserId() userId: string,
   ) {
     const file = uploadedFiles.get(fileId);
 
-    if (!file || file.userId !== user.id) {
+    if (!file || file.userId !== userId) {
       throw new BadRequestException('File not found or expired');
     }
 
@@ -102,12 +104,12 @@ export class FilesController {
   async writeTags(
     @Param('fileId') fileId: string,
     @Body() dto: WriteTagsDto,
-    @CurrentUser() user: ClerkUser,
+    @UserId() userId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const file = uploadedFiles.get(fileId);
 
-    if (!file || file.userId !== user.id) {
+    if (!file || file.userId !== userId) {
       throw new BadRequestException('File not found or expired');
     }
 
@@ -154,12 +156,12 @@ export class FilesController {
     @Param('fileId') fileId: string,
     @Body() dto: WriteTagsDto,
     @UploadedFile() coverFile: Express.Multer.File,
-    @CurrentUser() user: ClerkUser,
+    @UserId() userId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const file = uploadedFiles.get(fileId);
 
-    if (!file || file.userId !== user.id) {
+    if (!file || file.userId !== userId) {
       throw new BadRequestException('File not found or expired');
     }
 
@@ -204,11 +206,11 @@ export class FilesController {
   @Delete(':fileId')
   async deleteFile(
     @Param('fileId') fileId: string,
-    @CurrentUser() user: ClerkUser,
+    @UserId() userId: string,
   ) {
     const file = uploadedFiles.get(fileId);
 
-    if (!file || file.userId !== user.id) {
+    if (!file || file.userId !== userId) {
       throw new BadRequestException('File not found');
     }
 

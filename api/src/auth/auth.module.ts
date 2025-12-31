@@ -1,17 +1,21 @@
 import { Module, Global } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
-import { ClerkService } from './clerk.service';
-import { ClerkAuthGuard } from './guards/clerk-auth.guard';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Global()
 @Module({
+  imports: [PrismaModule],
+  controllers: [AuthController],
   providers: [
-    ClerkService,
+    AuthService,
     {
       provide: APP_GUARD,
-      useClass: ClerkAuthGuard,
+      useClass: JwtAuthGuard,
     },
   ],
-  exports: [ClerkService],
+  exports: [AuthService],
 })
 export class AuthModule {}

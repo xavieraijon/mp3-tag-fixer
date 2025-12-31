@@ -17,24 +17,26 @@ const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const files_service_1 = require("./files.service");
 const write_tags_dto_1 = require("./dto/write-tags.dto");
-const current_user_decorator_1 = require("../auth/decorators/current-user.decorator");
+const user_id_decorator_1 = require("../auth/decorators/user-id.decorator");
+const common_2 = require("@nestjs/common");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
 const uploadedFiles = new Map();
 let FilesController = class FilesController {
     filesService;
     constructor(filesService) {
         this.filesService = filesService;
     }
-    async upload(file, user) {
+    async upload(file, userId) {
         if (!file) {
             throw new common_1.BadRequestException('No file uploaded');
         }
         const tags = await this.filesService.readTags(file.buffer);
         const parsed = this.filesService.parseFilename(file.originalname);
-        const fileId = `${user.id}-${Date.now()}`;
+        const fileId = `${userId}-${Date.now()}`;
         uploadedFiles.set(fileId, {
             buffer: file.buffer,
             originalName: file.originalname,
-            userId: user.id,
+            userId: userId,
         });
         setTimeout(() => uploadedFiles.delete(fileId), 30 * 60 * 1000);
         return {
@@ -45,17 +47,17 @@ let FilesController = class FilesController {
             currentTags: tags,
         };
     }
-    async getTags(fileId, user) {
+    async getTags(fileId, userId) {
         const file = uploadedFiles.get(fileId);
-        if (!file || file.userId !== user.id) {
+        if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found or expired');
         }
         const tags = await this.filesService.readTags(file.buffer);
         return tags;
     }
-    async writeTags(fileId, dto, user, res) {
+    async writeTags(fileId, dto, userId, res) {
         const file = uploadedFiles.get(fileId);
-        if (!file || file.userId !== user.id) {
+        if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found or expired');
         }
         const tags = {
@@ -80,9 +82,9 @@ let FilesController = class FilesController {
         });
         return new common_1.StreamableFile(taggedBuffer);
     }
-    async writeTagsWithCover(fileId, dto, coverFile, user, res) {
+    async writeTagsWithCover(fileId, dto, coverFile, userId, res) {
         const file = uploadedFiles.get(fileId);
-        if (!file || file.userId !== user.id) {
+        if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found or expired');
         }
         const tags = {
@@ -108,9 +110,9 @@ let FilesController = class FilesController {
         });
         return new common_1.StreamableFile(taggedBuffer);
     }
-    async deleteFile(fileId, user) {
+    async deleteFile(fileId, userId) {
         const file = uploadedFiles.get(fileId);
-        if (!file || file.userId !== user.id) {
+        if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found');
         }
         uploadedFiles.delete(fileId);
@@ -132,27 +134,27 @@ __decorate([
         },
     })),
     __param(0, (0, common_1.UploadedFile)()),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, user_id_decorator_1.UserId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], FilesController.prototype, "upload", null);
 __decorate([
     (0, common_1.Get)(':fileId/tags'),
     __param(0, (0, common_1.Param)('fileId')),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, user_id_decorator_1.UserId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], FilesController.prototype, "getTags", null);
 __decorate([
     (0, common_1.Post)(':fileId/write-tags'),
     __param(0, (0, common_1.Param)('fileId')),
     __param(1, (0, common_1.Body)()),
-    __param(2, (0, current_user_decorator_1.CurrentUser)()),
+    __param(2, (0, user_id_decorator_1.UserId)()),
     __param(3, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, write_tags_dto_1.WriteTagsDto, Object, Object]),
+    __metadata("design:paramtypes", [String, write_tags_dto_1.WriteTagsDto, String, Object]),
     __metadata("design:returntype", Promise)
 ], FilesController.prototype, "writeTags", null);
 __decorate([
@@ -161,22 +163,23 @@ __decorate([
     __param(0, (0, common_1.Param)('fileId')),
     __param(1, (0, common_1.Body)()),
     __param(2, (0, common_1.UploadedFile)()),
-    __param(3, (0, current_user_decorator_1.CurrentUser)()),
+    __param(3, (0, user_id_decorator_1.UserId)()),
     __param(4, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, write_tags_dto_1.WriteTagsDto, Object, Object, Object]),
+    __metadata("design:paramtypes", [String, write_tags_dto_1.WriteTagsDto, Object, String, Object]),
     __metadata("design:returntype", Promise)
 ], FilesController.prototype, "writeTagsWithCover", null);
 __decorate([
     (0, common_1.Delete)(':fileId'),
     __param(0, (0, common_1.Param)('fileId')),
-    __param(1, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, user_id_decorator_1.UserId)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], FilesController.prototype, "deleteFile", null);
 exports.FilesController = FilesController = __decorate([
     (0, common_1.Controller)('files'),
+    (0, common_2.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [files_service_1.FilesService])
 ], FilesController);
 //# sourceMappingURL=files.controller.js.map

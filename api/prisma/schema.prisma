@@ -17,13 +17,10 @@ datasource db {
 model User {
   id           String    @id @default(cuid())
   email        String    @unique
-  passwordHash String?   // Null if using OAuth only
-  name         String?
+  passwordHash String    // Required for classic auth
+  name         String?   // Optional
+  lastName     String?   // Optional
   avatarUrl    String?
-
-  // OAuth providers
-  googleId String? @unique
-  githubId String? @unique
 
   // Subscription (Stripe)
   stripeCustomerId   String?             @unique

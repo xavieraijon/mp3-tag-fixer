@@ -2,18 +2,18 @@ import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { TrackStatus } from '@prisma/client';
-import type { ClerkUser } from '../auth/clerk.service';
 export declare class TracksController {
     private readonly tracksService;
     constructor(tracksService: TracksService);
-    create(user: ClerkUser, dto: CreateTrackDto): Promise<{
+    create(userId: string, dto: CreateTrackDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -21,7 +21,6 @@ export declare class TracksController {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -32,16 +31,17 @@ export declare class TracksController {
         status: import(".prisma/client").$Enums.TrackStatus;
         processedAt: Date | null;
     }>;
-    createMany(user: ClerkUser, tracks: CreateTrackDto[]): Promise<import(".prisma/client").Prisma.BatchPayload>;
-    findAll(user: ClerkUser, status?: TrackStatus, search?: string, skip?: number, take?: number): Promise<{
+    createMany(userId: string, tracks: CreateTrackDto[]): Promise<import(".prisma/client").Prisma.BatchPayload>;
+    findAll(userId: string, status?: TrackStatus, search?: string, skip?: number, take?: number): Promise<{
         tracks: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            userId: string;
+            year: number | null;
             title: string | null;
             artist: string | null;
             album: string | null;
-            year: number | null;
             bpm: number | null;
             albumArtist: string | null;
             genre: string | null;
@@ -49,7 +49,6 @@ export declare class TracksController {
             label: string | null;
             composer: string | null;
             comment: string | null;
-            userId: string;
             searchQuery: string | null;
             originalFilename: string;
             fileHash: string | null;
@@ -62,19 +61,20 @@ export declare class TracksController {
         }[];
         total: number;
     }>;
-    getStats(user: ClerkUser): Promise<{
+    getStats(userId: string): Promise<{
         total: number;
         byStatus: Record<string, number>;
     }>;
-    findDuplicates(user: ClerkUser, fileHash: string): Promise<{
+    findDuplicates(userId: string, fileHash: string): Promise<{
         duplicates: {
             id: string;
             createdAt: Date;
             updatedAt: Date;
+            userId: string;
+            year: number | null;
             title: string | null;
             artist: string | null;
             album: string | null;
-            year: number | null;
             bpm: number | null;
             albumArtist: string | null;
             genre: string | null;
@@ -82,7 +82,6 @@ export declare class TracksController {
             label: string | null;
             composer: string | null;
             comment: string | null;
-            userId: string;
             searchQuery: string | null;
             originalFilename: string;
             fileHash: string | null;
@@ -95,14 +94,15 @@ export declare class TracksController {
         }[];
         count: number;
     }>;
-    findOne(user: ClerkUser, id: string): Promise<{
+    findOne(userId: string, id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -110,7 +110,6 @@ export declare class TracksController {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -121,14 +120,15 @@ export declare class TracksController {
         status: import(".prisma/client").$Enums.TrackStatus;
         processedAt: Date | null;
     }>;
-    update(user: ClerkUser, id: string, dto: UpdateTrackDto): Promise<{
+    update(userId: string, id: string, dto: UpdateTrackDto): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -136,7 +136,6 @@ export declare class TracksController {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -147,14 +146,15 @@ export declare class TracksController {
         status: import(".prisma/client").$Enums.TrackStatus;
         processedAt: Date | null;
     }>;
-    markAsProcessed(user: ClerkUser, id: string): Promise<{
+    markAsProcessed(userId: string, id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -162,7 +162,6 @@ export declare class TracksController {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;
@@ -173,18 +172,19 @@ export declare class TracksController {
         status: import(".prisma/client").$Enums.TrackStatus;
         processedAt: Date | null;
     }>;
-    updateManyStatus(user: ClerkUser, body: {
+    updateManyStatus(userId: string, body: {
         ids: string[];
         status: TrackStatus;
     }): Promise<import(".prisma/client").Prisma.BatchPayload>;
-    remove(user: ClerkUser, id: string): Promise<{
+    remove(userId: string, id: string): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        userId: string;
+        year: number | null;
         title: string | null;
         artist: string | null;
         album: string | null;
-        year: number | null;
         bpm: number | null;
         albumArtist: string | null;
         genre: string | null;
@@ -192,7 +192,6 @@ export declare class TracksController {
         label: string | null;
         composer: string | null;
         comment: string | null;
-        userId: string;
         searchQuery: string | null;
         originalFilename: string;
         fileHash: string | null;

@@ -1,4 +1,4 @@
 export * from './auth.module';
-export * from './clerk.service';
+export * from './auth.service';
 export * from './decorators';
-export * from './guards/clerk-auth.guard';
+export * from './guards/jwt-auth.guard';

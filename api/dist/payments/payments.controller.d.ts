@@ -1,16 +1,17 @@
 import { PaymentsService } from './payments.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
-import type { ClerkUser } from '../auth/clerk.service';
+import { UsersService } from '../users/users.service';
 export declare class PaymentsController {
     private readonly paymentsService;
-    constructor(paymentsService: PaymentsService);
+    private readonly usersService;
+    constructor(paymentsService: PaymentsService, usersService: UsersService);
     getPlans(): Promise<{
         id: string;
         name: string;
         price: number;
         interval: string;
     }[]>;
-    getStatus(user: ClerkUser): Promise<{
+    getStatus(userId: string): Promise<{
         status: import(".prisma/client").$Enums.SubscriptionStatus;
         endsAt: Date | null;
         subscription: {
@@ -21,14 +22,14 @@ export declare class PaymentsController {
             plan: any;
         } | null;
     }>;
-    createCheckout(user: ClerkUser, dto: CreateCheckoutDto): Promise<{
+    createCheckout(userId: string, dto: CreateCheckoutDto): Promise<{
         sessionId: string;
         url: string;
     }>;
-    createPortal(user: ClerkUser): Promise<{
+    createPortal(userId: string): Promise<{
         url: string;
     }>;
-    cancelSubscription(user: ClerkUser): Promise<{
+    cancelSubscription(userId: string): Promise<{
         message: string;
     }>;
     handleWebhook(signature: string, payload: Buffer): Promise<{

@@ -226,6 +226,7 @@ export class StringUtilsService {
 
   /**
    * Checks if a string looks like a raw filename (not a proper tag).
+   * A proper tag should be either a pure artist OR a pure title, not both combined.
    */
   looksLikeFilename(tag: string): boolean {
     // Too long for a real title/artist
@@ -262,6 +263,20 @@ export class StringUtilsService {
     // Pattern: word-word-numbers (3+ parts separated by hyphens with numeric ending)
     if (/^[A-Za-z].*-[A-Za-z].*-\d/.test(tag)) return true;
 
+    // NEW: Looks like "Artist - Title" pattern (single separator with content on both sides)
+    // A proper title shouldn't contain " - " with substantial content on both sides
+    const dashParts = tag.split(' - ');
+    if (dashParts.length === 2) {
+      const left = dashParts[0].trim();
+      const right = dashParts[1].trim();
+      // Both parts have meaningful content (at least 2 chars each)
+      // This indicates it's likely "Artist - Title" and not a standalone tag
+      if (left.length >= 2 && right.length >= 2 &&
+          /^[A-Za-z]/.test(left) && /^[A-Za-z]/.test(right)) {
+        return true;
+      }
+    }
+
     return false;
   }
 
@@ -271,5 +286,206 @@ export class StringUtilsService {
   isValidTag(tag: string | undefined): boolean {
     if (!tag || tag.trim().length < 2) return false;
     return !this.looksLikeFilename(tag);
+  }
+
+  /**
+   * Fixes common typos by reducing repeated letters.
+   * Examples: "Twoo" → "Two", "Goood" → "Good", "Daaance" → "Dance"
+   *
+   * Strategy: Process word by word to avoid breaking legitimate double letters
+   * like "good", "cool", "bass", etc.
+   */
+  fixRepeatedLetters(str: string): string[] {
+    const variants: string[] = [str];
+
+    // Common words with legitimate double letters that should NOT be reduced
+    const legitimateDoubles = new Set([
+      'good', 'cool', 'bass', 'boom', 'mood', 'room', 'doom', 'zoom',
+      'free', 'feel', 'need', 'feed', 'speed', 'seen', 'been', 'keen',
+      'deep', 'keep', 'sleep', 'sweet', 'street', 'meet', 'feet',
+      'all', 'call', 'fall', 'ball', 'wall', 'hall', 'tall', 'small',
+      'full', 'pull', 'bull', 'still', 'will', 'kill', 'fill', 'chill',
+      'miss', 'kiss', 'pass', 'mass', 'lass', 'glass', 'class', 'grass',
+      'off', 'stuff', 'buff', 'puff', 'tuff', 'riff', 'stiff',
+      'add', 'odd', 'buzz', 'jazz', 'fizz', 'fuzz',
+      'groove', 'smooth', 'loop', 'roof', 'proof', 'tool', 'pool', 'fool',
+      'teen', 'green', 'queen', 'scene', 'screen',
+      'wood', 'hood', 'food', 'blood', 'flood',
+      'book', 'look', 'hook', 'took', 'cook', 'shook',
+      'poor', 'door', 'floor', 'moor',
+      'too', 'boo', 'woo', 'zoo', 'goo',
+      'bee', 'see', 'fee', 'lee', 'tee', 'wee',
+      'ill', 'bell', 'cell', 'dell', 'fell', 'hell', 'jell', 'sell', 'tell', 'well', 'yell', 'spell', 'smell', 'shell', 'swell', 'dwell',
+    ]);
+
+    // Process each word separately
+    const words = str.split(/(\s+)/); // Keep spaces
+    const fixedWords: string[][] = [];
+
+    for (const word of words) {
+      if (/^\s+$/.test(word)) {
+        // It's whitespace, keep as is
+        fixedWords.push([word]);
+        continue;
+      }
+
+      const wordLower = word.toLowerCase();
+      const wordVariants: string[] = [word];
+
+      // Check if this word has suspicious repeated letters (3+ or unusual doubles)
+      const hasTriple = /(.)\1{2,}/i.test(word);
+      const hasDouble = /(.)\1/i.test(word);
+
+      if (hasTriple || hasDouble) {
+        // Only fix if the word is NOT a legitimate double-letter word
+        if (!legitimateDoubles.has(wordLower)) {
+          // Try reducing triple+ to single
+          if (hasTriple) {
+            const reduced = word.replace(/(.)\1{2,}/gi, '$1');
+            if (reduced !== word) wordVariants.push(reduced);
+
+            // Also try triple to double
+            const toDouble = word.replace(/(.)\1{2,}/gi, '$1$1');
+            if (toDouble !== word && toDouble !== reduced) wordVariants.push(toDouble);
+          }
+
+          // Try reducing double to single (only if not legitimate)
+          if (hasDouble) {
+            const reduced = word.replace(/(.)\1/gi, '$1');
+            if (reduced !== word && !wordVariants.includes(reduced)) {
+              wordVariants.push(reduced);
+            }
+          }
+        }
+      }
+
+      fixedWords.push([...new Set(wordVariants)]);
+    }
+
+    // Generate all combinations of word variants
+    const generateCombinations = (arrays: string[][], index = 0, current = ''): string[] => {
+      if (index === arrays.length) return [current];
+      const results: string[] = [];
+      for (const variant of arrays[index]) {
+        results.push(...generateCombinations(arrays, index + 1, current + variant));
+      }
+      return results;
+    };
+
+    const allVariants = generateCombinations(fixedWords);
+    return [...new Set([str, ...allVariants])].filter(v => v.length > 0);
+  }
+
+  /**
+   * Generates fuzzy variants for a search term.
+   * Handles common typos and variations.
+   */
+  generateFuzzyVariants(str: string): string[] {
+    if (!str || str.length < 2) return [str];
+
+    const variants: string[] = [str];
+
+    // 1. Fix repeated letters (e.g., "Twoo" → "Two")
+    const repeatedFixed = this.fixRepeatedLetters(str);
+    variants.push(...repeatedFixed);
+
+    // 2. Apply typo fixes to all current variants
+    const allCurrentVariants = [...variants];
+    for (const v of allCurrentVariants) {
+      // Common letter substitutions (typos)
+      const typoMappings: [RegExp, string][] = [
+        [/ph/gi, 'f'],      // "Phat" → "Fat"
+        [/f/gi, 'ph'],      // "Fat" → "Phat"
+        [/ck/gi, 'k'],      // "Teck" → "Tek"
+        [/k(?=[aeiou])/gi, 'c'], // "Kore" → "Core"
+        [/c(?=[aeiou])/gi, 'k'], // "Core" → "Kore"
+        [/y$/i, 'ie'],      // "Party" → "Partie"
+        [/ie$/i, 'y'],      // "Partie" → "Party"
+        [/x/gi, 'ks'],      // "Max" → "Maks"
+        [/ks/gi, 'x'],      // "Maks" → "Max"
+      ];
+
+      for (const [pattern, replacement] of typoMappings) {
+        const variant = v.replace(pattern, replacement);
+        if (variant !== v && !variants.includes(variant)) {
+          variants.push(variant);
+        }
+      }
+    }
+
+    // 3. Number/word substitutions (common in electronic music)
+    const numberWords: [RegExp, string][] = [
+      [/\btwo\b/gi, '2'],       // "Two Good" → "2 Good"
+      [/\b2\b/g, 'Two'],       // "2 Good" → "Two Good"
+      [/\bone\b/gi, '1'],
+      [/\b1\b/g, 'One'],
+      [/\bthree\b/gi, '3'],
+      [/\b3\b/g, 'Three'],
+      [/\bfour\b/gi, '4'],
+      [/\b4\b/g, 'Four'],
+      [/\bfor\b/gi, '4'],      // "4 U" style
+      [/\bto\b/gi, '2'],       // "2 U" style
+      [/\byou\b/gi, 'U'],
+      [/\bu\b/gi, 'You'],
+      [/\bare\b/gi, 'R'],      // "People R" style
+      [/\br\b/gi, 'Are'],
+    ];
+
+    const variantsForNumbers = [...variants];
+    for (const v of variantsForNumbers) {
+      for (const [pattern, replacement] of numberWords) {
+        const variant = v.replace(pattern, replacement);
+        if (variant !== v && !variants.includes(variant)) {
+          variants.push(variant);
+        }
+      }
+    }
+
+    // 4. Common word simplifications for DJ names
+    const words = str.split(/\s+/);
+    if (words.length >= 2) {
+      // Try without spaces: "Two Good" → "TwoGood"
+      variants.push(words.join(''));
+
+      // Try with hyphen: "Two Good" → "Two-Good"
+      variants.push(words.join('-'));
+
+      // Try with single initial: "Two Good" → "T. Good" or "T Good"
+      const withInitial = words[0][0] + '. ' + words.slice(1).join(' ');
+      variants.push(withInitial);
+      variants.push(words[0][0] + ' ' + words.slice(1).join(' '));
+    }
+
+    // Limit to reasonable number of variants
+    return [...new Set(variants.filter(v => v.length > 0))].slice(0, 15);
+  }
+
+  /**
+   * Calculates if two strings are "close enough" considering typos.
+   * Returns true if similarity is above threshold after trying fuzzy variants.
+   */
+  areSimilarWithTypos(str1: string, str2: string, threshold = 0.7): boolean {
+    // Direct comparison
+    const directSim = this.calculateStringSimilarity(
+      this.normalizeArtistForComparison(str1),
+      this.normalizeArtistForComparison(str2)
+    );
+    if (directSim >= threshold) return true;
+
+    // Try fuzzy variants
+    const variants1 = this.generateFuzzyVariants(str1);
+    const variants2 = this.generateFuzzyVariants(str2);
+
+    for (const v1 of variants1) {
+      for (const v2 of variants2) {
+        const sim = this.calculateStringSimilarity(
+          this.normalizeArtistForComparison(v1),
+          this.normalizeArtistForComparison(v2)
+        );
+        if (sim >= threshold) return true;
+      }
+    }
+
+    return false;
   }
 }

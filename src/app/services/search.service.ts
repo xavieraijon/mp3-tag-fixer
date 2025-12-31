@@ -90,6 +90,43 @@ export class SearchService {
     const titleVariants = this.stringUtils.normalizeTitleForSearch(title);
     const titleParsed = this.stringUtils.extractParenthesisInfo(title);
 
+    // === PHASE 0.5: TYPO-CORRECTED SEARCH (high priority) ===
+    // Generate variants that fix common typos like "Twoo" -> "Two"
+    const fuzzyArtistVariants = this.stringUtils.generateFuzzyVariants(artist);
+    console.log(`[SearchService] Fuzzy artist variants for "${artist}":`, fuzzyArtistVariants);
+
+    for (const fuzzyArtist of fuzzyArtistVariants.slice(1, 5)) { // Skip original (already in phase 0)
+      // Query search with fixed artist
+      strategies.push({
+        type: 'query',
+        artist: '',
+        title: `${fuzzyArtist} - ${title}`,
+        searchType: 'all',
+        description: `Typo-fix: "${fuzzyArtist} - ${title}"`,
+        priority: priority++
+      });
+
+      // Track search with fixed artist
+      strategies.push({
+        type: 'track',
+        artist: fuzzyArtist,
+        title: title,
+        searchType: 'all',
+        description: `Typo-fix track: "${fuzzyArtist}" - "${title}"`,
+        priority: priority++
+      });
+
+      // Release search with fixed artist (artist only - important!)
+      strategies.push({
+        type: 'release',
+        artist: fuzzyArtist,
+        title: '',
+        searchType: 'master',
+        description: `Typo-fix artist only: "${fuzzyArtist}"`,
+        priority: priority++
+      });
+    }
+
     // === PHASE 1: Base title searches (without parentheses) ===
     if (titleParsed.base !== title && titleParsed.base.length > 2) {
       strategies.push({
@@ -251,10 +288,29 @@ export class SearchService {
     const normalizedResultArtist = this.stringUtils.normalizeArtistForComparison(resultArtist);
     const normalizedSearchArtist = this.stringUtils.normalizeArtistForComparison(searchArtist);
 
-    const artistSimilarity = this.stringUtils.calculateStringSimilarity(
+    // Direct similarity
+    let artistSimilarity = this.stringUtils.calculateStringSimilarity(
       normalizedResultArtist,
       normalizedSearchArtist
     );
+
+    // If direct similarity is low, try fuzzy variants (handles typos like "Twoo" -> "Two")
+    if (artistSimilarity < 0.7) {
+      const searchFuzzy = this.stringUtils.generateFuzzyVariants(searchArtist);
+      const resultFuzzy = this.stringUtils.generateFuzzyVariants(resultArtist);
+
+      for (const sf of searchFuzzy) {
+        for (const rf of resultFuzzy) {
+          const fuzzySim = this.stringUtils.calculateStringSimilarity(
+            this.stringUtils.normalizeArtistForComparison(sf),
+            this.stringUtils.normalizeArtistForComparison(rf)
+          );
+          if (fuzzySim > artistSimilarity) {
+            artistSimilarity = fuzzySim;
+          }
+        }
+      }
+    }
 
     let artistScore = 0;
     if (artistSimilarity >= 0.85) {
@@ -265,7 +321,10 @@ export class SearchService {
       artistScore = 30;
     } else if (artistSimilarity >= 0.4) {
       artistScore = 15;
+    } else if (artistSimilarity >= 0.3) {
+      artistScore = 5;
     }
+    // Note: artistSimilarity < 0.3 means artist doesn't match at all → 0 points
     score += artistScore;
 
     // === TITLE MATCHING (0-30 points) ===
@@ -295,13 +354,28 @@ export class SearchService {
       }
     }
 
-    // Penalty: if artist doesn't match well, limit title points
-    if (artistSimilarity < 0.5) {
-      titleScore = Math.min(titleScore, 10);
+    // === ARTIST PENALTY (critical for correct matching) ===
+    // If artist doesn't match well, heavily penalize title score
+    // This prevents wrong artists from ranking high just because title has common words
+    if (artistSimilarity < 0.3) {
+      // Artist is completely wrong - only give minimal title points
+      titleScore = Math.min(titleScore, 3);
+    } else if (artistSimilarity < 0.5) {
+      // Artist is questionable - limit title contribution
+      titleScore = Math.min(titleScore, 8);
     }
+
+    // Extra penalty for short/generic titles with wrong artist
+    // Short titles like "People Are" are very common - artist must match well
+    const titleWords = baseTitle.split(/\s+/).filter(w => w.length > 2);
+    if (titleWords.length <= 2 && artistSimilarity < 0.6) {
+      // Short title + wrong artist = heavily penalize
+      titleScore = Math.min(titleScore, 2);
+    }
+
     score += titleScore;
 
-    // === BONUS POINTS (0-10 points) ===
+    // === BONUS POINTS (0-15 points) ===
     if (result.year) score += 2;
     if (result.type === 'master') score += 2;
     if (result.thumb || result.cover_image) score += 1;
@@ -311,8 +385,15 @@ export class SearchService {
       score += 3;
     }
 
+    // Bonus for good artist + title containing base
     if (artistSimilarity >= 0.7 && resultTitleLower.includes(baseTitle)) {
-      score += 2;
+      score += 5;
+    }
+
+    // Bonus: Artist matched after typo correction (fuzzy match success)
+    // This rewards finding "Two Good" when searching "Twoo good"
+    if (artistSimilarity >= 0.85) {
+      score += 5; // Strong artist match bonus
     }
 
     return Math.round(score);

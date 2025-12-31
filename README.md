@@ -1,59 +1,278 @@
-# Mp3Fixer
+# MP3 Tag Fixer
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.4.
+A modern web application for automatically fixing and enriching MP3 file metadata using the Discogs music database.
 
-## Development server
+![Angular](https://img.shields.io/badge/Angular-21-dd0031?logo=angular)
+![NestJS](https://img.shields.io/badge/NestJS-10-e0234e?logo=nestjs)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178c6?logo=typescript)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169e1?logo=postgresql)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-To start a local development server, run:
+## Features
 
-```bash
-ng serve
-```
+- **Drag & Drop Upload** - Simply drag MP3 files into the browser
+- **Automatic Tag Reading** - Extracts existing ID3 tags and parses filenames
+- **Smart Search** - Multi-strategy search algorithm with 60+ fallback strategies
+- **Discogs Integration** - Search releases, masters, and tracks from Discogs database
+- **Track Matching** - Intelligent matching of files to tracklist entries
+- **Cover Art** - Fetch and embed high-quality album artwork
+- **BPM Detection** - Automatic tempo detection using Web Audio API
+- **Batch Processing** - Process multiple files and download as ZIP
+- **Tag Editor** - Manual editing with real-time preview
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Tech Stack
 
-## Code scaffolding
+### Frontend
+- **Framework:** Angular 21 (standalone components, signals, zoneless)
+- **Build:** Vite via Angular CLI
+- **Styling:** TailwindCSS
+- **Testing:** Vitest
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### Backend
+- **Framework:** NestJS 10
+- **Database:** PostgreSQL 16 with Prisma ORM
+- **Auth:** Clerk (Passkeys, OAuth, WebAuthn)
+- **Payments:** Stripe (subscriptions)
 
-```bash
-ng generate component component-name
-```
+## Quick Start
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### Prerequisites
 
-```bash
-ng generate --help
-```
+- Node.js 20+
+- Docker (or PostgreSQL locally)
+- npm or pnpm
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+### Installation
 
 ```bash
-ng e2e
+# Clone the repository
+git clone https://github.com/yourusername/mp3-tag-fixer.git
+cd mp3-tag-fixer
+
+# Install frontend dependencies
+npm install
+
+# Install backend dependencies
+cd api
+npm install
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Database Setup
 
-## Additional Resources
+```bash
+# Option 1: Using Docker (recommended)
+cd api
+docker-compose up -d
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+# Option 2: Using Colima (lightweight Docker alternative for macOS)
+brew install colima
+colima start
+docker-compose up -d
+```
+
+### Environment Variables
+
+Create `api/.env`:
+
+```env
+# Database
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mp3tagfixer?schema=public"
+
+# Clerk Auth (https://dashboard.clerk.com)
+CLERK_SECRET_KEY="sk_test_..."
+
+# Discogs API (https://www.discogs.com/settings/developers)
+DISCOGS_CONSUMER_KEY="your_key"
+DISCOGS_CONSUMER_SECRET="your_secret"
+
+# Stripe (optional, for payments)
+STRIPE_SECRET_KEY=""
+STRIPE_WEBHOOK_SECRET=""
+
+# App
+PORT=3000
+FRONTEND_URL="http://localhost:4200"
+```
+
+### Run Migrations
+
+```bash
+cd api
+npx prisma migrate dev
+```
+
+### Start Development Servers
+
+```bash
+# Terminal 1: Backend
+cd api
+npm run start:dev
+
+# Terminal 2: Frontend
+npm start
+```
+
+Open http://localhost:4200
+
+## Project Structure
+
+```
+mp3-tag-fixer/
+├── src/                          # Angular Frontend
+│   ├── app/
+│   │   ├── components/           # Standalone components
+│   │   │   ├── dropzone/         # File upload zone
+│   │   │   ├── file-card/        # File display & controls
+│   │   │   ├── filter-bar/       # Search & bulk actions
+│   │   │   ├── tag-editor/       # Modal tag editor
+│   │   │   └── snackbar/         # Notifications
+│   │   ├── services/             # Business logic
+│   │   │   ├── discogs.service.ts
+│   │   │   ├── search.service.ts
+│   │   │   ├── file-processor.service.ts
+│   │   │   └── track-matcher.service.ts
+│   │   ├── models/               # TypeScript interfaces
+│   │   └── store/                # Signal-based state
+│   └── styles.css                # Global styles
+│
+├── api/                          # NestJS Backend
+│   ├── src/
+│   │   ├── auth/                 # Clerk authentication
+│   │   ├── users/                # User management
+│   │   ├── files/                # MP3 upload & processing
+│   │   ├── discogs/              # Discogs API proxy
+│   │   ├── tracks/               # Track history CRUD
+│   │   ├── payments/             # Stripe integration
+│   │   └── prisma/               # Database service
+│   ├── prisma/
+│   │   └── schema.prisma         # Database schema
+│   └── docker-compose.yml        # PostgreSQL container
+│
+├── proxy.conf.json               # Dev proxy config
+└── package.json
+```
+
+## API Endpoints
+
+### Discogs (Public)
+```
+GET  /api/discogs/search?q=query           # General search
+GET  /api/discogs/search/smart             # Multi-strategy search
+GET  /api/discogs/search/release           # Search by artist/release
+GET  /api/discogs/search/track             # Search by track name
+GET  /api/discogs/release/:id              # Release details
+GET  /api/discogs/master/:id               # Master details
+GET  /api/discogs/image?url=               # Image proxy (CORS)
+```
+
+### Files (Auth Required)
+```
+POST /api/files/upload                     # Upload MP3
+GET  /api/files/:id/tags                   # Read tags
+POST /api/files/:id/write-tags             # Write tags
+```
+
+### Tracks (Auth Required)
+```
+GET    /api/tracks                         # List user tracks
+POST   /api/tracks                         # Save track
+GET    /api/tracks/stats                   # User statistics
+PATCH  /api/tracks/:id                     # Update track
+DELETE /api/tracks/:id                     # Delete track
+```
+
+### Payments (Mixed)
+```
+GET  /api/payments/plans                   # Available plans (public)
+GET  /api/payments/status                  # Subscription status
+POST /api/payments/checkout                # Create checkout session
+POST /api/payments/portal                  # Customer portal
+POST /api/payments/webhook                 # Stripe webhook (public)
+```
+
+## How It Works
+
+1. **Upload** - User drops MP3 files into the browser
+2. **Parse** - App reads existing ID3 tags and filename
+3. **Search** - Multi-strategy search queries Discogs API
+4. **Match** - Algorithm scores and ranks results (0-100)
+5. **Select** - User picks release, app fetches tracklist
+6. **Auto-Match** - Tracks are matched to files by title similarity
+7. **Edit** - User can manually adjust tags, detect BPM
+8. **Download** - File is re-encoded with ID3v2.4 tags
+
+## Search Algorithm
+
+The search service generates 60+ strategies including:
+
+- Direct query: `"Artist - Title"`
+- Track search with artist variants
+- Release search (master/release)
+- Base title (without parentheses/remix info)
+- Artist name normalization (DJ prefixes, dots, hyphens)
+- Swapped artist/title fallback
+
+Each result is scored (0-100) based on:
+- Artist similarity (0-60 points)
+- Title match (0-30 points)
+- Metadata bonuses (year, cover, genre)
+
+Search stops early when score >= 70 (excellent match).
+
+## Development
+
+### Frontend Commands
+
+```bash
+npm start          # Dev server (localhost:4200)
+npm run build      # Production build
+npm test           # Run Vitest tests
+```
+
+### Backend Commands
+
+```bash
+cd api
+npm run start:dev  # Dev server with watch
+npm run build      # Production build
+npx prisma studio  # Database GUI
+```
+
+### Code Style
+
+- Angular 21 patterns: standalone components, signals, `@if`/`@for`
+- NestJS modules with dependency injection
+- TypeScript strict mode
+- Prettier + ESLint
+
+## Roadmap
+
+- [x] Core tag editing functionality
+- [x] Discogs integration
+- [x] Backend API with NestJS
+- [x] User authentication (Clerk)
+- [x] Track history
+- [x] Stripe payments
+- [ ] AI-powered search (AcoustID + Groq LLM)
+- [ ] MusicBrainz integration
+- [ ] Batch processing improvements
+- [ ] Mobile-responsive redesign
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
+
+## Acknowledgments
+
+- [Discogs](https://www.discogs.com/) for the music database API
+- [Angular](https://angular.dev/) team for the amazing framework
+- [NestJS](https://nestjs.com/) for the backend framework
+- [Clerk](https://clerk.com/) for authentication

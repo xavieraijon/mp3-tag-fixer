@@ -20,151 +20,107 @@
 
   <!-- Body Content -->
   <div class="space-y-4">
-    <!-- Artist & Title Row -->
-    <div class="grid grid-cols-2 gap-4">
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Artist</label>
-        <input
-          type="text"
-          [ngModel]="artist()"
-          (ngModelChange)="artist.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="Artist Name"
-        />
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</label>
-        <input
-          type="text"
-          [ngModel]="title()"
-          (ngModelChange)="title.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+    <div class="grid grid-cols-12 gap-4">
+
+      <!-- Row 1: Title (8) + Track (2) + Disc (2) -->
+      <div class="col-span-8 space-y-1.5">
+        <app-input
+          label="Title"
+          [(value)]="title"
           placeholder="Track Title"
-        />
+        ></app-input>
       </div>
-    </div>
-
-    <!-- Album & Year Row -->
-    <div class="grid grid-cols-2 gap-4">
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Album</label>
-        <input
-          type="text"
-          [ngModel]="album()"
-          (ngModelChange)="album.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="Album Name"
-        />
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Year</label>
-        <input
+      <div class="col-span-2 space-y-1.5">
+         <app-input
+          label="Track"
+          [(value)]="trackNumber"
           type="number"
-          [ngModel]="year()"
-          (ngModelChange)="year.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="YYYY"
-        />
-      </div>
-    </div>
-
-    <!-- Genre & BPM Row -->
-    <div class="grid grid-cols-2 gap-4">
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Genre</label>
-        <input
-          type="text"
-          [ngModel]="genre()"
-          (ngModelChange)="genre.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="Genre"
-        />
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">BPM</label>
-        <input
-          type="number"
-          [ngModel]="bpm()"
-          (ngModelChange)="bpm.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="128"
-        />
-      </div>
-    </div>
-
-    <!-- Label & Album Artist Row -->
-    <div class="grid grid-cols-2 gap-4">
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Label</label>
-        <input
-          type="text"
-          [ngModel]="label()"
-          (ngModelChange)="label.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="Record Label"
-        />
-      </div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-          >Album Artist</label
-        >
-        <input
-          type="text"
-          [ngModel]="albumArtist()"
-          (ngModelChange)="albumArtist.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="Album Artist"
-        />
-      </div>
-    </div>
-
-    <!-- Track & Disc Number Row -->
-    <div class="grid grid-cols-3 gap-4">
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Track #</label>
-        <input
-          type="number"
-          [ngModel]="trackNumber()"
-          (ngModelChange)="trackNumber.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
           placeholder="1"
-          min="1"
-        />
+        ></app-input>
       </div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Disc #</label>
-        <input
-          type="text"
-          [ngModel]="discNumber()"
-          (ngModelChange)="discNumber.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="1/2"
-        />
+      <div class="col-span-2 space-y-1.5">
+        <app-input
+          label="Disc"
+          [(value)]="discNumber"
+          placeholder="1/1"
+        ></app-input>
       </div>
-      <div class="space-y-1.5">
-        <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider"
-          >Composer</label
-        >
-        <input
-          type="text"
-          [ngModel]="composer()"
-          (ngModelChange)="composer.set($event)"
-          class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-          placeholder="Composer"
-        />
-      </div>
-    </div>
 
-    <!-- Comment Row -->
-    <div class="space-y-1.5">
-      <label class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Comment</label>
-      <textarea
-        [ngModel]="comment()"
-        (ngModelChange)="comment.set($event)"
-        rows="2"
-        class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all resize-none"
-        placeholder="Additional notes..."
-      ></textarea>
+      <!-- Row 2: Artist (6) + Album Artist (6) -->
+      <div class="col-span-6 space-y-1.5">
+        <app-input
+          label="Artist"
+          [(value)]="artist"
+          placeholder="Artist Name"
+        ></app-input>
+      </div>
+      <div class="col-span-6 space-y-1.5">
+        <app-input
+          label="Album Artist"
+          [(value)]="albumArtist"
+          placeholder="Album Artist"
+        ></app-input>
+      </div>
+
+      <!-- Row 3: Album (8) + Year (4) -->
+      <div class="col-span-8 space-y-1.5">
+        <app-input
+          label="Album"
+          [(value)]="album"
+          placeholder="Album Name"
+        ></app-input>
+      </div>
+      <div class="col-span-4 space-y-1.5">
+         <app-input
+          label="Year"
+          [(value)]="year"
+          type="number"
+          placeholder="2024"
+        ></app-input>
+      </div>
+
+      <!-- Row 4: Genre (5) + BPM (2) + Label (5) -->
+      <div class="col-span-5 space-y-1.5">
+        <app-input
+          label="Genre"
+          [(value)]="genre"
+          placeholder="Genre"
+        ></app-input>
+      </div>
+      <div class="col-span-2 space-y-1.5">
+         <app-input
+          label="BPM"
+          [(value)]="bpm"
+          type="number"
+          placeholder="120"
+        ></app-input>
+      </div>
+      <div class="col-span-5 space-y-1.5">
+        <app-input
+          label="Label"
+          [(value)]="label"
+          placeholder="Record Label"
+        ></app-input>
+      </div>
+
+      <!-- Row 5: Composer (12) -->
+      <div class="col-span-12 space-y-1.5">
+        <app-input
+          label="Composer"
+          [(value)]="composer"
+          placeholder="Composer Name"
+        ></app-input>
+      </div>
+
+      <!-- Row 6: Comment (12) -->
+      <div class="col-span-12 space-y-1.5">
+        <app-input
+          label="Comment"
+          [(value)]="comment"
+          placeholder="Add a comment..."
+        ></app-input>
+      </div>
+
     </div>
   </div>
 

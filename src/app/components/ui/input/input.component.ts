@@ -49,7 +49,7 @@ export class InputComponent {
   hint = input<string>('');
 
   // Model
-  value = model<string>('');
+  value = model<string | number | undefined>('');
 
   handleInput(event: Event) {
     const target = event.target as HTMLInputElement;

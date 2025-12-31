@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { Mp3Tags } from '../../models/mp3-tags.model';
+import { ModalComponent } from '../ui/modal/modal.component';
+import { ButtonComponent } from '../ui/button/button.component';
 
 @Component({
   selector: 'app-tag-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent],
   templateUrl: './tag-editor.component.html',
   styleUrl: './tag-editor.component.css'
 })

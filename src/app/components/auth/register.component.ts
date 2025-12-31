@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
-import { ModalComponent } from '../modal/modal.component';
+import { ModalComponent } from '../ui/modal/modal.component';
+import { ButtonComponent } from '../ui/button/button.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent],
   template: `
     <app-modal [title]="'Create Account'" (close)="close.emit()">
       <!-- Form -->
@@ -116,44 +117,39 @@ import { ModalComponent } from '../modal/modal.component';
             <p class="text-sm">{{ errorMessage() }}</p>
           </div>
         }
+      </form>
 
-        <!-- Switch to Login -->
-        <div class="text-center text-sm text-slate-600 mt-6">
+      <!-- Footer: Buttons -->
+      <ng-container footer>
+        <app-button variant="secondary" (click)="close.emit()" [disabled]="isLoading()">
+          Cancel
+        </app-button>
+        <app-button
+          variant="primary"
+          type="submit"
+          (click)="onSubmit()"
+          [disabled]="!canSubmit()"
+        >
+          @if (isLoading()) {
+            <lucide-icon name="loader-circle" [size]="16" class="animate-spin mr-2"></lucide-icon>
+            <span>Creating...</span>
+          } @else {
+            <lucide-icon name="user-plus" [size]="16" class="mr-2"></lucide-icon>
+            <span>Create Account</span>
+          }
+        </app-button>
+      </ng-container>
+
+      <!-- Sub-footer: Link to Login -->
+      <div sub-footer class="mt-2 text-slate-600">
           Already have an account?
           <button
             (click)="switchToLogin.emit()"
-            class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700"
+            class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700 focus:outline-none"
             type="button"
           >
             Sign in
           </button>
-        </div>
-      </form>
-
-      <!-- Footer: Buttons -->
-      <div footer class="flex justify-end gap-3">
-        <button
-          type="button"
-          (click)="close.emit()"
-          class="px-5 py-2.5 text-slate-600 hover:text-slate-800 font-medium hover:bg-white/50 rounded-xl transition-all"
-          [disabled]="isLoading()"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          form="register-form"
-          class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all disabled:opacity-50 flex items-center gap-2"
-          [disabled]="!canSubmit()"
-        >
-          @if (isLoading()) {
-            <lucide-icon name="loader-circle" [size]="16" class="animate-spin"></lucide-icon>
-            <span>Creating...</span>
-          } @else {
-            <lucide-icon name="user-plus" [size]="16"></lucide-icon>
-            <span>Create Account</span>
-          }
-        </button>
       </div>
     </app-modal>
   `,

@@ -6,49 +6,35 @@ import { AuthService } from '../../services/auth.service';
 import { ModalComponent } from '../ui/modal/modal.component';
 import { ButtonComponent } from '../ui/button/button.component';
 
+import { InputComponent } from '../ui/input/input.component';
+
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
   template: `
     <app-modal [title]="'Sign In'" (close)="close.emit()">
       <!-- Form -->
       <form id="login-form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Email -->
-        <div class="space-y-1.5">
-          <label for="email" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            [ngModel]="email()"
-            (ngModelChange)="email.set($event)"
-            name="email"
-            required
-            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-            placeholder="you@example.com"
-            [disabled]="isLoading()"
-          />
-        </div>
+        <app-input
+          label="Email"
+          type="email"
+          id="email"
+          [(value)]="email"
+          placeholder="you@example.com"
+          [disabled]="isLoading()"
+        ></app-input>
 
         <!-- Password -->
-        <div class="space-y-1.5">
-          <label for="password" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            [ngModel]="password()"
-            (ngModelChange)="password.set($event)"
-            name="password"
-            required
-            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-            placeholder="••••••••"
-            [disabled]="isLoading()"
-          />
-        </div>
+        <app-input
+          label="Password"
+          type="password"
+          id="password"
+          [(value)]="password"
+          placeholder="••••••••"
+          [disabled]="isLoading()"
+        ></app-input>
 
         <!-- Error Message -->
         @if (errorMessage()) {

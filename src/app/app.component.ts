@@ -30,6 +30,7 @@ import { TagEditorComponent } from './components/tag-editor/tag-editor.component
 import { SnackbarComponent } from './components/snackbar/snackbar.component';
 import { LoginComponent } from './components/auth/login.component';
 import { RegisterComponent } from './components/auth/register.component';
+import { ButtonComponent } from './components/ui/button/button.component';
 
 @Component({
   selector: 'app-root',
@@ -44,7 +45,8 @@ import { RegisterComponent } from './components/auth/register.component';
     TagEditorComponent,
     SnackbarComponent,
     LoginComponent,
-    RegisterComponent
+    RegisterComponent,
+    ButtonComponent
   ],
   templateUrl: './app.component.html'
 })

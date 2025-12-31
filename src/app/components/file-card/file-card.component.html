@@ -2,12 +2,17 @@
 <div class="group relative backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-5 shadow-xl shadow-black/5 hover:bg-white/25 hover:border-white/40 hover:shadow-2xl transition-all duration-300">
 
   <!-- Remove Button -->
-  <button
+  <!-- Remove Button -->
+  <app-button
       (click)="remove.emit()"
-      class="absolute -top-2 -right-2 p-1.5 backdrop-blur-md bg-white/30 text-slate-500 rounded-full hover:bg-red-500/80 hover:text-white opacity-0 group-hover:opacity-100 transition-all shadow-lg border border-white/20 z-10"
+      palette="red"
+      variant="glass"
+      shape="circle"
+      size="sm"
+      icon="x"
+      class="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all z-10 shadow-lg rounded-full"
       title="Remove file">
-      <lucide-icon name="x" class="w-3 h-3"></lucide-icon>
-  </button>
+  </app-button>
 
   <!-- Header Row: Cover/Status + Title + Info -->
   <div class="flex items-center gap-3 mb-4">
@@ -175,41 +180,47 @@
       <!-- Action Buttons -->
       <div class="flex items-center gap-2">
           <!-- Search Button -->
-          <button
+          <app-button
               (click)="search.emit()"
               [disabled]="item().status === 'searching'"
-              class="p-2.5 backdrop-blur-md bg-white/40 hover:bg-blue-500/20 text-slate-500 hover:text-blue-600 rounded-xl border border-white/50 hover:border-blue-400/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              palette="blue"
+              variant="glass"
+              shape="square"
+              icon="search"
               title="Search Discogs">
-              <lucide-icon name="search" class="w-4 h-4"></lucide-icon>
-          </button>
+          </app-button>
 
           <!-- BPM Button -->
-          <button
+          <app-button
               (click)="detectBpm.emit()"
-              [disabled]="item().isAnalyzingBpm"
-              class="flex items-center gap-1.5 px-3 py-2 backdrop-blur-md bg-white/40 hover:bg-purple-500/20 text-slate-500 hover:text-purple-600 rounded-xl border border-white/50 hover:border-purple-400/50 transition-all text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              [disabled]="!!item().isAnalyzingBpm"
+              palette="purple"
+              variant="glass"
+              icon="activity"
               title="Detect BPM">
-              <lucide-icon name="activity" class="w-3.5 h-3.5"></lucide-icon>
               {{ getEffectiveBpm() }}
-          </button>
+          </app-button>
 
           <!-- Edit Button -->
-          <button
+          <app-button
               (click)="edit.emit()"
-              class="p-2.5 backdrop-blur-md bg-white/40 hover:bg-slate-500/20 text-slate-500 hover:text-slate-700 rounded-xl border border-white/50 hover:border-slate-400/50 transition-all"
+              palette="neutral"
+              variant="glass"
+              shape="square"
+              icon="pencil"
               title="Edit Tags">
-              <lucide-icon name="pencil" class="w-4 h-4"></lucide-icon>
-          </button>
+          </app-button>
 
           <!-- Download Button -->
           @if (item().selectedTrack && item().status !== 'done') {
-            <button
+            <app-button
                 (click)="download.emit()"
-                class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-gradient-to-r from-blue-500/80 to-indigo-500/80 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl border border-white/30 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all text-xs font-bold"
+                palette="primary"
+                variant="solid"
+                icon="download"
                 title="Download with tags">
-                <lucide-icon name="download" class="w-4 h-4"></lucide-icon>
                 Download
-            </button>
+            </app-button>
           }
       </div>
   </div>

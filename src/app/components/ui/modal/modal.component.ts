@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -12,18 +12,18 @@ import { LucideAngularModule } from 'lucide-angular';
       <div class="absolute inset-0" (click)="close.emit()"></div>
 
       <div
-        class="relative z-10 backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl w-full border border-white/50 overflow-hidden flex flex-col max-h-[90vh]"
+        class="relative z-10 bg-white rounded-3xl shadow-2xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300"
         [ngClass]="maxWidth()"
       >
         <!-- Header -->
-        <div class="p-5 border-b border-white/30 flex items-center gap-4 bg-white/30 flex-shrink-0">
+        <div class="p-5 border-b border-slate-100 flex items-center gap-4 bg-white flex-shrink-0">
           <div class="flex-1 min-w-0">
             <ng-content select="[header]"></ng-content>
             @if (title()) {
-               <h2 class="text-lg font-bold text-slate-800 truncate">{{ title() }}</h2>
+               <h2 class="text-lg font-bold text-slate-900 truncate">{{ title() }}</h2>
             }
           </div>
-          <button (click)="close.emit()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-xl transition-all flex-shrink-0">
+          <button (click)="close.emit()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0">
             <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           </button>
         </div>
@@ -34,7 +34,7 @@ import { LucideAngularModule } from 'lucide-angular';
         </div>
 
         <!-- Footer -->
-        <div class="p-5 border-t border-white/30 flex flex-col gap-4 bg-white/20 flex-shrink-0">
+        <div class="p-5 border-t border-slate-100 flex flex-col gap-4 bg-slate-50 flex-shrink-0">
             <!-- Main Footer Actions -->
             <div class="flex justify-end gap-3">
                  <ng-content select="[footer]"></ng-content>

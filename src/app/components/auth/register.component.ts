@@ -6,107 +6,76 @@ import { AuthService } from '../../services/auth.service';
 import { ModalComponent } from '../ui/modal/modal.component';
 import { ButtonComponent } from '../ui/button/button.component';
 
+import { InputComponent } from '../ui/input/input.component';
+
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
   template: `
     <app-modal [title]="'Create Account'" (close)="close.emit()">
       <!-- Form -->
       <form id="register-form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Name & Last Name Row -->
         <div class="grid grid-cols-2 gap-4">
-          <div class="space-y-1.5">
-            <label for="name" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              First Name <span class="text-slate-400 font-normal normal-case">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              [ngModel]="name()"
-              (ngModelChange)="name.set($event)"
-              name="name"
-              class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-              placeholder="John"
-              [disabled]="isLoading()"
-            />
-          </div>
-          <div class="space-y-1.5">
-            <label for="lastName" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Last Name <span class="text-slate-400 font-normal normal-case">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              [ngModel]="lastName()"
-              (ngModelChange)="lastName.set($event)"
-              name="lastName"
-              class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-              placeholder="Doe"
-              [disabled]="isLoading()"
-            />
-          </div>
+          <app-input
+            label="First Name"
+            hint="(Optional)"
+            id="name"
+            [(value)]="name"
+            placeholder="John"
+            [disabled]="isLoading()"
+          ></app-input>
+
+          <app-input
+            label="Last Name"
+            hint="(Optional)"
+            id="lastName"
+            [(value)]="lastName"
+            placeholder="Doe"
+            [disabled]="isLoading()"
+          ></app-input>
         </div>
 
         <!-- Email -->
-        <div class="space-y-1.5">
-          <label for="email" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Email *
-          </label>
-          <input
-            type="email"
-            id="email"
-            [ngModel]="email()"
-            (ngModelChange)="email.set($event)"
-            name="email"
-            required
-            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-            placeholder="you@example.com"
-            [disabled]="isLoading()"
-          />
-        </div>
+        <app-input
+          label="Email"
+          [required]="true"
+          type="email"
+          id="email"
+          [(value)]="email"
+          placeholder="you@example.com"
+          [disabled]="isLoading()"
+        ></app-input>
 
         <!-- Password -->
-        <div class="space-y-1.5">
-          <label for="password" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Password *
-          </label>
-          <input
-            type="password"
-            id="password"
-            [ngModel]="password()"
-            (ngModelChange)="password.set($event)"
-            name="password"
-            required
-            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-            placeholder="Min 8 chars, with number & symbol"
-            [disabled]="isLoading()"
-          />
+        <app-input
+          label="Password"
+          [required]="true"
+          type="password"
+          id="password"
+          [(value)]="password"
+          placeholder="••••••••"
+          [disabled]="isLoading()"
+        ></app-input>
           <!-- Password requirements -->
           <p class="mt-1 text-xs text-slate-500">
             Must be at least 8 characters with a number and symbol
           </p>
-        </div>
 
         <!-- Confirm Password -->
-        <div class="space-y-1.5">
-          <label for="confirmPassword" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-            Confirm Password *
-          </label>
-          <input
+        <div class="space-y-1">
+           <app-input
+            label="Confirm Password"
+            [required]="true"
             type="password"
             id="confirmPassword"
-            [ngModel]="confirmPassword()"
-            (ngModelChange)="confirmPassword.set($event)"
-            name="confirmPassword"
-            required
-            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-            [class.border-red-400]="confirmPassword() && password() !== confirmPassword()"
+            [(value)]="confirmPassword"
             placeholder="••••••••"
             [disabled]="isLoading()"
-          />
+          ></app-input>
           @if (confirmPassword() && password() !== confirmPassword()) {
-            <p class="mt-1 text-xs text-red-600">Passwords don't match</p>
+            <p class="mt-1 text-xs text-red-600 ml-1">Passwords don't match</p>
           }
         </div>
 

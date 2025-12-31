@@ -1,18 +1,15 @@
-import { Component, input, output, computed, model } from '@angular/core';
+import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  LucideAngularModule,
-  X, LoaderCircle, Check, CircleCheck, CircleAlert, Music, FileAudio, Info, Mic2, Search, Activity, Pencil, Download
-} from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { ProcessedFile } from '../../models/processed-file.model';
-import { Mp3Tags } from '../../models/mp3-tags.model';
 import { DiscogsRelease, DiscogsTrack } from '../../models/discogs.model';
+import { ButtonComponent } from '../ui/button/button.component';
 
 @Component({
   selector: 'app-file-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent],
   templateUrl: './file-card.component.html',
   styleUrl: './file-card.component.css'
 })

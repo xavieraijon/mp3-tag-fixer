@@ -2,12 +2,12 @@ import { Component, model, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { ProcessedFile } from '../../models/processed-file.model';
+import { ButtonComponent } from '../ui/button/button.component';
 
 @Component({
   selector: 'app-filter-bar',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent],
   templateUrl: './filter-bar.component.html',
   styleUrl: './filter-bar.component.css'
 })

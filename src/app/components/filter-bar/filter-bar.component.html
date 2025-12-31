@@ -19,35 +19,44 @@
     <!-- Action Buttons -->
     <div class="flex items-center gap-2">
       <!-- Process Visible -->
-      <button
+      <app-button
           (click)="processVisible.emit()"
-          class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-blue-500/20 text-slate-600 hover:text-blue-700 rounded-xl border border-white/50 hover:border-blue-400/50 transition-all group">
-          <lucide-icon name="sparkles" class="w-4 h-4 group-hover:animate-pulse"></lucide-icon>
-          <span class="font-medium text-sm">Process All</span>
-      </button>
+          palette="blue"
+          variant="glass"
+          icon="sparkles"
+      >
+          Process All
+      </app-button>
 
       <!-- Analyze BPM -->
-      <button
+      <app-button
         (click)="analyzeBpmAll.emit()"
-        class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-purple-500/20 text-slate-600 hover:text-purple-700 rounded-xl border border-white/50 hover:border-purple-400/50 transition-all">
-        <lucide-icon name="activity" class="w-4 h-4"></lucide-icon>
-        <span class="font-medium text-sm">BPM All</span>
-      </button>
+        palette="purple"
+        variant="glass"
+        icon="activity"
+      >
+        BPM All
+      </app-button>
 
       <!-- Download All -->
-      <button
+      <app-button
           (click)="downloadAll.emit()"
-          class="flex items-center gap-2 px-4 py-2.5 backdrop-blur-md bg-white/40 hover:bg-emerald-500/20 text-slate-600 hover:text-emerald-700 rounded-xl border border-white/50 hover:border-emerald-400/50 transition-all">
-          <lucide-icon name="download" class="w-4 h-4"></lucide-icon>
-          <span class="font-medium text-sm">Download All</span>
-      </button>
+          palette="emerald"
+          variant="glass"
+          icon="download"
+      >
+          Download All
+      </app-button>
 
       <!-- Clear List -->
-      <button
+      <app-button
           (click)="clearList.emit()"
-          class="p-2.5 backdrop-blur-md bg-white/40 hover:bg-red-500/20 text-slate-500 hover:text-red-600 rounded-xl border border-white/50 hover:border-red-400/50 transition-all"
-          title="Clear List">
-          <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
-      </button>
+          palette="red"
+          variant="glass"
+          shape="square"
+          icon="trash-2"
+          title="Clear List"
+      >
+      </app-button>
     </div>
 </div>

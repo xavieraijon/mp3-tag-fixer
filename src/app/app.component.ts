@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -12,6 +12,7 @@ import { SearchService } from './services/search.service';
 import { TrackMatcherService } from './services/track-matcher.service';
 import { StringUtilsService } from './services/string-utils.service';
 import { NotificationService } from './services/notification.service';
+import { AuthService } from './services/auth.service';
 
 // Store
 import { FilesStore } from './store/files.store';
@@ -27,6 +28,8 @@ import { FilterBarComponent } from './components/filter-bar/filter-bar.component
 import { FileCardComponent } from './components/file-card/file-card.component';
 import { TagEditorComponent } from './components/tag-editor/tag-editor.component';
 import { SnackbarComponent } from './components/snackbar/snackbar.component';
+import { LoginComponent } from './components/auth/login.component';
+import { RegisterComponent } from './components/auth/register.component';
 
 @Component({
   selector: 'app-root',
@@ -39,7 +42,9 @@ import { SnackbarComponent } from './components/snackbar/snackbar.component';
     FilterBarComponent,
     FileCardComponent,
     TagEditorComponent,
-    SnackbarComponent
+    SnackbarComponent,
+    LoginComponent,
+    RegisterComponent
   ],
   templateUrl: './app.component.html'
 })
@@ -51,9 +56,15 @@ export class AppComponent {
   private readonly trackMatcher = inject(TrackMatcherService);
   private readonly stringUtils = inject(StringUtilsService);
   private readonly notification = inject(NotificationService);
+  readonly authService = inject(AuthService); // Public for template
 
   // Store (exposed for template)
   readonly store = inject(FilesStore);
+
+  // Auth modal state
+  readonly showLoginModal = signal(false);
+  readonly showRegisterModal = signal(false);
+  readonly showUserMenu = signal(false);
 
   // Expose signals for template binding
   readonly files = this.store.files;
@@ -411,5 +422,27 @@ export class AppComponent {
     }
 
     return this.processor.writeTags(item.file, finalTags);
+  }
+
+  // === Auth Methods ===
+
+  toggleUserMenu() {
+    this.showUserMenu.update(v => !v);
+  }
+
+  async logout() {
+    this.showUserMenu.set(false);
+    await this.authService.logout();
+    this.notification.show('Signed out successfully', 'success');
+  }
+
+  switchToRegister() {
+    this.showLoginModal.set(false);
+    this.showRegisterModal.set(true);
+  }
+
+  switchToLogin() {
+    this.showRegisterModal.set(false);
+    this.showLoginModal.set(true);
   }
 }

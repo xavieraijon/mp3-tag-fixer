@@ -3,74 +3,63 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../services/auth.service';
+import { ModalComponent } from '../modal/modal.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent],
   template: `
-    <div class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4" (click)="onBackdropClick($event)">
-      <div class="backdrop-blur-xl bg-white/80 border border-white/50 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden" (click)="$event.stopPropagation()">
-        <!-- Header -->
-        <div class="p-5 border-b border-white/30 bg-white/30 flex items-center justify-between">
-          <h2 class="text-lg font-bold text-slate-800">Sign In</h2>
-          <button
-            (click)="close.emit()"
-            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-xl transition-all"
-            type="button"
-          >
-            <lucide-icon name="x" [size]="20"></lucide-icon>
-          </button>
+    <app-modal [title]="'Sign In'" (close)="close.emit()">
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit()" class="space-y-4">
+        <!-- Email -->
+        <div class="space-y-1.5">
+          <label for="email" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            name="email"
+            required
+            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+            placeholder="you@example.com"
+            [disabled]="isLoading()"
+          />
         </div>
 
-        <!-- Form -->
-        <form (ngSubmit)="onSubmit()" class="p-5 space-y-4">
-          <!-- Email -->
-          <div class="space-y-1.5">
-            <label for="email" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              [ngModel]="email()"
-              (ngModelChange)="email.set($event)"
-              name="email"
-              required
-              class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-              placeholder="you@example.com"
-              [disabled]="isLoading()"
-            />
+        <!-- Password -->
+        <div class="space-y-1.5">
+          <label for="password" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            name="password"
+            required
+            class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
+            placeholder="••••••••"
+            [disabled]="isLoading()"
+          />
+        </div>
+
+        <!-- Error Message -->
+        @if (errorMessage()) {
+          <div class="bg-red-50/80 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-2">
+            <lucide-icon name="circle-alert" [size]="18" class="flex-shrink-0 mt-0.5 text-red-500"></lucide-icon>
+            <p class="text-sm">{{ errorMessage() }}</p>
           </div>
+        }
 
-          <!-- Password -->
-          <div class="space-y-1.5">
-            <label for="password" class="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              [ngModel]="password()"
-              (ngModelChange)="password.set($event)"
-              name="password"
-              required
-              class="w-full px-4 py-2.5 bg-white/50 border border-white/50 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all"
-              placeholder="••••••••"
-              [disabled]="isLoading()"
-            />
-          </div>
-
-          <!-- Error Message -->
-          @if (errorMessage()) {
-            <div class="bg-red-50/80 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-2">
-              <lucide-icon name="circle-alert" [size]="18" class="flex-shrink-0 mt-0.5 text-red-500"></lucide-icon>
-              <p class="text-sm">{{ errorMessage() }}</p>
-            </div>
-          }
-
-          <!-- Actions -->
-          <div class="flex gap-3 pt-2">
+        <!-- Actions & Switch to Register -->
+        <div footer class="space-y-4">
+          <div class="flex gap-3 px-5 pb-3">
             <button
               type="button"
               (click)="close.emit()"
@@ -93,21 +82,21 @@ import { AuthService } from '../../services/auth.service';
               }
             </button>
           </div>
-        </form>
 
-        <!-- Switch to Register -->
-        <div class="px-5 pb-5 text-center text-sm text-slate-600">
-          Don't have an account?
-          <button
-            (click)="switchToRegister.emit()"
-            class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700"
-            type="button"
-          >
-            Sign up
-          </button>
+          <!-- Switch to Register -->
+          <div class="px-5 pb-5 text-center text-sm text-slate-600 border-t border-white/30 pt-4">
+            Don't have an account?
+            <button
+              (click)="switchToRegister.emit()"
+              class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700"
+              type="button"
+            >
+              Sign up
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </form>
+    </app-modal>
   `,
 })
 export class LoginComponent {
@@ -149,12 +138,6 @@ export class LoginComponent {
       console.error('[LoginComponent] Login failed:', error);
       const message = error.error?.message || error.message || 'Login failed. Please check your credentials.';
       this.errorMessage.set(message);
-    }
-  }
-
-  onBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      this.close.emit();
     }
   }
 }

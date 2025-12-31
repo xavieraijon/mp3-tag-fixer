@@ -13,7 +13,7 @@ import { InputComponent } from '../ui/input/input.component';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
   template: `
-    <app-modal [title]="'Create Account'" (close)="close.emit()">
+    <app-modal [title]="'Create Account'" (close)="close.emit()" footerAlign="center">
       <!-- Form -->
       <form id="register-form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Name & Last Name Row -->

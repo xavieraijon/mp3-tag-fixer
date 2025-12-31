@@ -36,7 +36,11 @@ import { LucideAngularModule } from 'lucide-angular';
         <!-- Footer -->
         <div class="p-5 border-t border-slate-100 flex flex-col gap-4 bg-slate-50 flex-shrink-0">
             <!-- Main Footer Actions -->
-            <div class="flex justify-end gap-3">
+            <div class="flex gap-3" [ngClass]="{
+              'justify-start': footerAlign() === 'start',
+              'justify-center': footerAlign() === 'center',
+              'justify-end': footerAlign() === 'end'
+            }">
                  <ng-content select="[footer]"></ng-content>
             </div>
 
@@ -57,5 +61,6 @@ import { LucideAngularModule } from 'lucide-angular';
 export class ModalComponent {
   title = input<string>('');
   maxWidth = input<string>('max-w-lg');
+  footerAlign = input<'start' | 'center' | 'end'>('end');
   close = output<void>();
 }

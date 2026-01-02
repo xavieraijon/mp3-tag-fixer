@@ -417,21 +417,39 @@ export class SearchService {
 
     // === ARTIST PENALTY (critical for correct matching) ===
     // If artist doesn't match well, heavily penalize title score
-    // This prevents wrong artists from ranking high just because title has common words
-    if (artistSimilarity < 0.3) {
-      // Artist is completely wrong - only give minimal title points
-      titleScore = Math.min(titleScore, 3);
-    } else if (artistSimilarity < 0.5) {
-      // Artist is questionable - limit title contribution
-      titleScore = Math.min(titleScore, 8);
+    // NEW: Check for CROSS-FIELD matching (Artist matches Result Title)
+    // This handles "Release - Track" patterns where "Release" is mistaken for "Artist"
+    const artistIntitleSimilarity = this.stringUtils.calculateStringSimilarity(
+        this.stringUtils.normalizeArtistForComparison(searchArtist),
+        this.stringUtils.normalizeForComparison(resultTitle)
+    );
+
+    let crossFieldBoost = 0;
+    if (artistIntitleSimilarity >= 0.8) {
+        console.log(`[SearchService] Cross-field match detected! Artist "${searchArtist}" found in Release Title "${resultTitle}"`);
+        crossFieldBoost = 40; // Massive boost for finding the "Artist" in the Release Title
     }
 
-    // Extra penalty for short/generic titles with wrong artist
-    // Short titles like "People Are" are very common - artist must match well
-    const titleWords = baseTitle.split(/\s+/).filter(w => w.length > 2);
-    if (titleWords.length <= 2 && artistSimilarity < 0.6) {
-      // Short title + wrong artist = heavily penalize
-      titleScore = Math.min(titleScore, 2);
+    if (crossFieldBoost > 0) {
+        // Apply boost and IGNORE artist mismatch penalty
+        score += crossFieldBoost;
+    } else {
+        // Standard penalty logic (only if no cross-field match)
+        if (artistSimilarity < 0.3) {
+            // Artist is completely wrong - only give minimal title points
+            titleScore = Math.min(titleScore, 3);
+        } else if (artistSimilarity < 0.5) {
+            // Artist is questionable - limit title contribution
+            titleScore = Math.min(titleScore, 8);
+        }
+
+        // Extra penalty for short/generic titles with wrong artist
+        // Short titles like "People Are" are very common - artist must match well
+        const titleWords = baseTitle.split(/\s+/).filter(w => w.length > 2);
+        if (titleWords.length <= 2 && artistSimilarity < 0.6) {
+            // Short title + wrong artist = heavily penalize
+            titleScore = Math.min(titleScore, 2);
+        }
     }
 
     score += titleScore;

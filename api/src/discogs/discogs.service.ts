@@ -157,7 +157,13 @@ export class DiscogsService {
     const response = await fetch(url, { headers: this.getHeaders() });
 
     if (!response.ok) {
-      console.error('[DiscogsService] Get details failed:', response.status);
+      console.error(`[DiscogsService] Get details failed for ${url}: ${response.status} ${response.statusText}`);
+      try {
+        const errorBody = await response.text();
+        console.error(`[DiscogsService] Error body: ${errorBody}`);
+      } catch (e) {
+        // ignore
+      }
       return null;
     }
 

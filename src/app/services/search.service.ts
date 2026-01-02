@@ -419,15 +419,25 @@ export class SearchService {
     // If artist doesn't match well, heavily penalize title score
     // NEW: Check for CROSS-FIELD matching (Artist matches Result Title)
     // This handles "Release - Track" patterns where "Release" is mistaken for "Artist"
-    const artistIntitleSimilarity = this.stringUtils.calculateStringSimilarity(
+    const artistInTitleSimilarity = this.stringUtils.calculateStringSimilarity(
         this.stringUtils.normalizeArtistForComparison(searchArtist),
         this.stringUtils.normalizeForComparison(resultTitle)
     );
 
+    // NEW 2: REVERSE Cross-field matching (Title matches Result Artist)
+    // This handles "Track - Artist" (swapped) patterns
+    const titleInArtistSimilarity = this.stringUtils.calculateStringSimilarity(
+        this.stringUtils.normalizeForComparison(searchTitle),
+        this.stringUtils.normalizeArtistForComparison(resultArtist)
+    );
+
     let crossFieldBoost = 0;
-    if (artistIntitleSimilarity >= 0.8) {
-        console.log(`[SearchService] Cross-field match detected! Artist "${searchArtist}" found in Release Title "${resultTitle}"`);
-        crossFieldBoost = 40; // Massive boost for finding the "Artist" in the Release Title
+    if (artistInTitleSimilarity >= 0.8) {
+        console.log(`[SearchService] Cross-field match: Artist "${searchArtist}" matches Release "${resultTitle}"`);
+        crossFieldBoost = 40;
+    } else if (titleInArtistSimilarity >= 0.8) {
+        console.log(`[SearchService] Reverse cross-field match: Title "${searchTitle}" matches Artist "${resultArtist}"`);
+        crossFieldBoost = 40;
     }
 
     if (crossFieldBoost > 0) {

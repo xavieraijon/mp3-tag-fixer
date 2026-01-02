@@ -24,6 +24,7 @@ export class FilesStore {
   // Global action states
   private readonly _isAnalyzingBpm = signal(false);
   private readonly _isDownloadingZip = signal(false);
+  private readonly _debugMode = signal(false);
 
   // === Public Readonly State ===
   readonly files = this._files.asReadonly();
@@ -32,6 +33,7 @@ export class FilesStore {
   readonly editForm = this._editForm.asReadonly();
   readonly isAnalyzingBpm = this._isAnalyzingBpm.asReadonly();
   readonly isDownloadingZip = this._isDownloadingZip.asReadonly();
+  readonly debugMode = this._debugMode.asReadonly();
 
   // === Computed State ===
   readonly filteredFiles = computed(() => {
@@ -188,6 +190,33 @@ export class FilesStore {
 
   setDownloadingZip(value: boolean): void {
     this._isDownloadingZip.set(value);
+  }
+
+  setDebugMode(value: boolean): void {
+    this._debugMode.set(value);
+  }
+
+  // === Debug Helpers ===
+
+  updateDebugStep(file: ProcessedFile, stepIndex: number, changes: Partial<import('../models/processed-file.model').DebugStep>): void {
+    // Look up the fresh file instance from the store
+    const currentFile = this._files().find(f => f.originalName === file.originalName);
+
+    // If not found or debug not enabled, abort
+    if (!currentFile || !currentFile.debugData) return;
+
+    // Create a deep copy of the steps array
+    const newSteps = currentFile.debugData.steps.map((step, index) =>
+        index === stepIndex ? { ...step, ...changes } : step
+    );
+
+    this.updateFile(currentFile, {
+        debugData: {
+            ...currentFile.debugData,
+            steps: newSteps,
+            currentStepIndex: changes.status === 'success' || changes.status === 'failed' ? stepIndex + 1 : currentFile.debugData.currentStepIndex
+        }
+    });
   }
 
   // === Editor Methods ===

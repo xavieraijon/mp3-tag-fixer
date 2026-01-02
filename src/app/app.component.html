@@ -101,6 +101,8 @@
         (filterTextChange)="filterQuery = $event"
         [aiEnabled]="aiService.enabled()"
         (aiEnabledChange)="aiService.setEnabled($event)"
+        [debugMode]="store.debugMode()"
+        (debugModeChange)="store.setDebugMode($event)"
         (processVisible)="autoProcessAll()"
         (analyzeBpmAll)="analyzeAllBpm()"
         (downloadAll)="downloadAllZip()"

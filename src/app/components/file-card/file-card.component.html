@@ -110,7 +110,16 @@
             {{ item().statusMessage }}
         </div>
       }
+
   </div>
+
+  <!-- Debug Stepper (Only in Debug Mode) -->
+  @if (item().debugData?.enabled && item().debugData) {
+      <app-debug-stepper
+          [data]="item().debugData!"
+          class="block mb-4"
+      ></app-debug-stepper>
+  }
 
   <!-- Controls Row: Inputs + Selects + Buttons (Horizontal Layout) -->
   <div class="flex flex-wrap items-end gap-3">

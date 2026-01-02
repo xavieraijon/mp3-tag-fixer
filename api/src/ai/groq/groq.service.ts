@@ -77,9 +77,10 @@ Common patterns in electronic/dance music:
 
 ## SPECIAL CASE: TITLE CONTAINS ARTIST-TITLE FORMAT
 
-Sometimes the existing title tag already contains "Artist - Title":
-- If title="Artist Name - Track Name" → Split it and use both parts
-- If title="Release - Track" and no artist → artist="" and title=full string
+Sometimes the existing title tag already contains "Artist - Title" or "Release - Track":
+- If title="Text A - Text B" → STRONGLY PREFER splitting it: Artist="Text A", Title="Text B"
+- Only keep as full title if it's clearly a specific mix name like "Song - Remix"
+- When in doubt, SPLIT IT. It's better to have a wrong artist than an empty one.
 
 ## OUTPUT FORMAT
 
@@ -137,7 +138,11 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
       return this.fallbackParse(filename);
     }
 
-    const userPrompt = this.buildUserPrompt(filename, existingArtist, existingTitle);
+    const userPrompt = this.buildUserPrompt(
+      filename,
+      existingArtist,
+      existingTitle
+    );
 
     try {
       const completion = await this.groq.chat.completions.create({
@@ -188,7 +193,8 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
 
       if (hasGarbageArtist && !hasGarbageTitle) {
         prompt += `\n\n⚠️ DETECTED: Artist tag contains ENCODING GARBAGE. Title tag looks CLEAN.`;
-        prompt += `\nRECOMMENDATION: Use the clean title tag, ignore garbage artist.`;
+        prompt += `\nRECOMMENDATION: The 'clean' title often contains "Artist - Title". SPLIT IT if possible.`;
+        prompt += `\nExample: If title="Prodigy - Breathe", return Artist="Prodigy", Title="Breathe".`;
       } else if (hasGarbageArtist && hasGarbageTitle) {
         prompt += `\n\n⚠️ DETECTED: Both tags contain garbage. Parse from filename only.`;
       }

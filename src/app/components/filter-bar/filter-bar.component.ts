@@ -15,6 +15,7 @@ export class FilterBarComponent {
   // Inputs/Models
   filterText = model<string>('');
   aiEnabled = model<boolean>(true);
+  debugMode = model<boolean>(false);
 
   // Outputs
   processVisible = output<void>();

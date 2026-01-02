@@ -5,11 +5,12 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ProcessedFile } from '../../models/processed-file.model';
 import { DiscogsRelease, DiscogsTrack } from '../../models/discogs.model';
 import { ButtonComponent } from '../ui/button/button.component';
+import { DebugStepperComponent } from '../debug-stepper/debug-stepper.component';
 
 @Component({
   selector: 'app-file-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent],
+  imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent, DebugStepperComponent],
   templateUrl: './file-card.component.html',
   styleUrl: './file-card.component.css'
 })

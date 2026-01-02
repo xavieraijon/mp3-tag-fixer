@@ -44,25 +44,45 @@ export class TrackMatcherService {
     }
 
     // Get search data from file
-    const searchTitle = item.manualTitle ||
-                        item.currentTags?.title ||
-                        this.fileProcessor.parseFilename(item.originalName).title;
+    const parsed = this.fileProcessor.parseFilename(item.originalName);
+    const searchTitle = item.manualTitle || item.currentTags?.title || parsed.title;
+    const searchArtist = item.manualArtist || item.currentTags?.artist || parsed.artist;
     const fileDuration = item.currentTags?.duration;
 
-    if (!searchTitle) return undefined;
+    if (!searchTitle && !searchArtist) return undefined;
 
-    // Extract version/mix from search title
-    const searchParsed = this.stringUtils.extractParenthesisInfo(searchTitle);
-    const searchBase = searchParsed.base;
-    const searchVersion = searchParsed.mixInfo.toLowerCase();
+    // Prepare search variants
+    const searchTitleParsed = searchTitle ? this.stringUtils.extractParenthesisInfo(searchTitle) : null;
+    const searchArtistParsed = searchArtist ? this.stringUtils.extractParenthesisInfo(searchArtist) : null;
 
-    console.log(`[TrackMatcher] Searching: "${searchTitle}" → base="${searchBase}", version="${searchVersion}"`);
+    console.log(`[TrackMatcher] Searching Dual Strategy:`);
+    if (searchTitleParsed) console.log(`  - Title variant: "${searchTitleParsed.base}" [${searchTitleParsed.mixInfo}]`);
+    if (searchArtistParsed) console.log(`  - Artist variant (swapped): "${searchArtistParsed.base}" [${searchArtistParsed.mixInfo}]`);
 
     let bestMatch: DiscogsTrack | undefined;
     let bestScore = 0;
 
     for (const track of realTracks) {
-      const result = this.scoreTrack(track, searchBase, searchVersion, fileDuration);
+      // 1. Score against Title (Standard)
+      let result = { score: -1, track } as TrackMatchResult;
+
+      if (searchTitleParsed) {
+        result = this.scoreTrack(track, searchTitleParsed.base, searchTitleParsed.mixInfo.toLowerCase(), fileDuration);
+      }
+
+      // 2. Score against Artist (Swapped/Reverse case)
+      if (searchArtistParsed) {
+        const swapResult = this.scoreTrack(track, searchArtistParsed.base, searchArtistParsed.mixInfo.toLowerCase(), fileDuration);
+
+        // If swapped result is better, use it (and boost slightly to prefer high confidence swaps over low confidence titles)
+        if (swapResult.score > result.score) {
+          // Verify it's not a false positive (require minimal valid score)
+          if (swapResult.score > 20) {
+             console.log(`[TrackMatcher]   Swapped match is better: "${track.title}" (${swapResult.score}) > Standard (${result.score})`);
+             result = swapResult;
+          }
+        }
+      }
 
       console.log(`[TrackMatcher]   "${track.title}" → TOTAL: ${result.score}`);
 

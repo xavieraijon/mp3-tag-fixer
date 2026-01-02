@@ -456,8 +456,75 @@ export class StringUtilsService {
       variants.push(words[0][0] + ' ' + words.slice(1).join(' '));
     }
 
+    // 5. Compound Name Splitting (e.g., "Basemania" -> "Base Mania")
+    const compoundVariants = this.generateCompoundVariants(str);
+    variants.push(...compoundVariants);
+
     // Limit to reasonable number of variants
-    return [...new Set(variants.filter(v => v.length > 0))].slice(0, 15);
+    return [...new Set(variants.filter(v => v.length > 0))].slice(0, 20);
+  }
+
+  /**
+   * Generates compound variants for single-word artists.
+   * Example: "Basemania" -> "Base Mania"
+   */
+  generateCompoundVariants(str: string): string[] {
+    if (!str || str.includes(' ') || str.length < 5) return [];
+
+    const variants: string[] = [];
+    const lower = str.toLowerCase();
+
+    // 1. CamelCase Split (if original has mixed case)
+    // "BaseMania" -> "Base Mania"
+    const camelSplit = str.replace(/([a-z])([A-Z])/g, '$1 $2');
+    if (camelSplit !== str) {
+      variants.push(camelSplit);
+    }
+
+    // 2. Common Prefixes/Suffixes Split
+    const commonWords = [
+      'base', 'hard', 'soft', 'new', 'old', 'deep', 'dark', 'light', 'blue', 'red',
+      'club', 'house', 'trance', 'techno', 'dance', 'euro', 'happy', 'acid',
+      'mania', 'project', 'system', 'zone', 'time', 'boy', 'girl', 'man', 'woman',
+      'crew', 'squad', 'inc', 'ltd', 'mix', 'remix', 'best', 'star', 'fire', 'ice',
+      'beat', 'bass', 'drum', 'jungle', 'core', 'style', 'force', 'power', 'mega',
+      'super', 'ultra', 'hyper', 'cyber', 'space', 'galaxy', 'future', 'past',
+      'dream', 'night', 'day', 'love', 'hate', 'life', 'death', 'soul', 'mind',
+      'body', 'head', 'hand', 'foot', 'eye', 'ear', 'mouth', 'nose', 'face', 'tek'
+    ];
+
+    for (const word of commonWords) {
+      // Check Prefix
+      if (lower.startsWith(word) && lower.length > word.length + 2) {
+        // "Basemania" starts with "base"
+        const remainder = str.substring(word.length);
+        const variant = str.substring(0, word.length) + ' ' + remainder;
+        variants.push(variant);
+
+        // Also try capitalizing matches: "Base Mania"
+        const capVariant = this.capitalizeFirst(str.substring(0, word.length)) + ' ' + this.capitalizeFirst(remainder);
+        variants.push(capVariant);
+      }
+
+      // Check Suffix
+      if (lower.endsWith(word) && lower.length > word.length + 2) {
+        // "Basemania" ends with "mania"
+        const prefixLen = str.length - word.length;
+        const prefix = str.substring(0, prefixLen);
+        const variant = prefix + ' ' + str.substring(prefixLen);
+        variants.push(variant);
+
+        const capVariant = this.capitalizeFirst(prefix) + ' ' + this.capitalizeFirst(str.substring(prefixLen));
+        variants.push(capVariant);
+      }
+    }
+
+    return [...new Set(variants)];
+  }
+
+  private capitalizeFirst(s: string): string {
+    if (!s) return '';
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
   /**

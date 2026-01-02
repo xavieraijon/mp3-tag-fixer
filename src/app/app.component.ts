@@ -127,6 +127,8 @@ export class AppComponent {
       let usedAcoustid = false;
 
       // Update status to show we're starting
+      let aiConfidence: number | undefined;
+
       this.store.updateFile(item, {
         status: 'searching',
         statusMessage: 'Analyzing file...',
@@ -149,6 +151,7 @@ export class AppComponent {
           primaryArtist = acoustidResult.artist;
           primaryTitle = acoustidResult.title;
           usedAcoustid = true;
+          aiConfidence = acoustidResult.confidence;
 
           // Update manual fields with AcoustID result
           this.store.updateFile(item, {
@@ -179,6 +182,7 @@ export class AppComponent {
           primaryArtist = aiResult.artist; // Empty string is intentional (garbage detected)
           primaryTitle = aiResult.title || primaryTitle;
           usedAiParsing = true;
+          aiConfidence = aiResult.confidence;
 
           // Update manual fields with AI suggestions
           const displayArtist = primaryArtist || '(unknown artist)';
@@ -207,7 +211,7 @@ export class AppComponent {
       });
 
       try {
-        await this.performDiscogsSearch(item, primaryArtist, primaryTitle, usedAcoustid, usedAiParsing);
+        await this.performDiscogsSearch(item, primaryArtist, primaryTitle, usedAcoustid, usedAiParsing, aiConfidence);
       } catch (e) {
         console.error('[Search] Error:', e);
         this.store.updateFile(item, {
@@ -223,12 +227,14 @@ export class AppComponent {
         artist: string,
         title: string,
         isAcoustid: boolean,
-        isAi: boolean
+        isAi: boolean,
+        aiConfidence?: number
     ) {
         const results = await this.searchService.search(
             artist,
             title,
-            (message) => this.store.updateFile(item, { statusMessage: message })
+            (message) => this.store.updateFile(item, { statusMessage: message }),
+            aiConfidence
           );
 
           if (results.length > 0) {
@@ -287,7 +293,7 @@ export class AppComponent {
                     manualTitle: res.title,
                     statusMessage: `Early match: ${res.artist} - ${res.title}`
                 });
-                this.performDiscogsSearch(item, res.artist, res.title, false, true);
+                this.performDiscogsSearch(item, res.artist, res.title, false, true, res.confidence);
             }
         };
 

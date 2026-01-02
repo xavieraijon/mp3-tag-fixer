@@ -467,56 +467,95 @@ export class SearchService {
   async search(
     artist: string,
     title: string,
-    onProgress?: (message: string) => void
+    onProgress?: (message: string) => void,
+    aiConfidence?: number // New parameter for optimization
   ): Promise<SearchResult[]> {
     const strategies = this.generateStrategies(artist, title);
 
-    console.log(`[SearchService] Generated ${strategies.length} strategies for "${artist} - ${title}"`);
+    // OPTIMIZATION: If AI confidence is high (> 0.8), filter out low priority "typo" strategies
+    // This assumes the AI result is likely correct and we don't need extensive fuzzy searching
+    let activeStrategies = strategies;
+    if (aiConfidence && aiConfidence >= 0.8) {
+        console.log(`[SearchService] High AI confidence (${aiConfidence}), skipping low priority strategies`);
+        // Keep only strategies with priority < 10 (Direct, Exact Track/Release)
+        // OR strategies that are NOT purely fuzzy variants
+        activeStrategies = strategies.filter(s =>
+            s.priority < 10 || !s.description.toLowerCase().includes('typo-fix')
+        );
+    }
+
+    console.log(`[SearchService] Generated ${activeStrategies.length} strategies for "${artist} - ${title}"`);
 
     const allResults: SearchResult[] = [];
-    let attemptCount = 0;
     const maxAttempts = 15;
+    const strategiesToRun = activeStrategies.slice(0, maxAttempts);
 
-    for (const strategy of strategies.slice(0, maxAttempts)) {
-      attemptCount++;
+    // OPTIMIZATION: Run first batch (Direct Match) in parallel
+    // These are usually the best candidates. If one hits, we might stop early.
+    const BATCH_SIZE = 4;
 
-      if (onProgress) {
-        onProgress(`Search ${attemptCount}/${Math.min(strategies.length, maxAttempts)}: ${strategy.description}`);
-      }
+    for (let i = 0; i < strategiesToRun.length; i += BATCH_SIZE) {
+        const batch = strategiesToRun.slice(i, i + BATCH_SIZE);
 
-      try {
-        const results = await this.executeStrategy(strategy);
-
-        console.log(`[SearchService] Strategy "${strategy.description}" returned ${results.length} results`);
-
-        if (results.length > 0) {
-          for (const r of results) {
-            if (!allResults.some(existing => existing.id === r.id)) {
-              const scored = r as SearchResult;
-              scored._score = this.calculateResultScore(r, artist, title);
-              allResults.push(scored);
-            }
-          }
-
-          allResults.sort((a, b) => (b._score || 0) - (a._score || 0));
-
-          const topScore = allResults[0]?._score || 0;
-
-          if (topScore >= this.EXCELLENT_SCORE) {
-            console.log(`[SearchService] Excellent match found (score ${topScore}), stopping`);
-            break;
-          }
-
-          if (allResults.length >= this.MIN_RESULTS_FOR_GOOD && topScore >= this.GOOD_SCORE) {
-            console.log(`[SearchService] Found ${allResults.length} results with top score ${topScore}, stopping`);
-            break;
-          }
+        if (onProgress) {
+            onProgress(`Search batch ${i/BATCH_SIZE + 1}: Checking ${batch.length} strategies...`);
         }
-      } catch (e) {
-        console.warn(`[SearchService] Strategy "${strategy.description}" failed:`, e);
-      }
 
-      await this.delay(this.API_DELAY);
+        // Execute batch in parallel
+        const batchResults = await Promise.all(
+            batch.map(async (strategy) => {
+                try {
+                    const res = await this.executeStrategy(strategy);
+                    console.log(`[SearchService] Strategy "${strategy.description}" returned ${res.length} results`);
+                    return res;
+                } catch (e) {
+                    console.warn(`[SearchService] Strategy "${strategy.description}" failed:`, e);
+                    return [];
+                }
+            })
+        );
+
+        // Process results from this batch
+        for (const results of batchResults) {
+            if (results.length > 0) {
+                for (const r of results) {
+                    if (!allResults.some(existing => existing.id === r.id)) {
+                        const scored = r as SearchResult;
+                        scored._score = this.calculateResultScore(r, artist, title);
+                        allResults.push(scored);
+                    }
+                }
+            }
+        }
+
+        // Sort current results
+        allResults.sort((a, b) => (b._score || 0) - (a._score || 0));
+        const topScore = allResults[0]?._score || 0;
+
+        // OPTIMIZATION: Early Exit Checks
+
+        // 1. Perfect Match (> 90) - Stop immediately
+        if (topScore >= 90) {
+            console.log(`[SearchService] Perfect match found (score ${topScore}), stopping search early.`);
+            break;
+        }
+
+        // 2. Excellent Match (> 70)
+        if (topScore >= this.EXCELLENT_SCORE) {
+             console.log(`[SearchService] Excellent match found (score ${topScore}), stopping.`);
+             break;
+        }
+
+        // 3. Good Match (> 50) with sufficient results
+        if (allResults.length >= this.MIN_RESULTS_FOR_GOOD && topScore >= this.GOOD_SCORE) {
+             console.log(`[SearchService] Found ${allResults.length} results with top score ${topScore}, stopping.`);
+             break;
+        }
+
+        // Delay between batches to respect rate limits (if not stopped)
+        if (i + BATCH_SIZE < strategiesToRun.length) {
+            await this.delay(this.API_DELAY);
+        }
     }
 
     // Log final ranking

@@ -70,10 +70,11 @@ When existing tags are provided:
 ## ELECTRONIC MUSIC CONTEXT
 
 Common patterns in electronic/dance music:
-- "EP Part 1", "EP Parte 1", "Vol. 2" → Usually part of release name, not track title
-- "Original Mix", "Club Mix", "Extended" → Version info, keep with title
-- "Remix", "Dub", "VIP" → Keep with title
-- "feat.", "ft.", "&", "vs" → Artist collaboration markers
+- "EP Part 1", "EP Parte 1", "Vol. 2" → These often appear in the "Artist" position (e.g., "Release - Track").
+- **RULE:** If the filename looks like "Release Name - Track Title", treat "Release Name" as the ARTIST. Do NOT strip "EP", "Vol", "Part" from the Artist/Release name.
+- "Original Mix", "Club Mix", "Extended" → Version info, keep with title.
+- "Remix", "Dub", "VIP" → Keep with title.
+- "feat.", "ft.", "&", "vs" → Artist collaboration markers.
 
 ## SPECIAL CASE: TITLE CONTAINS ARTIST-TITLE FORMAT
 
@@ -98,8 +99,8 @@ Confidence scoring:
 
 Input: "Bases EP Parte 1 - Dynamite-pq&º(ê^ªmßG6Û¢¶{uÕþÕW»?u-002741"
 Tags: artist="p q&º(ê^ ªmßG6Û¢¶{uÕþÕW»?u" title="Bases EP Parte 1 - Dynamite"
-Analysis: Artist tag is GARBAGE (ignore). Title tag is CLEAN → use it!
-Output: {"artist": "", "title": "Bases EP Parte 1 - Dynamite", "confidence": 0.85}
+Analysis: Artist tag is GARBAGE. Title is CLEAN "Bases EP Parte 1 - Dynamite". "Bases EP Parte 1" acts as the Artist/Release.
+Output: {"artist": "Bases EP Parte 1", "title": "Dynamite", "confidence": 0.95}
 
 Input: "Twoo good - People are-4.48-128-001945"
 Analysis: "Twoo" is typo for "Two", strip -4.48-128-001945 suffix

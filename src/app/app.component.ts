@@ -13,6 +13,7 @@ import { TrackMatcherService } from './services/track-matcher.service';
 import { StringUtilsService } from './services/string-utils.service';
 import { NotificationService } from './services/notification.service';
 import { AuthService } from './services/auth.service';
+import { AiSearchService } from './services/ai-search.service';
 
 // Store
 import { FilesStore } from './store/files.store';
@@ -59,6 +60,7 @@ export class AppComponent {
   private readonly stringUtils = inject(StringUtilsService);
   private readonly notification = inject(NotificationService);
   readonly authService = inject(AuthService); // Public for template
+  readonly aiService = inject(AiSearchService); // Public for template (toggle)
 
   // Store (exposed for template)
   readonly store = inject(FilesStore);
@@ -103,14 +105,83 @@ export class AppComponent {
   // === Search ===
 
   async search(item: ProcessedFile): Promise<void> {
+    // Collect all possible sources for artist/title
     const sources = {
       manual: { artist: item.manualArtist || '', title: item.manualTitle || '' },
       tags: { artist: item.currentTags?.artist || '', title: item.currentTags?.title || '' },
       filename: this.processor.parseFilename(item.originalName)
     };
 
-    const primaryArtist = sources.manual.artist || sources.tags.artist || sources.filename.artist;
-    const primaryTitle = sources.manual.title || sources.tags.title || sources.filename.title;
+    let primaryArtist = sources.manual.artist || sources.tags.artist || sources.filename.artist;
+    let primaryTitle = sources.manual.title || sources.tags.title || sources.filename.title;
+    let usedAiParsing = false;
+    let usedAcoustid = false;
+
+    // Update status to show we're starting
+    this.store.updateFile(item, {
+      status: 'searching',
+      statusMessage: 'Analyzing file...',
+      searchResults: [],
+      selectedRelease: undefined,
+      releaseDetails: undefined,
+      tracks: [],
+      selectedTrack: undefined,
+      coverImageUrl: undefined
+    });
+
+    // Try AcoustID first (audio fingerprint) - most reliable for identification
+    if (this.aiService.enabled()) {
+      this.store.updateFile(item, { statusMessage: 'Analyzing audio fingerprint...' });
+
+      const acoustidResult = await this.aiService.identifyByFingerprint(item.file);
+
+      if (acoustidResult && acoustidResult.confidence >= 0.8) {
+        console.log(`[Search] AcoustID identified: "${acoustidResult.artist} - ${acoustidResult.title}" (confidence: ${acoustidResult.confidence})`);
+        primaryArtist = acoustidResult.artist;
+        primaryTitle = acoustidResult.title;
+        usedAcoustid = true;
+
+        // Update manual fields with AcoustID result
+        this.store.updateFile(item, {
+          manualArtist: primaryArtist,
+          manualTitle: primaryTitle,
+          statusMessage: `🎵 Audio identified: "${primaryArtist} - ${primaryTitle}"`
+        });
+      } else if (acoustidResult) {
+        console.log(`[Search] AcoustID low confidence (${acoustidResult.confidence}), trying AI parsing`);
+      }
+    }
+
+    // Try AI parsing if AcoustID didn't work
+    if (!usedAcoustid && this.aiService.enabled()) {
+      this.store.updateFile(item, { statusMessage: 'AI analyzing filename...' });
+
+      const aiResult = await this.aiService.parseFilename(
+        item.originalName,
+        sources.tags.artist,
+        sources.tags.title
+      );
+
+      if (aiResult && aiResult.confidence >= 0.7) {
+        console.log(`[Search] AI parsing succeeded: "${aiResult.artist} - ${aiResult.title}" (confidence: ${aiResult.confidence})`);
+
+        // Trust AI result completely - empty artist means garbage was detected and should be ignored
+        // Don't fallback to garbage artist from tags when AI explicitly returns empty string
+        primaryArtist = aiResult.artist; // Empty string is intentional (garbage detected)
+        primaryTitle = aiResult.title || primaryTitle;
+        usedAiParsing = true;
+
+        // Update manual fields with AI suggestions
+        const displayArtist = primaryArtist || '(unknown artist)';
+        this.store.updateFile(item, {
+          manualArtist: primaryArtist,
+          manualTitle: primaryTitle,
+          statusMessage: `AI: "${displayArtist} - ${primaryTitle}"`
+        });
+      } else if (aiResult) {
+        console.log(`[Search] AI parsing low confidence (${aiResult.confidence}), using traditional parsing`);
+      }
+    }
 
     if (!primaryArtist && !primaryTitle) {
       this.store.updateFile(item, {
@@ -121,14 +192,9 @@ export class AppComponent {
     }
 
     this.store.updateFile(item, {
-      status: 'searching',
-      statusMessage: 'Analyzing search strategies...',
-      searchResults: [],
-      selectedRelease: undefined,
-      releaseDetails: undefined,
-      tracks: [],
-      selectedTrack: undefined,
-      coverImageUrl: undefined
+      statusMessage: usedAiParsing
+        ? `AI searching: "${primaryArtist} - ${primaryTitle}"...`
+        : 'Analyzing search strategies...'
     });
 
     try {
@@ -139,10 +205,11 @@ export class AppComponent {
       );
 
       if (results.length > 0) {
+        const aiLabel = usedAcoustid ? ' (🎵 audio match)' : usedAiParsing ? ' (AI-assisted)' : '';
         this.store.updateFile(item, {
           status: 'ready',
           searchResults: results,
-          statusMessage: `Found ${results.length} results. Selecting best match...`
+          statusMessage: `Found ${results.length} results${aiLabel}. Selecting best match...`
         });
 
         // Auto-select best result

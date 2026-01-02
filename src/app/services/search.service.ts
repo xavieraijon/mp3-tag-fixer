@@ -85,6 +85,67 @@ export class SearchService {
       });
     }
 
+    // === PHASE 0.1: TITLE-ONLY SEARCH (when artist is empty/garbage) ===
+    // This is HIGH PRIORITY when AI returns empty artist (garbage detected)
+    if (!artist && title) {
+      // The title might contain "Artist - Title" format from AI parsing
+      const titleWithPossibleArtist = title;
+
+      // First, try direct query with full title
+      strategies.push({
+        type: 'query',
+        artist: '',
+        title: titleWithPossibleArtist,
+        searchType: 'all',
+        description: `Title only: "${titleWithPossibleArtist}"`,
+        priority: priority++
+      });
+
+      // If title contains " - ", try splitting and searching as artist - title
+      if (title.includes(' - ')) {
+        const parts = title.split(' - ');
+        const possibleArtist = parts[0].trim();
+        const possibleTitle = parts.slice(1).join(' - ').trim();
+
+        strategies.push({
+          type: 'query',
+          artist: '',
+          title: `${possibleArtist} - ${possibleTitle}`,
+          searchType: 'all',
+          description: `Parsed from title: "${possibleArtist} - ${possibleTitle}"`,
+          priority: priority++
+        });
+
+        strategies.push({
+          type: 'track',
+          artist: possibleArtist,
+          title: possibleTitle,
+          searchType: 'all',
+          description: `Track from title: "${possibleArtist}" - "${possibleTitle}"`,
+          priority: priority++
+        });
+
+        strategies.push({
+          type: 'release',
+          artist: possibleArtist,
+          title: possibleTitle,
+          searchType: 'master',
+          description: `Master from title: "${possibleArtist}" - "${possibleTitle}"`,
+          priority: priority++
+        });
+      }
+
+      // Track search with no artist
+      strategies.push({
+        type: 'track',
+        artist: '',
+        title: titleWithPossibleArtist,
+        searchType: 'all',
+        description: `Track any artist: "${titleWithPossibleArtist}"`,
+        priority: priority++
+      });
+    }
+
     // Generate variants for more complex searches
     const artistVariants = this.stringUtils.normalizeArtistName(artist);
     const titleVariants = this.stringUtils.normalizeTitleForSearch(title);

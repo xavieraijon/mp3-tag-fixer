@@ -16,6 +16,28 @@
         }
     </div>
 
+    <!-- AI Toggle -->
+    <div class="flex items-center gap-2 px-3 py-1.5 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl">
+        <lucide-icon
+            name="sparkles"
+            [class]="aiEnabled() ? 'w-4 h-4 text-violet-500' : 'w-4 h-4 text-slate-400'"
+        ></lucide-icon>
+        <span class="text-xs font-medium text-slate-600">AI</span>
+        <button
+            (click)="aiEnabled.set(!aiEnabled())"
+            [class]="aiEnabled()
+                ? 'relative w-9 h-5 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-200 shadow-inner'
+                : 'relative w-9 h-5 bg-slate-300 rounded-full transition-all duration-200 shadow-inner'"
+            [title]="aiEnabled() ? 'Disable AI-powered search' : 'Enable AI-powered search'"
+        >
+            <span
+                [class]="aiEnabled()
+                    ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
+                    : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'"
+            ></span>
+        </button>
+    </div>
+
     <!-- Action Buttons -->
     <div class="flex items-center gap-2">
       <!-- Process Visible -->

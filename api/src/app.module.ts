@@ -9,6 +9,7 @@ import { FilesModule } from './files/files.module';
 import { DiscogsModule } from './discogs/discogs.module';
 import { TracksModule } from './tracks/tracks.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PaymentsModule } from './payments/payments.module';
     DiscogsModule,
     TracksModule,
     PaymentsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

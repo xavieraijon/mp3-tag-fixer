@@ -20,7 +20,8 @@ import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 // In-memory storage for uploaded files (per session)
-const uploadedFiles = new Map<string, { buffer: Buffer; originalName: string; userId: string }>();
+// Exported for use by other modules (e.g., AcoustID identification)
+export const uploadedFiles = new Map<string, { buffer: Buffer; originalName: string; userId: string }>();
 
 @Controller('files')
 @UseGuards(JwtAuthGuard)

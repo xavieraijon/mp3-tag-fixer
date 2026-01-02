@@ -2,6 +2,11 @@ import { StreamableFile } from '@nestjs/common';
 import type { Response } from 'express';
 import { FilesService, Mp3Tags } from './files.service';
 import { WriteTagsDto } from './dto/write-tags.dto';
+export declare const uploadedFiles: Map<string, {
+    buffer: Buffer;
+    originalName: string;
+    userId: string;
+}>;
 export declare class FilesController {
     private readonly filesService;
     constructor(filesService: FilesService);

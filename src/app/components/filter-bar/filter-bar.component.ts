@@ -14,13 +14,11 @@ import { ButtonComponent } from '../ui/button/button.component';
 export class FilterBarComponent {
   // Inputs/Models
   filterText = model<string>('');
+  aiEnabled = model<boolean>(true);
 
   // Outputs
   processVisible = output<void>();
   downloadAll = output<void>();
   analyzeBpmAll = output<void>();
   clearList = output<void>();
-
-  // Optional: Pass in count for badge?
-  // We can pass it as a plain input if needed, but for now we just emit events.
 }

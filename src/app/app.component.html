@@ -99,6 +99,8 @@
       <app-filter-bar
         [filterText]="filterQuery"
         (filterTextChange)="filterQuery = $event"
+        [aiEnabled]="aiService.enabled()"
+        (aiEnabledChange)="aiService.setEnabled($event)"
         (processVisible)="autoProcessAll()"
         (analyzeBpmAll)="analyzeAllBpm()"
         (downloadAll)="downloadAllZip()"

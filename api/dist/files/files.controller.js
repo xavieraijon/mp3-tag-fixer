@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FilesController = void 0;
+exports.FilesController = exports.uploadedFiles = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const files_service_1 = require("./files.service");
@@ -20,7 +20,7 @@ const write_tags_dto_1 = require("./dto/write-tags.dto");
 const user_id_decorator_1 = require("../auth/decorators/user-id.decorator");
 const common_2 = require("@nestjs/common");
 const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
-const uploadedFiles = new Map();
+exports.uploadedFiles = new Map();
 let FilesController = class FilesController {
     filesService;
     constructor(filesService) {
@@ -33,12 +33,12 @@ let FilesController = class FilesController {
         const tags = await this.filesService.readTags(file.buffer);
         const parsed = this.filesService.parseFilename(file.originalname);
         const fileId = `${userId}-${Date.now()}`;
-        uploadedFiles.set(fileId, {
+        exports.uploadedFiles.set(fileId, {
             buffer: file.buffer,
             originalName: file.originalname,
             userId: userId,
         });
-        setTimeout(() => uploadedFiles.delete(fileId), 30 * 60 * 1000);
+        setTimeout(() => exports.uploadedFiles.delete(fileId), 30 * 60 * 1000);
         return {
             fileId,
             originalName: file.originalname,
@@ -48,7 +48,7 @@ let FilesController = class FilesController {
         };
     }
     async getTags(fileId, userId) {
-        const file = uploadedFiles.get(fileId);
+        const file = exports.uploadedFiles.get(fileId);
         if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found or expired');
         }
@@ -56,7 +56,7 @@ let FilesController = class FilesController {
         return tags;
     }
     async writeTags(fileId, dto, userId, res) {
-        const file = uploadedFiles.get(fileId);
+        const file = exports.uploadedFiles.get(fileId);
         if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found or expired');
         }
@@ -83,7 +83,7 @@ let FilesController = class FilesController {
         return new common_1.StreamableFile(taggedBuffer);
     }
     async writeTagsWithCover(fileId, dto, coverFile, userId, res) {
-        const file = uploadedFiles.get(fileId);
+        const file = exports.uploadedFiles.get(fileId);
         if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found or expired');
         }
@@ -111,11 +111,11 @@ let FilesController = class FilesController {
         return new common_1.StreamableFile(taggedBuffer);
     }
     async deleteFile(fileId, userId) {
-        const file = uploadedFiles.get(fileId);
+        const file = exports.uploadedFiles.get(fileId);
         if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found');
         }
-        uploadedFiles.delete(fileId);
+        exports.uploadedFiles.delete(fileId);
         return { success: true };
     }
 };

@@ -18,6 +18,7 @@ const files_module_1 = require("./files/files.module");
 const discogs_module_1 = require("./discogs/discogs.module");
 const tracks_module_1 = require("./tracks/tracks.module");
 const payments_module_1 = require("./payments/payments.module");
+const ai_module_1 = require("./ai/ai.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -35,6 +36,7 @@ exports.AppModule = AppModule = __decorate([
             discogs_module_1.DiscogsModule,
             tracks_module_1.TracksModule,
             payments_module_1.PaymentsModule,
+            ai_module_1.AiModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

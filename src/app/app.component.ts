@@ -497,8 +497,15 @@ export class AppComponent {
 
   // === Bulk Actions ===
 
-  autoProcessAll(): void {
-    this.store.getSearchableFiles().forEach(f => this.search(f));
+  async autoProcessAll(): Promise<void> {
+    const files = this.store.getSearchableFiles();
+    const concurrency = 2; // Limit to 2 concurrent files to avoid rate limits
+
+    // Simple chunked execution
+    for (let i = 0; i < files.length; i += concurrency) {
+      const chunk = files.slice(i, i + concurrency);
+      await Promise.all(chunk.map(f => this.search(f)));
+    }
   }
 
   async analyzeAllBpm(): Promise<void> {

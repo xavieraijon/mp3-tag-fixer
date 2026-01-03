@@ -516,8 +516,17 @@ export class SearchService {
     const resultTitleLower = resultTitle.toLowerCase();
 
     let titleScore = 0;
+
+    // NEW: Check for Multi-Title / Double A-Side (e.g. "Hit Hard / Ambulance Two")
+    // If we match ONE of the sides exactly, treat it as a full match (30 points)
+    // Split by slash, plus, " & ", " and "
+    const multiTitleParts = resultTitleLower.split(/[/+]|\s+&\s+|\s+and\s+/).map(p => p.trim());
+    const isMultiTitleMatch = multiTitleParts.some(part => part === baseTitle || part === searchTitle.toLowerCase());
+
     if (resultTitleLower === baseTitle) {
       titleScore = 30;
+    } else if (isMultiTitleMatch) {
+       titleScore = 30; // Treat as exact match
     } else if (resultTitleLower.includes(baseTitle)) {
       titleScore = 25;
     } else if (baseTitle.includes(resultTitleLower)) {
@@ -555,15 +564,30 @@ export class SearchService {
 
     let crossFieldBoost = 0;
 
-    // STRICTER Cross-field logic: Require BOTH fields to match (swapped) to award points.
-    // This prevents false positives where a generic title (e.g. "Spring") matches an artist ("DJ Spring").
-    if (artistInTitleSimilarity >= 0.8 && titleInArtistSimilarity >= 0.4) {
-        console.log(`[SearchService] Cross-field match: Artist "${searchArtist}" ~= Release "${resultTitle}"`);
+    // Detect "Perfect Swapped Match" (Both fields match the other side)
+    // Artist="Amok", Title="Interactive" matches Artist="Interactive", Title="Amok"
+    // SearchArtist ("Amok") matches ResultTitle ("Amok") -> 1.0
+    // SearchTitle ("Interactive") matches ResultArtist ("Interactive") -> 1.0
+    if (artistInTitleSimilarity >= 0.8 && titleInArtistSimilarity >= 0.8) {
+       console.log(`[SearchService] Perfect Swapped Match detected! Boosting score.`);
+       crossFieldBoost = 90; // Massive boost to outweigh partial single-field matches
+    }
+    // "Partial Cross-Field Match" (Release - Track pattern)
+    // Artist="Octopussy Vol 2" matches Release="Octopussy Vol 2"
+    // Title="Punctures The Cunt" matches Track... (Wait, here Title doesn't match Artist)
+    // The previous logic for "Artist as Release" relied on ONE strong match.
+    else if (artistInTitleSimilarity >= 0.8 && titleInArtistSimilarity >= 0.4) {
+        // SearchArtist matches Release, SearchTitle matches Artist (somewhat)
         crossFieldBoost = 35;
     } else if (titleInArtistSimilarity >= 0.8 && artistInTitleSimilarity >= 0.4) {
-        console.log(`[SearchService] Reverse cross-field match: Title "${searchTitle}" ~= Artist "${resultArtist}"`);
+        // SearchTitle matches Artist, SearchArtist matches Release (somewhat)
         crossFieldBoost = 35;
     }
+    // FALLBACK: If we have a very strong "Artist as Release" match but NO title match
+    // E.g. SearchArtist="Octopussy Vol 2" matches ResultTitle="Octopussy Vol 2" (1.0)
+    // But SearchTitle="Punctures The Cunt" matches ResultArtist="Neno" (0.0) -> titleInArtistSimilarity=0
+    // We should still give SOME boost if we are in a "Release Search" strategy?
+    // Ideally the "Artist as Release" strategy handles this by putting the artist in the title field.
 
     if (crossFieldBoost > 0) {
         // Apply boost and IGNORE artist mismatch penalty

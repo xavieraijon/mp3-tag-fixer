@@ -1,4 +1,4 @@
-import { Component, signal, output } from '@angular/core';
+import { Component, signal, output, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -10,8 +10,28 @@ import { LucideAngularModule } from 'lucide-angular';
   styleUrl: './dropzone.component.css'
 })
 export class DropzoneComponent {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   filesDropped = output<File[]>();
   isDragging = signal(false);
+
+  openFileDialog() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files) {
+      const newFiles = Array.from(input.files).filter(f =>
+        f.type === 'audio/mpeg' || f.name.toLowerCase().endsWith('.mp3')
+      );
+      if (newFiles.length > 0) {
+        this.filesDropped.emit(newFiles);
+      }
+      // Reset input value to allow selecting the same file again
+      input.value = '';
+    }
+  }
 
   onDragOver(event: DragEvent) {
     event.preventDefault();

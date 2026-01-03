@@ -22,37 +22,49 @@
   }
 
   <div class="relative z-10 max-w-5xl mx-auto">
-    <!-- Header -->
-    <header class="mb-10">
-      <!-- Auth Actions Bar -->
-      <div class="flex justify-end mb-4">
-        @if (authService.isAuthenticated()) {
-          <!-- Authenticated: Show user menu -->
-          <div class="relative">
-            <app-button
-              (click)="toggleUserMenu()"
-              palette="neutral"
-              variant="glass"
-              icon="user"
-            >
-              {{ authService.userDisplayName() }}
-            </app-button>
 
-            @if (showUserMenu()) {
-              <div class="absolute right-0 mt-2 w-48 backdrop-blur-xl bg-white/90 rounded-xl shadow-xl border border-white/40 overflow-hidden z-50">
-                <button
-                  (click)="logout()"
-                  class="w-full px-4 py-3 text-left hover:bg-indigo-50 transition flex items-center gap-2 text-slate-700 text-sm font-medium"
-                >
-                  <lucide-icon name="log-out" [size]="18"></lucide-icon>
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            }
+    <!-- Glass Header -->
+    <header class="mb-6 backdrop-blur-xl bg-white/30 rounded-2xl border border-white/40 shadow-xl px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Left: Logo + Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl backdrop-blur-md bg-white/40 border border-white/50 flex items-center justify-center">
+            <lucide-icon name="music" class="text-indigo-600 w-5 h-5"></lucide-icon>
           </div>
-        } @else {
-          <!-- Not Authenticated: Show login/register buttons -->
-          <div class="flex gap-3">
+          <div>
+            <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">MP3 Tag Fixer</h1>
+            <p class="text-slate-500 text-xs">Auto-magic metadata with Discogs</p>
+          </div>
+        </div>
+
+        <!-- Right: Auth Buttons -->
+        <div class="flex items-center gap-3">
+          @if (authService.isAuthenticated()) {
+            <!-- Authenticated: Show user menu -->
+            <div class="relative">
+              <app-button
+                (click)="toggleUserMenu()"
+                palette="neutral"
+                variant="glass"
+                icon="user"
+              >
+                {{ authService.userDisplayName() }}
+              </app-button>
+
+              @if (showUserMenu()) {
+                <div class="absolute right-0 mt-2 w-48 backdrop-blur-xl bg-white/90 rounded-xl shadow-xl border border-white/40 overflow-hidden z-50">
+                  <button
+                    (click)="logout()"
+                    class="w-full px-4 py-3 text-left hover:bg-indigo-50 transition flex items-center gap-2 text-slate-700 text-sm font-medium"
+                  >
+                    <lucide-icon name="log-out" [size]="18"></lucide-icon>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <!-- Not Authenticated: Show login/register buttons -->
             <app-button
               (click)="showLoginModal.set(true)"
               palette="neutral"
@@ -69,34 +81,28 @@
             >
               Sign Up
             </app-button>
-          </div>
-        }
-      </div>
-
-      <!-- Logo & Title -->
-      <div class="text-center">
-        <div class="inline-flex items-center justify-center p-4 backdrop-blur-xl bg-white/30 rounded-2xl mb-5 shadow-xl border border-white/40">
-          <lucide-icon name="music" class="text-indigo-600 w-10 h-10"></lucide-icon>
+          }
         </div>
-        <h1 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-2 tracking-tight">
-          MP3 Tag Fixer
-        </h1>
-        <p class="text-slate-500 font-medium">
-          Auto-magic metadata with Discogs
-        </p>
       </div>
     </header>
 
     <!-- Drop Zone -->
     <app-dropzone
         (filesDropped)="addFiles($event)"
-        class="block mb-8">
+        class="block mb-4">
     </app-dropzone>
 
-    <!-- YouTube Input -->
-    <app-youtube-input
-      (downloaded)="handleYoutubeDownload($event)">
-    </app-youtube-input>
+    <!-- YouTube Download Button -->
+    <div class="mb-8 flex justify-center">
+      <app-button
+        (click)="showYoutubeModal.set(true)"
+        palette="red"
+        variant="glass"
+        icon="youtube"
+      >
+        YouTube to MP3
+      </app-button>
+    </div>
 
     <!-- App Content -->
     @if (files().length > 0) {
@@ -133,6 +139,14 @@
 
     }
   </div>
+
+  <!-- YouTube Modal -->
+  @if (showYoutubeModal()) {
+    <app-youtube-modal
+      (close)="showYoutubeModal.set(false)"
+      (downloaded)="handleYoutubeDownload($event)">
+    </app-youtube-modal>
+  }
 
   <!-- Auth Modals -->
   @if (showLoginModal()) {

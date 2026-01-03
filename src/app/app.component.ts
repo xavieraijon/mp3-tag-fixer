@@ -34,7 +34,7 @@ import { SnackbarComponent } from './components/snackbar/snackbar.component';
 import { LoginComponent } from './components/auth/login.component';
 import { RegisterComponent } from './components/auth/register.component';
 import { ButtonComponent } from './components/ui/button/button.component';
-import { YoutubeInputComponent } from './components/youtube-input/youtube-input.component';
+import { YoutubeModalComponent } from './components/youtube-modal/youtube-modal.component';
 
 @Component({
   selector: 'app-root',
@@ -51,7 +51,7 @@ import { YoutubeInputComponent } from './components/youtube-input/youtube-input.
     LoginComponent,
     RegisterComponent,
     ButtonComponent,
-    YoutubeInputComponent
+    YoutubeModalComponent
   ],
   templateUrl: './app.component.html'
 })
@@ -74,6 +74,7 @@ export class AppComponent {
   // Auth modal state
   readonly showLoginModal = signal(false);
   readonly showRegisterModal = signal(false);
+  readonly showYoutubeModal = signal(false);
   readonly showUserMenu = signal(false);
 
   // Expose signals for template binding

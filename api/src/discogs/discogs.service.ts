@@ -34,8 +34,10 @@ export class DiscogsService {
   private readonly consumerSecret: string;
 
   constructor(private configService: ConfigService) {
-    this.consumerKey = this.configService.get<string>('DISCOGS_CONSUMER_KEY') || '';
-    this.consumerSecret = this.configService.get<string>('DISCOGS_CONSUMER_SECRET') || '';
+    this.consumerKey =
+      this.configService.get<string>('DISCOGS_CONSUMER_KEY') || '';
+    this.consumerSecret =
+      this.configService.get<string>('DISCOGS_CONSUMER_SECRET') || '';
 
     if (!this.consumerKey || !this.consumerSecret) {
       console.warn('[DiscogsService] API credentials not configured');
@@ -44,7 +46,7 @@ export class DiscogsService {
 
   private getHeaders(): Record<string, string> {
     return {
-      'Authorization': `Discogs key=${this.consumerKey}, secret=${this.consumerSecret}`,
+      Authorization: `Discogs key=${this.consumerKey}, secret=${this.consumerSecret}`,
       'User-Agent': 'MP3TagFixer/1.0',
     };
   }
@@ -52,7 +54,9 @@ export class DiscogsService {
   private parseSearchResult(r: any): DiscogsRelease {
     return {
       id: r.id,
-      title: r.title.includes(' - ') ? r.title.split(' - ').slice(1).join(' - ') : r.title,
+      title: r.title.includes(' - ')
+        ? r.title.split(' - ').slice(1).join(' - ')
+        : r.title,
       type: r.type,
       year: r.year,
       thumb: r.thumb,
@@ -150,31 +154,39 @@ export class DiscogsService {
     id: number,
     type: 'release' | 'master' = 'release',
   ): Promise<DiscogsRelease | null> {
-    const url = type === 'master'
-      ? `${this.API_URL}/masters/${id}`
-      : `${this.API_URL}/releases/${id}`;
+    const url =
+      type === 'master'
+        ? `${this.API_URL}/masters/${id}`
+        : `${this.API_URL}/releases/${id}`;
 
     const response = await fetch(url, { headers: this.getHeaders() });
 
     if (!response.ok) {
-        console.warn(`[DiscogsService] Get details failed for ${type}/${id} (${response.status}). Trying fallback...`);
+      console.warn(
+        `[DiscogsService] Get details failed for ${type}/${id} (${response.status}). Trying fallback...`,
+      );
 
-        // If master failed, try release, and vice versa
-        if (response.status === 404 || response.status === 400) {
-            const fallbackType = type === 'master' ? 'release' : 'master';
-            const fallbackUrl = fallbackType === 'master'
-                ? `${this.API_URL}/masters/${id}`
-                : `${this.API_URL}/releases/${id}`;
+      // If master failed, try release, and vice versa
+      if (response.status === 404 || response.status === 400) {
+        const fallbackType = type === 'master' ? 'release' : 'master';
+        const fallbackUrl =
+          fallbackType === 'master'
+            ? `${this.API_URL}/masters/${id}`
+            : `${this.API_URL}/releases/${id}`;
 
-            const fallbackResponse = await fetch(fallbackUrl, { headers: this.getHeaders() });
-            if (fallbackResponse.ok) {
-                console.log(`[DiscogsService] Fallback successful: Found as ${fallbackType}`);
-                const details = await fallbackResponse.json();
-                return this.mapToDiscogsRelease(details); // Refactored mapping to shared method
-            }
+        const fallbackResponse = await fetch(fallbackUrl, {
+          headers: this.getHeaders(),
+        });
+        if (fallbackResponse.ok) {
+          console.log(
+            `[DiscogsService] Fallback successful: Found as ${fallbackType}`,
+          );
+          const details = await fallbackResponse.json();
+          return this.mapToDiscogsRelease(details); // Refactored mapping to shared method
         }
+      }
 
-        return null;
+      return null;
     }
 
     const details = await response.json();
@@ -182,27 +194,27 @@ export class DiscogsService {
   }
 
   private mapToDiscogsRelease(details: any): DiscogsRelease {
-      return {
-          id: details.id,
-          title: details.title,
-          year: details.year,
-          artist: details.artists?.[0]?.name,
-          artists: details.artists?.map((a: any) => ({ name: a.name })),
-          labels: details.labels?.map((l: any) => ({ name: l.name })) || [],
-          genres: details.genres || [],
-          styles: details.styles || [],
-          country: details.country,
-          thumb: details.thumb,
-          cover_image: details.images?.[0]?.uri || details.thumb,
-          tracklist: details.tracklist?.map((t: any) => ({
-            position: t.position,
-            title: t.title,
-            duration: t.duration,
-            artists: t.artists?.map((a: any) => ({ name: a.name })),
-            type_: t.type_,
-          })),
-          main_release: details.main_release,
-      };
+    return {
+      id: details.id,
+      title: details.title,
+      year: details.year,
+      artist: details.artists?.[0]?.name,
+      artists: details.artists?.map((a: any) => ({ name: a.name })),
+      labels: details.labels?.map((l: any) => ({ name: l.name })) || [],
+      genres: details.genres || [],
+      styles: details.styles || [],
+      country: details.country,
+      thumb: details.thumb,
+      cover_image: details.images?.[0]?.uri || details.thumb,
+      tracklist: details.tracklist?.map((t: any) => ({
+        position: t.position,
+        title: t.title,
+        duration: t.duration,
+        artists: t.artists?.map((a: any) => ({ name: a.name })),
+        type_: t.type_,
+      })),
+      main_release: details.main_release,
+    };
   }
 
   /**

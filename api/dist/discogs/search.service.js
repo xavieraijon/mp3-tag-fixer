@@ -249,7 +249,16 @@ let SearchService = class SearchService {
         if (result.thumb || result.cover_image)
             score += 1;
         const genres = [...(result.genres || []), ...(result.styles || [])].map((g) => g.toLowerCase());
-        if (genres.some((g) => ['electronic', 'techno', 'house', 'trance', 'dance', 'hardcore', 'gabber', 'makina'].includes(g))) {
+        if (genres.some((g) => [
+            'electronic',
+            'techno',
+            'house',
+            'trance',
+            'dance',
+            'hardcore',
+            'gabber',
+            'makina',
+        ].includes(g))) {
             score += 3;
         }
         if (artistSimilarity >= 0.7 && resultTitleLower.includes(baseTitle)) {
@@ -285,7 +294,8 @@ let SearchService = class SearchService {
                         console.log(`[SearchService] Excellent match found (score ${topScore}), stopping`);
                         break;
                     }
-                    if (allResults.length >= this.MIN_RESULTS_FOR_GOOD && topScore >= this.GOOD_SCORE) {
+                    if (allResults.length >= this.MIN_RESULTS_FOR_GOOD &&
+                        topScore >= this.GOOD_SCORE) {
                         console.log(`[SearchService] Found ${allResults.length} results with top score ${topScore}, stopping`);
                         break;
                     }

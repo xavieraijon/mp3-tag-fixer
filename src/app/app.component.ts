@@ -15,6 +15,7 @@ import { NotificationService } from './services/notification.service';
 import { AuthService } from './services/auth.service';
 import { MusicBrainzService } from './services/musicbrainz.service';
 import { AiSearchService } from './services/ai-search.service';
+import { YoutubeDownloadResponse } from './services/youtube.service';
 
 // Store
 import { FilesStore } from './store/files.store';
@@ -33,6 +34,7 @@ import { SnackbarComponent } from './components/snackbar/snackbar.component';
 import { LoginComponent } from './components/auth/login.component';
 import { RegisterComponent } from './components/auth/register.component';
 import { ButtonComponent } from './components/ui/button/button.component';
+import { YoutubeInputComponent } from './components/youtube-input/youtube-input.component';
 
 @Component({
   selector: 'app-root',
@@ -48,7 +50,8 @@ import { ButtonComponent } from './components/ui/button/button.component';
     SnackbarComponent,
     LoginComponent,
     RegisterComponent,
-    ButtonComponent
+    ButtonComponent,
+    YoutubeInputComponent
   ],
   templateUrl: './app.component.html'
 })
@@ -101,6 +104,34 @@ export class AppComponent {
   clearList(): void {
     if (confirm('Remove all listed files?')) {
       this.store.clearAll();
+    }
+  }
+
+  /**
+   * Handles YouTube download completion
+   * Adds the downloaded file to the store and triggers search
+   */
+  async handleYoutubeDownload(response: YoutubeDownloadResponse): Promise<void> {
+    // Create a ProcessedFile from the YouTube download response
+    const processedFile: ProcessedFile = {
+      file: new File([], response.originalName), // Dummy file, actual data stored on server
+      originalName: response.originalName,
+      currentTags: response.currentTags as ProcessedFile['currentTags'],
+      status: 'pending',
+      searchResults: [],
+      tracks: [],
+      manualArtist: response.parsedFilename.artist || response.youtubeInfo?.channel || '',
+      manualTitle: response.parsedFilename.title || response.youtubeInfo?.title || '',
+      serverFileId: response.fileId, // Store server file ID for later download
+    };
+
+    // Add to store
+    this.store.addProcessedFile(processedFile);
+
+    // Trigger automatic search
+    const addedFile = this.store.getFileByName(response.originalName);
+    if (addedFile) {
+      await this.search(addedFile);
     }
   }
 

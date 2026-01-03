@@ -12,6 +12,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AiModule } from './ai/ai.module';
 
 import { MusicBrainzModule } from './musicbrainz/musicbrainz.module'; // Added import
+import { YoutubeModule } from './youtube/youtube.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { MusicBrainzModule } from './musicbrainz/musicbrainz.module'; // Added i
     PaymentsModule,
     AiModule,
     MusicBrainzModule, // Added module
+    YoutubeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

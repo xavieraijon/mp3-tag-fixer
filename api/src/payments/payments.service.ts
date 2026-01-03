@@ -14,7 +14,9 @@ export class PaymentsService {
   ) {
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (!secretKey) {
-      console.warn('[PaymentsService] Stripe secret key not configured - payments disabled');
+      console.warn(
+        '[PaymentsService] Stripe secret key not configured - payments disabled',
+      );
     } else {
       this.stripe = new Stripe(secretKey);
     }
@@ -108,7 +110,8 @@ export class PaymentsService {
       throw new BadRequestException('No Stripe customer found for this user');
     }
 
-    const returnUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
+    const returnUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'http://localhost:4200';
     const stripe = this.ensureStripe();
 
     const session = await stripe.billingPortal.sessions.create({
@@ -159,7 +162,10 @@ export class PaymentsService {
           };
         }
       } catch (e) {
-        console.warn('[PaymentsService] Could not fetch Stripe subscription:', e);
+        console.warn(
+          '[PaymentsService] Could not fetch Stripe subscription:',
+          e,
+        );
       }
     }
 
@@ -208,7 +214,9 @@ export class PaymentsService {
    * Handle Stripe webhook events
    */
   async handleWebhook(signature: string, payload: Buffer): Promise<void> {
-    const webhookSecret = this.configService.get<string>('STRIPE_WEBHOOK_SECRET');
+    const webhookSecret = this.configService.get<string>(
+      'STRIPE_WEBHOOK_SECRET',
+    );
 
     if (!webhookSecret) {
       throw new BadRequestException('Webhook secret not configured');
@@ -219,7 +227,10 @@ export class PaymentsService {
     try {
       event = stripe.webhooks.constructEvent(payload, signature, webhookSecret);
     } catch (e) {
-      console.error('[PaymentsService] Webhook signature verification failed:', e);
+      console.error(
+        '[PaymentsService] Webhook signature verification failed:',
+        e,
+      );
       throw new BadRequestException('Invalid webhook signature');
     }
 
@@ -227,20 +238,20 @@ export class PaymentsService {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await this.handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        await this.handleCheckoutCompleted(event.data.object);
         break;
 
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
-        await this.handleSubscriptionUpdated(event.data.object as Stripe.Subscription);
+        await this.handleSubscriptionUpdated(event.data.object);
         break;
 
       case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(event.data.object as Stripe.Subscription);
+        await this.handleSubscriptionDeleted(event.data.object);
         break;
 
       case 'invoice.payment_failed':
-        await this.handlePaymentFailed(event.data.object as Stripe.Invoice);
+        await this.handlePaymentFailed(event.data.object);
         break;
 
       default:
@@ -300,7 +311,9 @@ export class PaymentsService {
       },
     });
 
-    console.log(`[PaymentsService] Subscription updated for user ${user.id}: ${status}`);
+    console.log(
+      `[PaymentsService] Subscription updated for user ${user.id}: ${status}`,
+    );
   }
 
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
@@ -314,7 +327,9 @@ export class PaymentsService {
       },
     });
 
-    console.log(`[PaymentsService] Subscription deleted for customer ${customerId}`);
+    console.log(
+      `[PaymentsService] Subscription deleted for customer ${customerId}`,
+    );
   }
 
   private async handlePaymentFailed(invoice: Stripe.Invoice) {
@@ -333,7 +348,9 @@ export class PaymentsService {
   /**
    * Get available subscription plans
    */
-  async getPlans(): Promise<{ id: string; name: string; price: number; interval: string }[]> {
+  async getPlans(): Promise<
+    { id: string; name: string; price: number; interval: string }[]
+  > {
     if (!this.stripe) {
       return []; // Return empty if Stripe not configured
     }

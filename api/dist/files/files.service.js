@@ -91,7 +91,9 @@ let FilesService = class FilesService {
                 publisher: tags.label,
                 performerInfo: tags.albumArtist,
                 composer: tags.composer,
-                comment: tags.comment ? { language: 'eng', text: tags.comment } : undefined,
+                comment: tags.comment
+                    ? { language: 'eng', text: tags.comment }
+                    : undefined,
             };
             if (tags.image) {
                 id3Tags.image = {

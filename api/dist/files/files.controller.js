@@ -125,7 +125,8 @@ __decorate([
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
         limits: { fileSize: 50 * 1024 * 1024 },
         fileFilter: (req, file, cb) => {
-            if (!file.mimetype.includes('audio') && !file.originalname.endsWith('.mp3')) {
+            if (!file.mimetype.includes('audio') &&
+                !file.originalname.endsWith('.mp3')) {
                 cb(new common_1.BadRequestException('Only MP3 files are allowed'), false);
             }
             else {

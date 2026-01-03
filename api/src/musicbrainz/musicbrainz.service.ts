@@ -30,14 +30,17 @@ export class MusicBrainzService {
   private getHeaders(): Record<string, string> {
     return {
       'User-Agent': this.USER_AGENT,
-      'Accept': 'application/json'
+      Accept: 'application/json',
     };
   }
 
   /**
    * Search releases by artist/title
    */
-  async searchReleases(artist: string, title: string): Promise<UnifiedRelease[]> {
+  async searchReleases(
+    artist: string,
+    title: string,
+  ): Promise<UnifiedRelease[]> {
     const queryParts = [];
     if (artist) queryParts.push(`artist:${this.escapeQuery(artist)}`);
     if (title) queryParts.push(`release:${this.escapeQuery(title)}`);
@@ -79,18 +82,23 @@ export class MusicBrainzService {
 
   private mapToUnified(mbRelease: any, detailed = false): UnifiedRelease {
     const artistCredit = mbRelease['artist-credit'] || [];
-    const artistName = artistCredit.map((a: any) => a.name).join('') || 'Unknown';
+    const artistName =
+      artistCredit.map((a: any) => a.name).join('') || 'Unknown';
 
     const release: UnifiedRelease = {
       id: mbRelease.id,
       title: mbRelease.title,
       type: 'release', // MB technically has release-groups which are like masters, but we search releases usually
-      year: mbRelease.date ? parseInt(mbRelease.date.substring(0, 4)) : undefined,
+      year: mbRelease.date
+        ? parseInt(mbRelease.date.substring(0, 4))
+        : undefined,
       country: mbRelease.country,
-      labels: (mbRelease['label-info'] || []).map((l: any) => ({ name: l.label?.name })),
+      labels: (mbRelease['label-info'] || []).map((l: any) => ({
+        name: l.label?.name,
+      })),
       artist: artistName,
       artists: artistCredit.map((a: any) => ({ name: a.name })),
-      source: 'musicbrainz'
+      source: 'musicbrainz',
     };
 
     if (detailed && mbRelease.media) {
@@ -98,13 +106,13 @@ export class MusicBrainzService {
       mbRelease.media.forEach((medium: any) => {
         const tracks = medium.tracks || [];
         tracks.forEach((t: any) => {
-           release.tracklist!.push({
-             position: t.number, // or medium position + track position
-             title: t.title,
-             duration: t.length ? this.formatDuration(t.length) : '',
-             type_: 'track',
-             artists: t['artist-credit']?.map((a: any) => ({ name: a.name }))
-           });
+          release.tracklist!.push({
+            position: t.number, // or medium position + track position
+            title: t.title,
+            duration: t.length ? this.formatDuration(t.length) : '',
+            type_: 'track',
+            artists: t['artist-credit']?.map((a: any) => ({ name: a.name })),
+          });
         });
       });
     }

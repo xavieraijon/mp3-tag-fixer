@@ -34,7 +34,9 @@ export class AuthService {
     private prisma: PrismaService,
     private config: ConfigService,
   ) {
-    this.JWT_SECRET = this.config.get<string>('JWT_SECRET') || 'your-secret-key-change-in-production';
+    this.JWT_SECRET =
+      this.config.get<string>('JWT_SECRET') ||
+      'your-secret-key-change-in-production';
     this.JWT_EXPIRES_IN = this.config.get<string>('JWT_EXPIRES_IN') || '7d';
   }
 
@@ -113,7 +115,10 @@ export class AuthService {
     }
 
     // Verify password
-    const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      dto.password,
+      user.passwordHash,
+    );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');

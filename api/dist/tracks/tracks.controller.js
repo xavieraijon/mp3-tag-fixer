@@ -32,7 +32,12 @@ let TracksController = class TracksController {
         return this.tracksService.createMany(userId, tracks);
     }
     async findAll(userId, status, search, skip, take) {
-        return this.tracksService.findAllByUser(userId, { status, search, skip, take });
+        return this.tracksService.findAllByUser(userId, {
+            status,
+            search,
+            skip,
+            take,
+        });
     }
     async getStats(userId) {
         return this.tracksService.getStats(userId);

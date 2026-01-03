@@ -20,6 +20,7 @@ const tracks_module_1 = require("./tracks/tracks.module");
 const payments_module_1 = require("./payments/payments.module");
 const ai_module_1 = require("./ai/ai.module");
 const musicbrainz_module_1 = require("./musicbrainz/musicbrainz.module");
+const youtube_module_1 = require("./youtube/youtube.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -39,6 +40,7 @@ exports.AppModule = AppModule = __decorate([
             payments_module_1.PaymentsModule,
             ai_module_1.AiModule,
             musicbrainz_module_1.MusicBrainzModule,
+            youtube_module_1.YoutubeModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

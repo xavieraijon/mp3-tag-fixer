@@ -7,6 +7,7 @@ MP3 Tag Fixer is a full-stack web application for automatically fixing and enric
 ## Tech Stack
 
 ### Frontend
+
 - **Framework:** Angular 21.0.0 (standalone components, no NgModules)
 - **Build:** Vite via Angular CLI 21.0.4
 - **Language:** TypeScript 5.9.2 (strict mode)
@@ -16,12 +17,14 @@ MP3 Tag Fixer is a full-stack web application for automatically fixing and enric
 - **Icons:** Lucide Angular
 
 #### Key Frontend Dependencies
+
 - `browser-id3-writer` - Write ID3v2.4 tags
 - `music-metadata-browser` - Read MP3 metadata
 - `web-audio-beat-detector` - BPM detection
 - `jszip` + `file-saver` - Batch ZIP downloads
 
 ### Backend
+
 - **Framework:** NestJS 11.0.1
 - **Database:** PostgreSQL 16 (Alpine)
 - **ORM:** Prisma 5.22.0
@@ -32,6 +35,7 @@ MP3 Tag Fixer is a full-stack web application for automatically fixing and enric
 - **Containerization:** Docker Compose
 
 #### Key Backend Dependencies
+
 - `music-metadata` - Server-side MP3 metadata reading
 - `node-id3` - Server-side ID3 tag writing
 - `multer` - File upload handling
@@ -40,6 +44,7 @@ MP3 Tag Fixer is a full-stack web application for automatically fixing and enric
 ## Commands
 
 ### Frontend (root directory)
+
 ```bash
 npm start          # Dev server on localhost:4200
 npm run build      # Production build
@@ -48,6 +53,7 @@ npm run watch      # Dev build with watch mode
 ```
 
 ### Backend (api/ directory)
+
 ```bash
 npm run start:dev      # Development server with hot reload
 npm run start:prod     # Production server
@@ -70,6 +76,7 @@ npm run docker:down    # Stop PostgreSQL container
 ## Project Structure
 
 ### Frontend Structure
+
 ```
 src/app/
 ├── components/           # Standalone Angular components
@@ -96,6 +103,7 @@ src/app/
 ```
 
 ### Backend Structure
+
 ```
 api/
 ├── src/
@@ -137,6 +145,12 @@ api/
 │   │   ├── dto/
 │   │   │   └── create-checkout.dto.ts
 │   │   └── payments.module.ts
+│   ├── youtube/                   # YouTube audio download
+│   │   ├── youtube.service.ts     # yt-dlp integration
+│   │   ├── youtube.controller.ts  # Download endpoint
+│   │   ├── dto/
+│   │   │   └── youtube-download.dto.ts
+│   │   └── youtube.module.ts
 │   ├── prisma/                    # Database module
 │   │   ├── prisma.service.ts
 │   │   └── prisma.module.ts
@@ -152,6 +166,7 @@ api/
 ## Architecture Patterns
 
 ### Frontend - Angular 21 Patterns (MUST follow)
+
 - **Standalone components** - No NgModules, use `standalone: true`
 - **Angular Signals** - Use `signal()`, `computed()`, `effect()` for reactivity
 - **New control flow** - Use `@if`, `@for`, `@switch` instead of `*ngIf`, `*ngFor`
@@ -160,17 +175,20 @@ api/
 - **Zoneless** - App uses `provideZonelessChangeDetection()`
 
 ### Frontend - Service Architecture
+
 - Services provided at root level (`providedIn: 'root'`)
 - RxJS for HTTP calls, converted to Promises with `lastValueFrom()`
 - Point-based scoring algorithms for search results and track matching
 - Multi-strategy fallback patterns for robust searching
 
 ### Frontend - State Management
+
 - Central store in `files.store.ts` using Angular Signals
 - Writable signals for state, readonly signals exposed to components
 - Computed signals for derived state (filtered files, counts)
 
 ### Backend - NestJS Architecture
+
 - **Modular design** - Feature modules for auth, files, discogs, tracks, payments
 - **Dependency injection** - NestJS built-in DI container
 - **Global validation** - `ValidationPipe` with class-validator DTOs
@@ -179,12 +197,14 @@ api/
 - **Global prefix** - All routes prefixed with `/api`
 
 ### Backend - Authentication
+
 - **Clerk integration** - JWT-based authentication
 - **ClerkAuthGuard** - Validates JWT tokens on protected routes
 - **@Public() decorator** - Skip auth for public endpoints (Discogs search)
 - **@CurrentUser() decorator** - Inject authenticated user into controllers
 
 ### Backend - Database
+
 - **Prisma ORM** - Type-safe database access
 - **PostgreSQL 16** - Relational database via Docker
 - **Migrations** - Version-controlled schema changes
@@ -193,23 +213,27 @@ api/
 ## Frontend Key Services
 
 ### FileProcessorService
+
 - Reads ID3 tags using `music-metadata-browser`
 - Writes ID3v2.4 tags using `browser-id3-writer`
 - Parses filenames to extract artist/title
 - Detects BPM using Web Audio API
 
 ### SearchService
+
 - Multi-strategy search with 60+ fallback strategies
 - Scoring algorithm (0-100 points) for relevance
 - Rate limiting (1200ms between Discogs API calls)
 - Early stopping when good results found (score >= 70)
 
 ### TrackMatcherService
+
 - Matches files to Discogs tracklist entries
 - Scoring based on title similarity, version matching, duration
 - Auto-selects single matches, flags ambiguous for manual selection
 
 ### DiscogsService
+
 - Integrates with Discogs Database API
 - Searches masters and releases
 - Fetches cover images via proxy (CORS bypass)
@@ -217,6 +241,7 @@ api/
 ## Backend Key Services
 
 ### FilesService (api/src/files/)
+
 - Reads ID3 tags using `music-metadata` library
 - Writes ID3v2.4 tags using `node-id3`
 - Parses filenames to extract artist/title (same logic as frontend)
@@ -224,12 +249,14 @@ api/
 - Sanitizes filenames for safe downloads
 
 ### DiscogsService (api/src/discogs/)
+
 - Multi-strategy search implementation (shared with frontend logic)
 - Release/master detail fetching
 - Cover image proxy (bypasses CORS restrictions)
 - Rate limiting (1200ms between API calls)
 
 ### TracksService (api/src/tracks/)
+
 - CRUD operations for user tracks
 - Batch operations (create many, update many)
 - Track statistics (counts by status)
@@ -237,11 +264,13 @@ api/
 - Pagination support
 
 ### PaymentsService (api/src/payments/)
+
 - Stripe checkout session creation
 - Webhook handling for subscription events
 - User subscription status management
 
 ### ClerkService (api/src/auth/)
+
 - JWT token verification
 - User metadata extraction
 - Integration with Clerk Backend SDK
@@ -249,6 +278,7 @@ api/
 ## Database Schema
 
 ### User Model
+
 ```prisma
 model User {
   id                 String              @id @default(cuid())
@@ -283,6 +313,7 @@ enum SubscriptionStatus {
 ```
 
 ### Track Model
+
 ```prisma
 model Track {
   id               String       @id @default(cuid())
@@ -334,6 +365,7 @@ enum TrackStatus {
 ```
 
 ### Session Model
+
 ```prisma
 model Session {
   id        String   @id @default(cuid())
@@ -351,6 +383,7 @@ model Session {
 ## API Endpoints
 
 ### Files Module (`/api/files`)
+
 - `POST /api/files/upload` - Upload MP3 file, read tags, parse filename
 - `GET /api/files/:fileId/tags` - Get tags from uploaded file
 - `POST /api/files/:fileId/write-tags` - Write tags to file, return download
@@ -358,6 +391,7 @@ model Session {
 - `DELETE /api/files/:fileId` - Delete uploaded file from memory
 
 ### Discogs Module (`/api/discogs`) - Public endpoints
+
 - `GET /api/discogs/search/smart` - Multi-strategy smart search
 - `GET /api/discogs/search/release` - Search by artist + release
 - `GET /api/discogs/search/track` - Search by track name
@@ -367,6 +401,7 @@ model Session {
 - `GET /api/discogs/image?url=...` - Proxy cover images (CORS bypass)
 
 ### Tracks Module (`/api/tracks`) - Protected endpoints
+
 - `POST /api/tracks` - Create track
 - `POST /api/tracks/batch` - Create multiple tracks
 - `GET /api/tracks` - Get all user tracks (with pagination, filters)
@@ -379,12 +414,14 @@ model Session {
 - `DELETE /api/tracks/:id` - Delete track
 
 ### Payments Module (`/api/payments`) - Protected endpoints
+
 - `POST /api/payments/create-checkout` - Create Stripe checkout session
 - `POST /api/payments/webhook` - Stripe webhook handler (public)
 
 ## Frontend Data Models
 
 ### ProcessedFile
+
 ```typescript
 {
   file: File;
@@ -405,6 +442,7 @@ model Session {
 ```
 
 ### Mp3Tags
+
 ```typescript
 {
   title?: string;
@@ -427,6 +465,7 @@ model Session {
 ## Code Conventions
 
 ### Frontend Naming
+
 - Services: `*.service.ts`
 - Components: `*.component.ts`
 - Models: `*.model.ts`
@@ -434,6 +473,7 @@ model Session {
 - Private fields: `_fieldName` prefix
 
 ### Backend Naming
+
 - Services: `*.service.ts`
 - Controllers: `*.controller.ts`
 - Modules: `*.module.ts`
@@ -442,6 +482,7 @@ model Session {
 - Decorators: `*.decorator.ts`
 
 ### Styling
+
 - Use TailwindCSS utility classes
 - Responsive: use `md:` breakpoints for mobile support
 - Custom animations defined in `styles.css`
@@ -449,11 +490,13 @@ model Session {
 ### Error Handling
 
 #### Frontend
+
 - Try-catch blocks for file operations
 - Console logging with prefixes: `[ServiceName]`
 - User-facing errors via NotificationService
 
 #### Backend
+
 - NestJS built-in exception filters
 - `BadRequestException`, `NotFoundException`, `UnauthorizedException`
 - Console logging with prefixes: `[ServiceName]`
@@ -462,6 +505,7 @@ model Session {
 ## Application Workflow
 
 ### Client-Only Workflow (Original)
+
 1. User uploads MP3 files (drag-drop or file input)
 2. App reads existing ID3 tags and parses filename (client-side)
 3. SearchService executes multi-strategy search against Discogs API
@@ -471,6 +515,7 @@ model Session {
 7. Download file with complete ID3v2.4 tags or batch as ZIP
 
 ### Full-Stack Workflow (With Backend)
+
 1. User uploads MP3 to backend `/api/files/upload`
 2. Backend reads tags, parses filename, returns metadata
 3. Frontend displays file card, triggers smart search via `/api/discogs/search/smart`
@@ -483,6 +528,7 @@ model Session {
 ## Environment Variables
 
 ### Frontend (.env or environment.ts)
+
 ```bash
 DISCOGS_CONSUMER_KEY=your_key
 DISCOGS_CONSUMER_SECRET=your_secret
@@ -490,6 +536,7 @@ API_URL=http://localhost:3000/api  # Backend API URL
 ```
 
 ### Backend (api/.env)
+
 ```bash
 # Database
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/mp3tagfixer"
@@ -515,12 +562,14 @@ STRIPE_PRICE_ID=price_...
 ## Discogs API Integration
 
 ### Frontend Implementation
+
 - Base URL: `https://api.discogs.com`
 - Authentication: Consumer Key/Secret in headers
 - Cover images proxied via backend `/api/discogs/image`
 - Rate limit: Must wait 1200ms between requests
 
 ### Backend Implementation
+
 - Same multi-strategy search logic as frontend
 - Server-side rate limiting (1200ms)
 - Image proxy endpoint to bypass CORS
@@ -529,6 +578,7 @@ STRIPE_PRICE_ID=price_...
 ## Docker Setup
 
 ### PostgreSQL (docker-compose.yml)
+
 ```yaml
 services:
   postgres:
@@ -551,6 +601,7 @@ services:
 ```
 
 ### Start Database
+
 ```bash
 cd api
 npm run docker:up
@@ -560,11 +611,13 @@ npm run db:migrate
 ## Testing
 
 ### Frontend
+
 - Framework: Vitest
 - Run: `npm test`
 - Test files: `*.spec.ts` alongside source files
 
 ### Backend
+
 - Framework: Jest
 - Run: `npm test` (unit tests)
 - Run: `npm run test:e2e` (E2E tests)
@@ -573,6 +626,7 @@ npm run db:migrate
 ## Important Notes
 
 ### Architecture
+
 - **Full-stack application** - Angular frontend + NestJS backend
 - **Hybrid processing** - Client-side BPM detection, server-side tag writing
 - **In-memory file storage** - Backend stores uploads for 30 minutes
@@ -581,12 +635,14 @@ npm run db:migrate
 - **Payments** - Stripe for subscription billing
 
 ### Performance
+
 - Frontend bundle size budget: max 1MB initial, max 8kB per component style
 - Backend file upload limit: 50MB per file
 - Database indexes on userId, fileHash, token for fast queries
 - Image caching: 24h browser cache for Discogs cover images
 
 ### Security
+
 - CORS enabled only for configured frontend origin
 - JWT validation on protected routes
 - File type validation (MP3 only)
@@ -594,6 +650,7 @@ npm run db:migrate
 - Stripe webhook signature verification
 
 ### Development
+
 - Frontend hot reload: `npm start` (root)
 - Backend hot reload: `npm run start:dev` (api/)
 - Database GUI: `npm run db:studio` (api/)

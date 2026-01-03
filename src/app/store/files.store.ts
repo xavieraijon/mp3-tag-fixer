@@ -116,6 +116,15 @@ export class FilesStore {
   }
 
   /**
+   * Adds a pre-built ProcessedFile to the store (for YouTube downloads).
+   */
+  addProcessedFile(processedFile: ProcessedFile): void {
+    // Skip duplicates
+    if (this._files().some(f => f.originalName === processedFile.originalName)) return;
+    this._files.update(current => [processedFile, ...current]);
+  }
+
+  /**
    * Updates a file by its original name.
    */
   updateFile(item: ProcessedFile, changes: Partial<ProcessedFile>): void {

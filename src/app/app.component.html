@@ -1,15 +1,24 @@
-<!-- Main Container with Gradient Background -->
-<div class="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 font-sans p-6 md:p-10">
+<!-- Main Container with Background Image -->
+<div class="min-h-screen relative font-sans">
+
+  <!-- Background Image -->
+  <div class="fixed inset-0 z-0">
+    <img
+      src="assets/music-background.png"
+      alt="Background"
+      class="w-full h-full object-cover opacity-40 blur-sm">
+    <div class="absolute inset-0 bg-gradient-to-br from-indigo-100/80 via-purple-50/80 to-pink-100/80"></div>
+  </div>
+
+  <!-- Decorative Blobs -->
+  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -left-40 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl"></div>
+  </div>
 
   <!-- Global Snackbar -->
   <app-snackbar></app-snackbar>
-
-  <!-- Decorative Blobs -->
-  <div class="fixed inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 bg-purple-300/30 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 -left-40 w-80 h-80 bg-blue-300/30 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-pink-300/30 rounded-full blur-3xl"></div>
-  </div>
 
   <!-- Edit Modal -->
   @if (editingItem()) {
@@ -21,11 +30,12 @@
       </app-tag-editor>
   }
 
-  <div class="relative z-10 max-w-5xl mx-auto">
+  <!-- Content -->
+  <div class="relative z-10">
 
-    <!-- Glass Header -->
-    <header class="mb-6 backdrop-blur-xl bg-white/30 rounded-2xl border border-white/40 shadow-xl px-6 py-4">
-      <div class="flex items-center justify-between">
+    <!-- Glass Header - Full Width -->
+    <header class="backdrop-blur-xl bg-white/30 border-b border-white/40 shadow-xl px-6 py-4 mb-6">
+      <div class="max-w-7xl mx-auto flex items-center justify-between">
         <!-- Left: Logo + Title -->
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl backdrop-blur-md bg-white/40 border border-white/50 flex items-center justify-center">
@@ -86,27 +96,16 @@
       </div>
     </header>
 
-    <!-- Drop Zone -->
-    <app-dropzone
-        (filesDropped)="addFiles($event)"
-        class="block mb-4">
-    </app-dropzone>
+    <!-- Main Content Area -->
+    <div class="max-w-7xl mx-auto px-6 pb-10">
 
-    <!-- YouTube Download Button -->
-    <div class="mb-8 flex justify-center">
-      <app-button
-        (click)="showYoutubeModal.set(true)"
-        palette="red"
-        variant="glass"
-        icon="youtube"
-      >
-        YouTube to MP3
-      </app-button>
-    </div>
+      <!-- Drop Zone -->
+      <app-dropzone
+          (filesDropped)="addFiles($event)"
+          class="block mb-6">
+      </app-dropzone>
 
-    <!-- App Content -->
-    @if (files().length > 0) {
-
+      <!-- Filter Bar - Always Visible - Full Width -->
       <app-filter-bar
         [filterText]="filterQuery"
         (filterTextChange)="filterQuery = $event"
@@ -114,30 +113,35 @@
         (aiEnabledChange)="aiService.setEnabled($event)"
         [debugMode]="store.debugMode()"
         (debugModeChange)="store.setDebugMode($event)"
+        [hasFiles]="files().length > 0"
         (processVisible)="autoProcessAll()"
         (analyzeBpmAll)="analyzeAllBpm()"
         (downloadAll)="downloadAllZip()"
-        (clearList)="clearList()">
+        (clearList)="clearList()"
+        (openYoutubeModal)="showYoutubeModal.set(true)"
+        class="block mb-6">
       </app-filter-bar>
 
-      <div class="space-y-4">
-        @for (item of filteredFiles(); track item.originalName; let i = $index) {
-           <app-file-card
-             [item]="item"
-             (search)="search(item)"
-             (edit)="openEditor(item)"
-             (remove)="removeFile(i)"
-             (download)="downloadFile(item)"
-             (selectRelease)="selectRelease(item, $event)"
-             (selectTrack)="selectTrack(item, $event)"
-             (detectBpm)="detectBpm(item)"
-             (artistChange)="updateArtist(item, $event)"
-             (titleChange)="updateTitle(item, $event)">
-           </app-file-card>
-        }
-      </div>
-
-    }
+      <!-- File Cards List -->
+      @if (files().length > 0) {
+        <div class="space-y-6">
+          @for (item of filteredFiles(); track item.originalName; let i = $index) {
+             <app-file-card
+               [item]="item"
+               (search)="search(item)"
+               (edit)="openEditor(item)"
+               (remove)="removeFile(i)"
+               (download)="downloadFile(item)"
+               (selectRelease)="selectRelease(item, $event)"
+               (selectTrack)="selectTrack(item, $event)"
+               (detectBpm)="detectBpm(item)"
+               (artistChange)="updateArtist(item, $event)"
+               (titleChange)="updateTitle(item, $event)">
+             </app-file-card>
+          }
+        </div>
+      }
+    </div>
   </div>
 
   <!-- YouTube Modal -->

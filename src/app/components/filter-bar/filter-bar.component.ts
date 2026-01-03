@@ -1,4 +1,4 @@
-import { Component, model, output } from '@angular/core';
+import { Component, model, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -16,10 +16,12 @@ export class FilterBarComponent {
   filterText = model<string>('');
   aiEnabled = model<boolean>(true);
   debugMode = model<boolean>(false);
+  hasFiles = input<boolean>(false);
 
   // Outputs
   processVisible = output<void>();
   downloadAll = output<void>();
   analyzeBpmAll = output<void>();
   clearList = output<void>();
+  openYoutubeModal = output<void>();
 }

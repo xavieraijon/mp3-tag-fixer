@@ -160,15 +160,17 @@ mp3-tag-fixer/
 
 ## API Endpoints
 
-### Discogs (Public)
+### Correction & Search (Public)
 
 ```
-GET  /api/discogs/search?q=query           # General search
-GET  /api/discogs/search/smart             # Multi-strategy search
-GET  /api/discogs/search/release           # Search by artist/release
-GET  /api/discogs/search/track             # Search by track name
+POST  /api/correction/search             # Advanced multi-strategy search
+POST  /api/correction/rank-tracks        # Rank tracks within a release
+```
+
+### Discogs (Legacy/Proxy)
+
+```
 GET  /api/discogs/release/:id              # Release details
-GET  /api/discogs/master/:id               # Master details
 GET  /api/discogs/image?url=               # Image proxy (CORS)
 ```
 
@@ -202,33 +204,29 @@ POST /api/payments/webhook                 # Stripe webhook (public)
 
 ## How It Works
 
-1. **Upload** - User drops MP3 files into the browser
-2. **Parse** - App reads existing ID3 tags and filename
-3. **Search** - Multi-strategy search queries Discogs API
-4. **Match** - Algorithm scores and ranks results (0-100)
-5. **Select** - User picks release, app fetches tracklist
-6. **Auto-Match** - Tracks are matched to files by title similarity
-7. **Edit** - User can manually adjust tags, detect BPM
-8. **Download** - File is re-encoded with ID3v2.4 tags
+1.  **Upload** - User drops MP3 files into the browser
+2.  **Parse** - Backend (`FilenameParser`) extracts artist/title intelligence
+3.  **Search** - Backend (`CorrectionService`) executes multi-strategy search against Discogs & MusicBrainz
+4.  **Match** - Results are scored (0-100) and ranked by relevance
+5.  **Select** - User picks a release
+6.  **Auto-Match** - Backend (`rankTracks`) identifies the specific track within the release
+7.  **Edit** - User can manually adjust tags, detect BPM
+8.  **Download** - File is re-encoded with ID3v2.4 tags
 
-## Search Algorithm
+## Search Intelligence (Backend)
 
-The search service generates 60+ strategies including:
+The new `CorrectionModule` centralizes the search logic in the backend:
 
-- Direct query: `"Artist - Title"`
-- Track search with artist variants
-- Release search (master/release)
-- Base title (without parentheses/remix info)
-- Artist name normalization (DJ prefixes, dots, hyphens)
-- Swapped artist/title fallback
-
-Each result is scored (0-100) based on:
-
-- Artist similarity (0-60 points)
-- Title match (0-30 points)
-- Metadata bonuses (year, cover, genre)
-
-Search stops early when score >= 70 (excellent match).
+- **Strategies**: Generates 60+ search permutations (fuzzy, typo-fix, track-based, etc.)
+- **Execution**: Orchestrates calls to Discogs and MusicBrainz APIs
+- **Scoring**: Calculates match confidence based on:
+  - String similarity (Artist/Title)
+  - Metadata completeness (Year, Cover Art)
+  - Format matching (Vinyl, CD, Digital)
+- **Track Ranking**: selecting the best track in a release based on:
+  - Position and Title matching
+  - Version/Mix detection
+  - Duration correlation
 
 ## Development
 

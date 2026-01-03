@@ -143,7 +143,7 @@
   <!-- YouTube Modal -->
   @if (showYoutubeModal()) {
     <app-youtube-modal
-      (close)="showYoutubeModal.set(false)"
+      (closed)="showYoutubeModal.set(false)"
       (downloaded)="handleYoutubeDownload($event)">
     </app-youtube-modal>
   }

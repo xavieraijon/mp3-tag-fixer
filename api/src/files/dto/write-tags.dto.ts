@@ -49,4 +49,8 @@ export class WriteTagsDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsString()
+  coverImageUrl?: string;
 }

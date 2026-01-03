@@ -15,7 +15,7 @@ import { NotificationService } from './services/notification.service';
 import { AuthService } from './services/auth.service';
 import { MusicBrainzService } from './services/musicbrainz.service';
 import { AiSearchService } from './services/ai-search.service';
-import { YoutubeDownloadResponse } from './services/youtube.service';
+import { YoutubeService, YoutubeDownloadResponse } from './services/youtube.service';
 
 // Store
 import { FilesStore } from './store/files.store';
@@ -66,6 +66,7 @@ export class AppComponent {
   private readonly notification = inject(NotificationService);
   readonly authService = inject(AuthService); // Public for template
   readonly aiService = inject(AiSearchService); // Public for template (toggle)
+  private readonly youtubeService = inject(YoutubeService);
 
   // Store (exposed for template)
   readonly store = inject(FilesStore);
@@ -706,6 +707,25 @@ export class AppComponent {
       }
     }
 
+    // For YouTube files (with serverFileId), use server-side tag writing
+    if (item.serverFileId) {
+      return this.youtubeService.writeTags(item.serverFileId, {
+        title: finalTags.title,
+        artist: finalTags.artist,
+        album: finalTags.album,
+        year: finalTags.year,
+        genre: Array.isArray(finalTags.genre) ? finalTags.genre.join(', ') : finalTags.genre,
+        trackNumber: finalTags.trackNumber,
+        bpm: finalTags.bpm,
+        label: finalTags.label,
+        albumArtist: finalTags.albumArtist,
+        composer: finalTags.composer,
+        comment: finalTags.comment,
+        coverImageUrl: release.cover_image,
+      });
+    }
+
+    // For local files, use client-side tag writing
     return this.processor.writeTags(item.file, finalTags);
   }
 

@@ -4,7 +4,7 @@
   <!-- Background Image -->
   <div class="fixed inset-0 z-0">
     <img
-      src="assets/music-background.png"
+      src="/assets/music-background.png"
       alt="Background"
       class="w-full h-full object-cover opacity-40 blur-sm">
     <div class="absolute inset-0 bg-gradient-to-br from-indigo-100/80 via-purple-50/80 to-pink-100/80"></div>
@@ -38,8 +38,8 @@
       <div class="max-w-7xl mx-auto flex items-center justify-between">
         <!-- Left: Logo + Title -->
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl backdrop-blur-md bg-white/40 border border-white/50 flex items-center justify-center">
-            <lucide-icon name="music" class="text-indigo-600 w-5 h-5"></lucide-icon>
+          <div class="h-16 w-16 flex items-center justify-center">
+            <img src="/assets/logo.png" alt="App Logo" class="w-full h-full object-contain filter drop-shadow-md">
           </div>
           <div>
             <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">MP3 Tag Fixer</h1>
@@ -124,9 +124,9 @@
 
       <!-- File Cards List -->
       @if (files().length > 0) {
-        <div class="space-y-6">
           @for (item of filteredFiles(); track item.originalName; let i = $index) {
              <app-file-card
+              class="mb-2"
                [item]="item"
                (search)="search(item)"
                (edit)="openEditor(item)"
@@ -139,7 +139,6 @@
                (titleChange)="updateTitle(item, $event)">
              </app-file-card>
           }
-        </div>
       }
     </div>
   </div>

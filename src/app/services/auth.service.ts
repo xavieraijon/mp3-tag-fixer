@@ -46,7 +46,7 @@ export class AuthService {
     try {
       this._isLoading.set(true);
       const response = await lastValueFrom(
-        this.http.post<AuthResponse>(`${API_URL}/auth/register`, data)
+        this.http.post<AuthResponse>(`${API_URL}/auth/register`, data),
       );
       this.handleAuthSuccess(response);
     } catch (error) {
@@ -64,7 +64,7 @@ export class AuthService {
     try {
       this._isLoading.set(true);
       const response = await lastValueFrom(
-        this.http.post<AuthResponse>(`${API_URL}/auth/login`, credentials)
+        this.http.post<AuthResponse>(`${API_URL}/auth/login`, credentials),
       );
       this.handleAuthSuccess(response);
     } catch (error) {
@@ -83,9 +83,7 @@ export class AuthService {
       const token = this._token();
       if (token) {
         // Call logout endpoint (optional, for session cleanup)
-        await lastValueFrom(
-          this.http.post(`${API_URL}/auth/logout`, {})
-        ).catch(() => {
+        await lastValueFrom(this.http.post(`${API_URL}/auth/logout`, {})).catch(() => {
           // Ignore errors on logout endpoint
           console.warn('[AuthService] Logout endpoint failed, but clearing local state');
         });
@@ -102,9 +100,7 @@ export class AuthService {
    */
   async getCurrentUser(): Promise<User | null> {
     try {
-      const response = await lastValueFrom(
-        this.http.get<{ user: User }>(`${API_URL}/auth/me`)
-      );
+      const response = await lastValueFrom(this.http.get<{ user: User }>(`${API_URL}/auth/me`));
       this._user.set(response.user);
       return response.user;
     } catch (error) {

@@ -1,12 +1,8 @@
 <!-- Main Container with Background Image -->
 <div class="min-h-screen relative font-sans">
-
   <!-- Background Image -->
   <div class="fixed inset-0 z-0">
-    <img
-      src="/assets/music-background.png"
-      alt="Background"
-      class="w-full h-full object-cover opacity-40 blur-sm">
+    <img src="/assets/music-background.png" alt="Background" class="w-full h-full object-cover opacity-40 blur-sm" />
     <div class="absolute inset-0 bg-gradient-to-br from-indigo-100/80 via-purple-50/80 to-pink-100/80"></div>
   </div>
 
@@ -22,24 +18,24 @@
 
   <!-- Edit Modal -->
   @if (editingItem()) {
-      <app-tag-editor
-        [tags]="editForm()"
-        [coverImageUrl]="editingItem()!.coverImageUrl"
-        (save)="saveEditor($event)"
-        (cancelEdit)="closeEditor()">
-      </app-tag-editor>
+    <app-tag-editor
+      [tags]="editForm()"
+      [coverImageUrl]="editingItem()!.coverImageUrl"
+      (save)="saveEditor($event)"
+      (cancelEdit)="closeEditor()"
+    >
+    </app-tag-editor>
   }
 
   <!-- Content -->
   <div class="relative z-10">
-
     <!-- Glass Header - Full Width -->
     <header class="backdrop-blur-xl bg-white/30 border-b border-white/40 shadow-xl px-6 py-4 mb-6">
       <div class="max-w-7xl mx-auto flex items-center justify-between">
         <!-- Left: Logo + Title -->
         <div class="flex items-center gap-3">
           <div class="h-16 w-16 flex items-center justify-center">
-            <img src="/assets/logo.png" alt="App Logo" class="w-full h-full object-contain filter drop-shadow-md">
+            <img src="/assets/logo.png" alt="App Logo" class="w-full h-full object-contain filter drop-shadow-md" />
           </div>
           <div>
             <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">MP3 Tag Fixer</h1>
@@ -52,17 +48,14 @@
           @if (authService.isAuthenticated()) {
             <!-- Authenticated: Show user menu -->
             <div class="relative">
-              <app-button
-                (click)="toggleUserMenu()"
-                palette="neutral"
-                variant="glass"
-                icon="user"
-              >
+              <app-button (click)="toggleUserMenu()" palette="neutral" variant="glass" icon="user">
                 {{ authService.userDisplayName() }}
               </app-button>
 
               @if (showUserMenu()) {
-                <div class="absolute right-0 mt-2 w-48 backdrop-blur-xl bg-white/90 rounded-xl shadow-xl border border-white/40 overflow-hidden z-50">
+                <div
+                  class="absolute right-0 mt-2 w-48 backdrop-blur-xl bg-white/90 rounded-xl shadow-xl border border-white/40 overflow-hidden z-50"
+                >
                   <button
                     (click)="logout()"
                     class="w-full px-4 py-3 text-left hover:bg-indigo-50 transition flex items-center gap-2 text-slate-700 text-sm font-medium"
@@ -75,20 +68,10 @@
             </div>
           } @else {
             <!-- Not Authenticated: Show login/register buttons -->
-            <app-button
-              (click)="showLoginModal.set(true)"
-              palette="neutral"
-              variant="glass"
-              icon="log-in"
-            >
+            <app-button (click)="showLoginModal.set(true)" palette="neutral" variant="glass" icon="log-in">
               Sign In
             </app-button>
-            <app-button
-              (click)="showRegisterModal.set(true)"
-              palette="primary"
-              variant="solid"
-              icon="user-plus"
-            >
+            <app-button (click)="showRegisterModal.set(true)" palette="primary" variant="solid" icon="user-plus">
               Sign Up
             </app-button>
           }
@@ -98,12 +81,8 @@
 
     <!-- Main Content Area -->
     <div class="max-w-7xl mx-auto px-6 pb-10">
-
       <!-- Drop Zone -->
-      <app-dropzone
-          (filesDropped)="addFiles($event)"
-          class="block mb-6">
-      </app-dropzone>
+      <app-dropzone (filesDropped)="addFiles($event)" class="block mb-6"> </app-dropzone>
 
       <!-- Filter Bar - Always Visible - Full Width -->
       <app-filter-bar
@@ -119,50 +98,44 @@
         (downloadAll)="downloadAllZip()"
         (clearList)="clearList()"
         (openYoutubeModal)="showYoutubeModal.set(true)"
-        class="block mb-6">
+        class="block mb-6"
+      >
       </app-filter-bar>
 
       <!-- File Cards List -->
       @if (files().length > 0) {
-          @for (item of filteredFiles(); track item.originalName; let i = $index) {
-             <app-file-card
-              class="mb-2"
-               [item]="item"
-               (requestSearch)="search(item)"
-               (edit)="openEditor(item)"
-               (remove)="removeFile(i)"
-               (download)="downloadFile(item)"
-               (selectRelease)="selectRelease(item, $event)"
-               (selectTrack)="selectTrack(item, $event)"
-               (detectBpm)="detectBpm(item)"
-               (artistChange)="updateArtist(item, $event)"
-               (titleChange)="updateTitle(item, $event)">
-             </app-file-card>
-          }
+        @for (item of filteredFiles(); track item.originalName; let i = $index) {
+          <app-file-card
+            class="mb-2"
+            [item]="item"
+            (requestSearch)="search(item)"
+            (edit)="openEditor(item)"
+            (remove)="removeFile(i)"
+            (download)="downloadFile(item)"
+            (selectRelease)="selectRelease(item, $event)"
+            (selectTrack)="selectTrack(item, $event)"
+            (detectBpm)="detectBpm(item)"
+            (artistChange)="updateArtist(item, $event)"
+            (titleChange)="updateTitle(item, $event)"
+          >
+          </app-file-card>
+        }
       }
     </div>
   </div>
 
   <!-- YouTube Modal -->
   @if (showYoutubeModal()) {
-    <app-youtube-modal
-      (closed)="showYoutubeModal.set(false)"
-      (downloaded)="handleYoutubeDownload($event)">
+    <app-youtube-modal (closed)="showYoutubeModal.set(false)" (downloaded)="handleYoutubeDownload($event)">
     </app-youtube-modal>
   }
 
   <!-- Auth Modals -->
   @if (showLoginModal()) {
-    <app-login
-      (closeModal)="showLoginModal.set(false)"
-      (switchToRegister)="switchToRegister()">
-    </app-login>
+    <app-login (closeModal)="showLoginModal.set(false)" (switchToRegister)="switchToRegister()"> </app-login>
   }
 
   @if (showRegisterModal()) {
-    <app-register
-      (closeModal)="showRegisterModal.set(false)"
-      (switchToLogin)="switchToLogin()">
-    </app-register>
+    <app-register (closeModal)="showRegisterModal.set(false)" (switchToLogin)="switchToLogin()"> </app-register>
   }
 </div>

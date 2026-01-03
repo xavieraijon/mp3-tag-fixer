@@ -18,7 +18,7 @@ interface ApiResponse<T> {
  * All API keys and rate limiting are handled server-side.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DiscogsService {
   private readonly API_URL = '/api/discogs';
@@ -31,7 +31,7 @@ export class DiscogsService {
   async searchRelease(
     artist: string,
     release: string,
-    type: 'release' | 'master' | 'all' = 'master'
+    type: 'release' | 'master' | 'all' = 'master',
   ): Promise<DiscogsRelease[]> {
     if (!artist && !release) return [];
 
@@ -40,10 +40,9 @@ export class DiscogsService {
     if (release) params['release'] = release;
     if (type !== 'all') params['type'] = type;
 
-    const obs = this.http.get<ApiResponse<DiscogsRelease>>(
-      `${this.API_URL}/search/release`,
-      { params }
-    ).pipe(map(res => res.results));
+    const obs = this.http
+      .get<ApiResponse<DiscogsRelease>>(`${this.API_URL}/search/release`, { params })
+      .pipe(map((res) => res.results));
 
     return lastValueFrom(obs);
   }
@@ -54,7 +53,7 @@ export class DiscogsService {
   async searchByTrack(
     artist: string,
     track: string,
-    type: 'release' | 'master' | 'all' = 'all'
+    type: 'release' | 'master' | 'all' = 'all',
   ): Promise<DiscogsRelease[]> {
     if (!track) return [];
 
@@ -62,10 +61,9 @@ export class DiscogsService {
     if (artist) params['artist'] = artist;
     if (type !== 'all') params['type'] = type;
 
-    const obs = this.http.get<ApiResponse<DiscogsRelease>>(
-      `${this.API_URL}/search/track`,
-      { params }
-    ).pipe(map(res => res.results));
+    const obs = this.http
+      .get<ApiResponse<DiscogsRelease>>(`${this.API_URL}/search/track`, { params })
+      .pipe(map((res) => res.results));
 
     return lastValueFrom(obs);
   }
@@ -75,17 +73,16 @@ export class DiscogsService {
    */
   async searchQuery(
     query: string,
-    type: 'release' | 'master' | 'all' = 'all'
+    type: 'release' | 'master' | 'all' = 'all',
   ): Promise<DiscogsRelease[]> {
     if (!query || query.trim().length < 2) return [];
 
     const params: Record<string, string> = { q: query.trim() };
     if (type !== 'all') params['type'] = type;
 
-    const obs = this.http.get<ApiResponse<DiscogsRelease>>(
-      `${this.API_URL}/search`,
-      { params }
-    ).pipe(map(res => res.results));
+    const obs = this.http
+      .get<ApiResponse<DiscogsRelease>>(`${this.API_URL}/search`, { params })
+      .pipe(map((res) => res.results));
 
     return lastValueFrom(obs);
   }
@@ -95,11 +92,10 @@ export class DiscogsService {
    */
   async getReleaseDetails(
     id: number,
-    type: 'release' | 'master' = 'release'
+    type: 'release' | 'master' = 'release',
   ): Promise<DiscogsDetail> {
-    const endpoint = type === 'master'
-      ? `${this.API_URL}/master/${id}`
-      : `${this.API_URL}/release/${id}`;
+    const endpoint =
+      type === 'master' ? `${this.API_URL}/master/${id}` : `${this.API_URL}/release/${id}`;
 
     const obs = this.http.get<DiscogsDetail>(endpoint);
     return lastValueFrom(obs);

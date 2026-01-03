@@ -12,7 +12,7 @@ import { DebugStepperComponent } from '../debug-stepper/debug-stepper.component'
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent, DebugStepperComponent],
   templateUrl: './file-card.component.html',
-  styleUrl: './file-card.component.css'
+  styleUrl: './file-card.component.css',
 })
 export class FileCardComponent {
   item = input.required<ProcessedFile>();
@@ -49,7 +49,7 @@ export class FileCardComponent {
 
   onReleaseSelectChange(releaseId: string) {
     if (!releaseId) return;
-    const release = this.item().searchResults?.find(r => r.id.toString() === releaseId);
+    const release = this.item().searchResults?.find((r) => r.id.toString() === releaseId);
     if (release) {
       this.selectRelease.emit(release);
     }
@@ -57,14 +57,14 @@ export class FileCardComponent {
 
   onTrackSelectChange(position: string) {
     if (!position) return;
-    const track = this.item().tracks?.find(t => t.position === position);
+    const track = this.item().tracks?.find((t) => t.position === position);
     if (track) {
       this.selectTrack.emit(track);
     }
   }
 
   getRealTracks(tracks: DiscogsTrack[]): DiscogsTrack[] {
-    return tracks?.filter(t => t.type_ === 'track') || [];
+    return tracks?.filter((t) => t.type_ === 'track') || [];
   }
 
   getSelectedReleaseId(): string {
@@ -73,20 +73,20 @@ export class FileCardComponent {
   }
 
   getDisplaySubtitle(item: ProcessedFile): string {
-       if (item.selectedRelease && item.selectedTrack) {
-           const rel = item.selectedRelease;
-           const track = item.selectedTrack;
-           // Display: "Release Title (Label) [Year] • Track 01"
-           const label = rel.labels?.[0]?.name ? ` (${rel.labels[0].name})` : '';
-           const year = rel.year ? ` [${rel.year}]` : '';
-           return `${rel.title}${label}${year} • ${track.position}`;
-       }
-       return item.originalName;
+    if (item.selectedRelease && item.selectedTrack) {
+      const rel = item.selectedRelease;
+      const track = item.selectedTrack;
+      // Display: "Release Title (Label) [Year] • Track 01"
+      const label = rel.labels?.[0]?.name ? ` (${rel.labels[0].name})` : '';
+      const year = rel.year ? ` [${rel.year}]` : '';
+      return `${rel.title}${label}${year} • ${track.position}`;
+    }
+    return item.originalName;
   }
 
   // Format helper
   formatDuration(duration: string | undefined): string {
-      return duration || '--:--';
+    return duration || '--:--';
   }
 
   /**

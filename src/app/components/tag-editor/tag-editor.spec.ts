@@ -8,9 +8,8 @@ describe('TagEditor', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TagEditor]
-    })
-    .compileComponents();
+      imports: [TagEditor],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TagEditor);
     component = fixture.componentInstance;

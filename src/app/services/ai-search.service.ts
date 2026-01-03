@@ -31,7 +31,7 @@ export interface AiStatus {
  * Uses Groq LLM for filename parsing and AcoustID for audio fingerprinting.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AiSearchService {
   private readonly http = inject(HttpClient);
@@ -62,9 +62,7 @@ export class AiSearchService {
    */
   async checkStatus(): Promise<AiStatus> {
     try {
-      const status = await lastValueFrom(
-        this.http.get<AiStatus>(`${this.API_URL}/status`)
-      );
+      const status = await lastValueFrom(this.http.get<AiStatus>(`${this.API_URL}/status`));
       this._available.set(status.available);
       return status;
     } catch (e) {
@@ -81,7 +79,7 @@ export class AiSearchService {
   async parseFilename(
     filename: string,
     existingArtist?: string,
-    existingTitle?: string
+    existingTitle?: string,
   ): Promise<AiParseResult | null> {
     // Check if AI is enabled
     if (!this._enabled()) {
@@ -106,11 +104,13 @@ export class AiSearchService {
         this.http.post<AiParseResult>(`${this.API_URL}/parse-filename`, {
           filename,
           existingArtist,
-          existingTitle
-        })
+          existingTitle,
+        }),
       );
 
-      console.log(`[AiSearchService] AI result: artist="${result.artist}", title="${result.title}", confidence=${result.confidence}`);
+      console.log(
+        `[AiSearchService] AI result: artist="${result.artist}", title="${result.title}", confidence=${result.confidence}`,
+      );
 
       return result;
     } catch (e) {
@@ -135,7 +135,7 @@ export class AiSearchService {
   async checkAcoustidStatus(): Promise<AiStatus> {
     try {
       const status = await lastValueFrom(
-        this.http.get<AiStatus>(`${this.API_URL}/acoustid/status`)
+        this.http.get<AiStatus>(`${this.API_URL}/acoustid/status`),
       );
       this._acoustidAvailable.set(status.available);
       return status;
@@ -175,10 +175,7 @@ export class AiSearchService {
       formData.append('file', file);
 
       const result = await lastValueFrom(
-        this.http.post<AcoustidResult | { error: string }>(
-          `${this.API_URL}/identify`,
-          formData
-        )
+        this.http.post<AcoustidResult | { error: string }>(`${this.API_URL}/identify`, formData),
       );
 
       if ('error' in result) {
@@ -186,7 +183,9 @@ export class AiSearchService {
         return null;
       }
 
-      console.log(`[AiSearchService] AcoustID result: "${result.artist} - ${result.title}" (confidence: ${result.confidence})`);
+      console.log(
+        `[AiSearchService] AcoustID result: "${result.artist} - ${result.title}" (confidence: ${result.confidence})`,
+      );
       return result;
     } catch (e) {
       console.error('[AiSearchService] Failed to identify by fingerprint:', e);

@@ -51,9 +51,9 @@ import { YoutubeModalComponent } from './components/youtube-modal/youtube-modal.
     LoginComponent,
     RegisterComponent,
     ButtonComponent,
-    YoutubeModalComponent
+    YoutubeModalComponent,
   ],
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
 })
 export class AppComponent {
   // Services
@@ -139,307 +139,325 @@ export class AppComponent {
 
   // === Search ===
 
-    // === Search ===
+  // === Search ===
 
-    async search(item: ProcessedFile): Promise<void> {
-      // DEBUG MODE FLOW
-      if (this.store.debugMode()) {
-        await this.runDebugSearch(item);
-        return;
+  async search(item: ProcessedFile): Promise<void> {
+    // DEBUG MODE FLOW
+    if (this.store.debugMode()) {
+      await this.runDebugSearch(item);
+      return;
+    }
+
+    // STANDARD FLOW (FAST FAIL)
+    // Collect all possible sources for artist/title
+    const sources = {
+      manual: { artist: item.manualArtist || '', title: item.manualTitle || '' },
+      tags: { artist: item.currentTags?.artist || '', title: item.currentTags?.title || '' },
+      filename: this.processor.parseFilename(item.originalName),
+    };
+
+    let primaryArtist = sources.manual.artist || sources.tags.artist || sources.filename.artist;
+    let primaryTitle = sources.manual.title || sources.tags.title || sources.filename.title;
+    let usedAiParsing = false;
+    let usedAcoustid = false;
+
+    // Update status to show we're starting
+    let aiConfidence: number | undefined;
+
+    this.store.updateFile(item, {
+      status: 'searching',
+      statusMessage: 'Analyzing file...',
+      searchResults: [],
+      selectedRelease: undefined,
+      releaseDetails: undefined,
+      tracks: [],
+      selectedTrack: undefined,
+      coverImageUrl: undefined,
+    });
+
+    // Try AcoustID first (audio fingerprint) - most reliable for identification
+    if (this.aiService.enabled()) {
+      this.store.updateFile(item, { statusMessage: 'Analyzing audio fingerprint...' });
+
+      const acoustidResult = await this.aiService.identifyByFingerprint(item.file);
+
+      if (acoustidResult && acoustidResult.confidence >= 0.8) {
+        console.log(
+          `[Search] AcoustID identified: "${acoustidResult.artist} - ${acoustidResult.title}" (confidence: ${acoustidResult.confidence})`,
+        );
+        primaryArtist = acoustidResult.artist;
+        primaryTitle = acoustidResult.title;
+        usedAcoustid = true;
+        aiConfidence = acoustidResult.confidence;
+
+        // Update manual fields with AcoustID result
+        this.store.updateFile(item, {
+          manualArtist: primaryArtist,
+          manualTitle: primaryTitle,
+          statusMessage: `🎵 Audio identified: "${primaryArtist} - ${primaryTitle}"`,
+        });
+      } else if (acoustidResult) {
+        console.log(
+          `[Search] AcoustID low confidence (${acoustidResult.confidence}), trying AI parsing`,
+        );
       }
+    }
 
-      // STANDARD FLOW (FAST FAIL)
-      // Collect all possible sources for artist/title
-      const sources = {
-        manual: { artist: item.manualArtist || '', title: item.manualTitle || '' },
-        tags: { artist: item.currentTags?.artist || '', title: item.currentTags?.title || '' },
-        filename: this.processor.parseFilename(item.originalName)
-      };
+    // Try AI parsing if AcoustID didn't work
+    if (!usedAcoustid && this.aiService.enabled()) {
+      this.store.updateFile(item, { statusMessage: 'AI analyzing filename...' });
 
-      let primaryArtist = sources.manual.artist || sources.tags.artist || sources.filename.artist;
-      let primaryTitle = sources.manual.title || sources.tags.title || sources.filename.title;
-      let usedAiParsing = false;
-      let usedAcoustid = false;
+      const aiResult = await this.aiService.parseFilename(
+        item.originalName,
+        sources.tags.artist,
+        sources.tags.title,
+      );
 
-      // Update status to show we're starting
-      let aiConfidence: number | undefined;
-
-      this.store.updateFile(item, {
-        status: 'searching',
-        statusMessage: 'Analyzing file...',
-        searchResults: [],
-        selectedRelease: undefined,
-        releaseDetails: undefined,
-        tracks: [],
-        selectedTrack: undefined,
-        coverImageUrl: undefined
-      });
-
-      // Try AcoustID first (audio fingerprint) - most reliable for identification
-      if (this.aiService.enabled()) {
-        this.store.updateFile(item, { statusMessage: 'Analyzing audio fingerprint...' });
-
-        const acoustidResult = await this.aiService.identifyByFingerprint(item.file);
-
-        if (acoustidResult && acoustidResult.confidence >= 0.8) {
-          console.log(`[Search] AcoustID identified: "${acoustidResult.artist} - ${acoustidResult.title}" (confidence: ${acoustidResult.confidence})`);
-          primaryArtist = acoustidResult.artist;
-          primaryTitle = acoustidResult.title;
-          usedAcoustid = true;
-          aiConfidence = acoustidResult.confidence;
-
-          // Update manual fields with AcoustID result
-          this.store.updateFile(item, {
-            manualArtist: primaryArtist,
-            manualTitle: primaryTitle,
-            statusMessage: `🎵 Audio identified: "${primaryArtist} - ${primaryTitle}"`
-          });
-        } else if (acoustidResult) {
-          console.log(`[Search] AcoustID low confidence (${acoustidResult.confidence}), trying AI parsing`);
-        }
-      }
-
-      // Try AI parsing if AcoustID didn't work
-      if (!usedAcoustid && this.aiService.enabled()) {
-        this.store.updateFile(item, { statusMessage: 'AI analyzing filename...' });
-
-        const aiResult = await this.aiService.parseFilename(
-          item.originalName,
-          sources.tags.artist,
-          sources.tags.title
+      if (aiResult && aiResult.confidence >= 0.7) {
+        console.log(
+          `[Search] AI parsing succeeded: "${aiResult.artist} - ${aiResult.title}" (confidence: ${aiResult.confidence})`,
         );
 
-        if (aiResult && aiResult.confidence >= 0.7) {
-          console.log(`[Search] AI parsing succeeded: "${aiResult.artist} - ${aiResult.title}" (confidence: ${aiResult.confidence})`);
+        // Trust AI result completely - empty artist means garbage was detected and should be ignored
+        // Don't fallback to garbage artist from tags when AI explicitly returns empty string
+        primaryArtist = aiResult.artist; // Empty string is intentional (garbage detected)
+        primaryTitle = aiResult.title || primaryTitle;
+        usedAiParsing = true;
+        aiConfidence = aiResult.confidence;
 
-          // Trust AI result completely - empty artist means garbage was detected and should be ignored
-          // Don't fallback to garbage artist from tags when AI explicitly returns empty string
-          primaryArtist = aiResult.artist; // Empty string is intentional (garbage detected)
-          primaryTitle = aiResult.title || primaryTitle;
-          usedAiParsing = true;
-          aiConfidence = aiResult.confidence;
-
-          // Update manual fields with AI suggestions
-          const displayArtist = primaryArtist || '(unknown artist)';
-          this.store.updateFile(item, {
-            manualArtist: primaryArtist,
-            manualTitle: primaryTitle,
-            statusMessage: `AI: "${displayArtist} - ${primaryTitle}"`
-          });
-        } else if (aiResult) {
-          console.log(`[Search] AI parsing low confidence (${aiResult.confidence}), using traditional parsing`);
-        }
-      }
-
-      if (!primaryArtist && !primaryTitle) {
+        // Update manual fields with AI suggestions
+        const displayArtist = primaryArtist || '(unknown artist)';
         this.store.updateFile(item, {
-          status: 'error',
-          statusMessage: 'No artist or title found. Please enter manually.'
+          manualArtist: primaryArtist,
+          manualTitle: primaryTitle,
+          statusMessage: `AI: "${displayArtist} - ${primaryTitle}"`,
         });
-        return;
+      } else if (aiResult) {
+        console.log(
+          `[Search] AI parsing low confidence (${aiResult.confidence}), using traditional parsing`,
+        );
       }
+    }
 
+    if (!primaryArtist && !primaryTitle) {
       this.store.updateFile(item, {
-        statusMessage: usedAiParsing
-          ? `AI searching: "${primaryArtist} - ${primaryTitle}"...`
-          : 'Analyzing search strategies...'
+        status: 'error',
+        statusMessage: 'No artist or title found. Please enter manually.',
+      });
+      return;
+    }
+
+    this.store.updateFile(item, {
+      statusMessage: usedAiParsing
+        ? `AI searching: "${primaryArtist} - ${primaryTitle}"...`
+        : 'Analyzing search strategies...',
+    });
+
+    try {
+      await this.performDiscogsSearch(
+        item,
+        primaryArtist,
+        primaryTitle,
+        usedAcoustid,
+        usedAiParsing,
+        aiConfidence,
+      );
+    } catch (e) {
+      console.error('[Search] Error:', e);
+      this.store.updateFile(item, {
+        status: 'error',
+        statusMessage: 'Search failed. Please try again.',
+      });
+    }
+  }
+
+  // === Helper for Standard Search ===
+  private async performDiscogsSearch(
+    item: ProcessedFile,
+    artist: string,
+    title: string,
+    isAcoustid: boolean,
+    isAi: boolean,
+    aiConfidence?: number,
+  ) {
+    const results = await this.searchService.search(
+      artist,
+      title,
+      (message) => this.store.updateFile(item, { statusMessage: message }),
+      aiConfidence,
+    );
+
+    if (results.length > 0) {
+      const aiLabel = isAcoustid ? ' (🎵 audio match)' : isAi ? ' (AI-assisted)' : '';
+      this.store.updateFile(item, {
+        status: 'ready',
+        searchResults: results,
+        statusMessage: `Found ${results.length} results${aiLabel}. Selecting best match...`,
       });
 
-      try {
-        await this.performDiscogsSearch(item, primaryArtist, primaryTitle, usedAcoustid, usedAiParsing, aiConfidence);
-      } catch (e) {
-        console.error('[Search] Error:', e);
-        this.store.updateFile(item, {
-          status: 'error',
-          statusMessage: 'Search failed. Please try again.'
-        });
+      // Auto-select best result
+      const updatedItem = this.store.getFileByName(item.originalName);
+      if (updatedItem) {
+        await this.selectRelease(updatedItem, results[0]);
       }
+    } else {
+      this.store.updateFile(item, {
+        status: 'error',
+        searchResults: [],
+        statusMessage: 'No results found. Try editing artist/title.',
+      });
     }
+  }
 
-    // === Helper for Standard Search ===
-    private async performDiscogsSearch(
-        item: ProcessedFile,
-        artist: string,
-        title: string,
-        isAcoustid: boolean,
-        isAi: boolean,
-        aiConfidence?: number
-    ) {
-        const results = await this.searchService.search(
-            artist,
-            title,
-            (message) => this.store.updateFile(item, { statusMessage: message }),
-            aiConfidence
-          );
+  // === Debug Search Logic ===
+  private async runDebugSearch(item: ProcessedFile) {
+    // Initialize Debug State
+    this.store.updateFile(item, {
+      status: 'searching',
+      statusMessage: 'Running Step-by-Step Debug...',
+      debugData: {
+        enabled: true,
+        currentStepIndex: 0,
+        steps: [
+          { name: 'AcoustID', status: 'pending' },
+          { name: 'Groq AI', status: 'pending' },
+          { name: 'Traditional', status: 'pending' },
+        ],
+      },
+    });
 
-          if (results.length > 0) {
-            const aiLabel = isAcoustid ? ' (🎵 audio match)' : isAi ? ' (AI-assisted)' : '';
-            this.store.updateFile(item, {
-              status: 'ready',
-              searchResults: results,
-              statusMessage: `Found ${results.length} results${aiLabel}. Selecting best match...`
-            });
-
-            // Auto-select best result
-            const updatedItem = this.store.getFileByName(item.originalName);
-            if (updatedItem) {
-              await this.selectRelease(updatedItem, results[0]);
-            }
-          } else {
-            this.store.updateFile(item, {
-              status: 'error',
-              searchResults: [],
-              statusMessage: 'No results found. Try editing artist/title.'
-            });
-          }
+    interface BestResult {
+      artist: string;
+      title: string;
+      confidence: number;
     }
+    let bestResult: BestResult | null = null;
 
-    // === Debug Search Logic ===
-    private async runDebugSearch(item: ProcessedFile) {
-        // Initialize Debug State
+    // Helper to trigger UI update with the best result found so far
+    let searchTriggered = false;
+    const tryUpdateUI = (res: BestResult) => {
+      if (!searchTriggered) {
+        searchTriggered = true;
         this.store.updateFile(item, {
-            status: 'searching',
-            statusMessage: 'Running Step-by-Step Debug...',
-            debugData: {
-                enabled: true,
-                currentStepIndex: 0,
-                steps: [
-                    { name: 'AcoustID', status: 'pending' },
-                    { name: 'Groq AI', status: 'pending' },
-                    { name: 'Traditional', status: 'pending' }
-                ]
-            }
+          manualArtist: res.artist,
+          manualTitle: res.title,
+          statusMessage: `Early match: ${res.artist} - ${res.title}`,
         });
+        this.performDiscogsSearch(item, res.artist, res.title, false, true, res.confidence);
+      }
+    };
 
-        interface BestResult {
-            artist: string;
-            title: string;
-            confidence: number;
-        }
-        let bestResult: BestResult | null = null;
+    // --- STEP 1: AcoustID ---
+    this.store.updateDebugStep(item, 0, { status: 'running', logs: ['Generating fingerprint...'] });
+    const start1 = Date.now();
+    try {
+      if (this.aiService.enabled()) {
+        const res = await this.aiService.identifyByFingerprint(item.file);
+        const duration = Date.now() - start1;
 
-        // Helper to trigger UI update with the best result found so far
-        let searchTriggered = false;
-        const tryUpdateUI = (res: BestResult) => {
-            if (!searchTriggered) {
-                searchTriggered = true;
-                this.store.updateFile(item, {
-                    manualArtist: res.artist,
-                    manualTitle: res.title,
-                    statusMessage: `Early match: ${res.artist} - ${res.title}`
-                });
-                this.performDiscogsSearch(item, res.artist, res.title, false, true, res.confidence);
-            }
-        };
-
-        // --- STEP 1: AcoustID ---
-        this.store.updateDebugStep(item, 0, { status: 'running', logs: ['Generating fingerprint...'] });
-        const start1 = Date.now();
-        try {
-            if (this.aiService.enabled()) {
-                const res = await this.aiService.identifyByFingerprint(item.file);
-                const duration = Date.now() - start1;
-
-                if (res && res.confidence >= 0.8) {
-                    this.store.updateDebugStep(item, 0, {
-                        status: 'success',
-                        result: res,
-                        durationMs: duration,
-                        logs: [`Matched recording (conf: ${res.confidence})`]
-                    });
-                    // Prioritize this result
-                    if (!bestResult || res.confidence > (bestResult as BestResult).confidence) {
-                        bestResult = { artist: res.artist, title: res.title, confidence: res.confidence };
-                        tryUpdateUI(bestResult);
-                    }
-                } else {
-                    this.store.updateDebugStep(item, 0, {
-                        status: 'failed',
-                        durationMs: duration,
-                        logs: ['No high confidence match found']
-                    });
-                }
-            } else {
-                 this.store.updateDebugStep(item, 0, { status: 'skipped', logs: ['AI Service disabled'] });
-            }
-        } catch {
-            this.store.updateDebugStep(item, 0, { status: 'failed', durationMs: Date.now() - start1, logs: ['Error executing AcoustID'] });
-        }
-
-        // --- STEP 2: Groq AI ---
-        this.store.updateDebugStep(item, 1, { status: 'running', logs: ['Sending to Llama 3...'] });
-        const start2 = Date.now();
-        try {
-            if (this.aiService.enabled()) {
-                const res = await this.aiService.parseFilename(
-                    item.originalName,
-                    item.currentTags?.artist,
-                    item.currentTags?.title
-                );
-                const duration = Date.now() - start2;
-
-                if (res && res.confidence >= 0.7) {
-                    this.store.updateDebugStep(item, 1, {
-                        status: 'success',
-                        result: res,
-                        durationMs: duration
-                    });
-                     // Use this if we don't have a better one yet (AcoustID wins usually)
-                     if (!bestResult || res.confidence > (bestResult as BestResult).confidence) {
-                        bestResult = res;
-                        tryUpdateUI(bestResult);
-                     }
-                } else {
-                    this.store.updateDebugStep(item, 1, {
-                        status: 'failed',
-                        result: res || undefined,
-                        durationMs: duration,
-                        logs: ['Confidence too low']
-                    });
-                }
-            } else {
-                this.store.updateDebugStep(item, 1, { status: 'skipped', logs: ['AI Service disabled'] });
-            }
-        } catch {
-             this.store.updateDebugStep(item, 1, { status: 'failed', durationMs: Date.now() - start2 });
-        }
-
-
-        // --- STEP 3: Traditional ---
-        this.store.updateDebugStep(item, 2, { status: 'running' });
-        const start3 = Date.now();
-        // Simulate "Traditional" result using processor
-        const tradRes = this.processor.parseFilename(item.originalName);
-        const duration3 = Date.now() - start3;
-
-        // Traditional always "succeeds" in producing a result, but quality varies
-        this.store.updateDebugStep(item, 2, {
+        if (res && res.confidence >= 0.8) {
+          this.store.updateDebugStep(item, 0, {
             status: 'success',
-            result: { artist: tradRes.artist, title: tradRes.title, confidence: 0.5 },
-            durationMs: duration3
-        });
-
-        if (!bestResult) {
-            bestResult = { ...tradRes, confidence: 0.5 };
+            result: res,
+            durationMs: duration,
+            logs: [`Matched recording (conf: ${res.confidence})`],
+          });
+          // Prioritize this result
+          if (!bestResult || res.confidence > (bestResult as BestResult).confidence) {
+            bestResult = { artist: res.artist, title: res.title, confidence: res.confidence };
             tryUpdateUI(bestResult);
+          }
+        } else {
+          this.store.updateDebugStep(item, 0, {
+            status: 'failed',
+            durationMs: duration,
+            logs: ['No high confidence match found'],
+          });
         }
-
-        // --- FINISH ---
-        this.store.updateFile(item, {
-            statusMessage: `Debug complete. Using: ${bestResult.artist} - ${bestResult.title}`,
-            manualArtist: bestResult.artist,
-            manualTitle: bestResult.title
-        });
-
-        // Continue to search
-        await this.performDiscogsSearch(item, bestResult.artist, bestResult.title, false, false);
+      } else {
+        this.store.updateDebugStep(item, 0, { status: 'skipped', logs: ['AI Service disabled'] });
+      }
+    } catch {
+      this.store.updateDebugStep(item, 0, {
+        status: 'failed',
+        durationMs: Date.now() - start1,
+        logs: ['Error executing AcoustID'],
+      });
     }
+
+    // --- STEP 2: Groq AI ---
+    this.store.updateDebugStep(item, 1, { status: 'running', logs: ['Sending to Llama 3...'] });
+    const start2 = Date.now();
+    try {
+      if (this.aiService.enabled()) {
+        const res = await this.aiService.parseFilename(
+          item.originalName,
+          item.currentTags?.artist,
+          item.currentTags?.title,
+        );
+        const duration = Date.now() - start2;
+
+        if (res && res.confidence >= 0.7) {
+          this.store.updateDebugStep(item, 1, {
+            status: 'success',
+            result: res,
+            durationMs: duration,
+          });
+          // Use this if we don't have a better one yet (AcoustID wins usually)
+          if (!bestResult || res.confidence > (bestResult as BestResult).confidence) {
+            bestResult = res;
+            tryUpdateUI(bestResult);
+          }
+        } else {
+          this.store.updateDebugStep(item, 1, {
+            status: 'failed',
+            result: res || undefined,
+            durationMs: duration,
+            logs: ['Confidence too low'],
+          });
+        }
+      } else {
+        this.store.updateDebugStep(item, 1, { status: 'skipped', logs: ['AI Service disabled'] });
+      }
+    } catch {
+      this.store.updateDebugStep(item, 1, { status: 'failed', durationMs: Date.now() - start2 });
+    }
+
+    // --- STEP 3: Traditional ---
+    this.store.updateDebugStep(item, 2, { status: 'running' });
+    const start3 = Date.now();
+    // Simulate "Traditional" result using processor
+    const tradRes = this.processor.parseFilename(item.originalName);
+    const duration3 = Date.now() - start3;
+
+    // Traditional always "succeeds" in producing a result, but quality varies
+    this.store.updateDebugStep(item, 2, {
+      status: 'success',
+      result: { artist: tradRes.artist, title: tradRes.title, confidence: 0.5 },
+      durationMs: duration3,
+    });
+
+    if (!bestResult) {
+      bestResult = { ...tradRes, confidence: 0.5 };
+      tryUpdateUI(bestResult);
+    }
+
+    // --- FINISH ---
+    this.store.updateFile(item, {
+      statusMessage: `Debug complete. Using: ${bestResult.artist} - ${bestResult.title}`,
+      manualArtist: bestResult.artist,
+      manualTitle: bestResult.title,
+    });
+
+    // Continue to search
+    await this.performDiscogsSearch(item, bestResult.artist, bestResult.title, false, false);
+  }
 
   async selectRelease(item: ProcessedFile, release: DiscogsRelease): Promise<void> {
     this.store.updateFile(item, {
       selectedRelease: release,
       status: 'loading_details',
-      statusMessage: 'Loading tracklist...'
+      statusMessage: 'Loading tracklist...',
     });
 
     try {
@@ -448,7 +466,10 @@ export class AppComponent {
       if (release.source === 'musicbrainz') {
         details = await this.mbService.getReleaseDetails(release.id as string);
       } else {
-        details = await this.discogs.getReleaseDetails(release.id as number, release.type || 'release');
+        details = await this.discogs.getReleaseDetails(
+          release.id as number,
+          release.type || 'release',
+        );
       }
 
       if (!details) throw new Error('Could not fetch release details');
@@ -457,7 +478,7 @@ export class AppComponent {
       const coverImageUrl = details.cover_image || release.thumb;
 
       // Auto-match track
-      const matchedTrack = this.trackMatcher.findBestMatch(item, tracks);
+      const matchedTrack = await this.trackMatcher.findBestMatch(item, tracks);
 
       if (matchedTrack) {
         this.store.updateFile(item, {
@@ -466,7 +487,7 @@ export class AppComponent {
           selectedTrack: matchedTrack,
           coverImageUrl: coverImageUrl,
           status: 'ready',
-          statusMessage: `Auto-matched: "${matchedTrack.title}"`
+          statusMessage: `Auto-matched: "${matchedTrack.title}"`,
         });
       } else {
         this.store.updateFile(item, {
@@ -474,14 +495,14 @@ export class AppComponent {
           tracks: tracks,
           coverImageUrl: coverImageUrl,
           status: 'ready',
-          statusMessage: tracks.length > 0 ? 'Select a track.' : 'No tracks found.'
+          statusMessage: tracks.length > 0 ? 'Select a track.' : 'No tracks found.',
         });
       }
     } catch (e: unknown) {
       console.error('Error in selectRelease:', e);
       this.store.updateFile(item, {
         status: 'error',
-        statusMessage: 'Failed to load details.'
+        statusMessage: 'Failed to load details.',
       });
     }
   }
@@ -501,12 +522,12 @@ export class AppComponent {
       this.store.setTagOverrides(item, { bpm });
       this.store.updateFile(item, {
         isAnalyzingBpm: false,
-        statusMessage: `BPM: ${bpm}`
+        statusMessage: `BPM: ${bpm}`,
       });
     } else {
       this.store.updateFile(item, {
         isAnalyzingBpm: false,
-        statusMessage: 'BPM detection failed.'
+        statusMessage: 'BPM detection failed.',
       });
     }
   }
@@ -521,8 +542,12 @@ export class AppComponent {
       if (blob) {
         const release = item.releaseDetails || item.selectedRelease;
         const track = item.selectedTrack;
-        const artistFromRelease = this.stringUtils.normalizeSuperscripts(release.artist || '').replace(/\*+$/, '').trim();
-        const finalArtist = item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+        const artistFromRelease = this.stringUtils
+          .normalizeSuperscripts(release.artist || '')
+          .replace(/\*+$/, '')
+          .trim();
+        const finalArtist =
+          item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
         const cleanName = this.processor.sanitizeFileName(`${finalArtist} - ${track.title}`);
         saveAs(blob, `${cleanName}.mp3`);
         this.store.updateFile(item, { status: 'done', statusMessage: 'Download started.' });
@@ -549,7 +574,7 @@ export class AppComponent {
     // Simple chunked execution
     for (let i = 0; i < files.length; i += concurrency) {
       const chunk = files.slice(i, i + concurrency);
-      await Promise.all(chunk.map(f => this.search(f)));
+      await Promise.all(chunk.map((f) => this.search(f)));
     }
   }
 
@@ -607,8 +632,12 @@ export class AppComponent {
         if (blob) {
           const release = item.releaseDetails || item.selectedRelease!;
           const track = item.selectedTrack!;
-          const artistFromRelease = this.stringUtils.normalizeSuperscripts(release.artist || '').replace(/\*+$/, '').trim();
-          const finalArtist = item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+          const artistFromRelease = this.stringUtils
+            .normalizeSuperscripts(release.artist || '')
+            .replace(/\*+$/, '')
+            .trim();
+          const finalArtist =
+            item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
           const cleanName = this.processor.sanitizeFileName(`${finalArtist} - ${track.title}`);
           zip.file(`${cleanName}.mp3`, blob);
           completed++;
@@ -676,9 +705,13 @@ export class AppComponent {
     const label = release.labels?.[0]?.name;
 
     // Determine artist
-    const artistFromRelease = this.stringUtils.normalizeSuperscripts(release.artist || '').replace(/\*+$/, '').trim();
+    const artistFromRelease = this.stringUtils
+      .normalizeSuperscripts(release.artist || '')
+      .replace(/\*+$/, '')
+      .trim();
     const detectedArtist = item.manualArtist || '';
-    const finalArtist = detectedArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+    const finalArtist =
+      detectedArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
 
     const finalTags: Mp3Tags = {
       title: track.title,
@@ -690,7 +723,7 @@ export class AppComponent {
       albumArtist: artistFromRelease || release.artist,
       trackNumber: undefined,
       bpm: item.tagOverrides?.bpm || item.currentTags?.bpm,
-      ...item.tagOverrides
+      ...item.tagOverrides,
     };
 
     // Parse track number
@@ -732,7 +765,7 @@ export class AppComponent {
   // === Auth Methods ===
 
   toggleUserMenu() {
-    this.showUserMenu.update(v => !v);
+    this.showUserMenu.update((v) => !v);
   }
 
   async logout() {

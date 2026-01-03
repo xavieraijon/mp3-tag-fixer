@@ -9,7 +9,7 @@ import { StringUtilsService } from '../services/string-utils.service';
  * Uses Angular Signals for reactive state management.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FilesStore {
   private readonly processor = inject(FileProcessorService);
@@ -40,20 +40,21 @@ export class FilesStore {
     const query = this._filter().toLowerCase().trim();
     if (!query) return this._files();
 
-    return this._files().filter(f =>
-      f.originalName.toLowerCase().includes(query) ||
-      f.selectedTrack?.title.toLowerCase().includes(query) ||
-      f.manualArtist?.toLowerCase().includes(query) ||
-      f.manualTitle?.toLowerCase().includes(query)
+    return this._files().filter(
+      (f) =>
+        f.originalName.toLowerCase().includes(query) ||
+        f.selectedTrack?.title.toLowerCase().includes(query) ||
+        f.manualArtist?.toLowerCase().includes(query) ||
+        f.manualTitle?.toLowerCase().includes(query),
     );
   });
 
-  readonly pendingCount = computed(() =>
-    this._files().filter(f => f.status === 'pending').length
+  readonly pendingCount = computed(
+    () => this._files().filter((f) => f.status === 'pending').length,
   );
 
-  readonly readyCount = computed(() =>
-    this._files().filter(f => f.status === 'ready' && f.selectedTrack).length
+  readonly readyCount = computed(
+    () => this._files().filter((f) => f.status === 'ready' && f.selectedTrack).length,
   );
 
   readonly totalCount = computed(() => this._files().length);
@@ -74,7 +75,7 @@ export class FilesStore {
    */
   async addFile(file: File): Promise<void> {
     // Skip duplicates
-    if (this._files().some(f => f.originalName === file.name)) return;
+    if (this._files().some((f) => f.originalName === file.name)) return;
 
     // Read ID3 tags
     let tags: Mp3Tags = {};
@@ -109,10 +110,10 @@ export class FilesStore {
       searchResults: [],
       tracks: [],
       manualArtist: initialArtist,
-      manualTitle: initialTitle
+      manualTitle: initialTitle,
     };
 
-    this._files.update(current => [newItem, ...current]);
+    this._files.update((current) => [newItem, ...current]);
   }
 
   /**
@@ -120,16 +121,16 @@ export class FilesStore {
    */
   addProcessedFile(processedFile: ProcessedFile): void {
     // Skip duplicates
-    if (this._files().some(f => f.originalName === processedFile.originalName)) return;
-    this._files.update(current => [processedFile, ...current]);
+    if (this._files().some((f) => f.originalName === processedFile.originalName)) return;
+    this._files.update((current) => [processedFile, ...current]);
   }
 
   /**
    * Updates a file by its original name.
    */
   updateFile(item: ProcessedFile, changes: Partial<ProcessedFile>): void {
-    this._files.update(current =>
-      current.map(f => f.originalName === item.originalName ? { ...f, ...changes } : f)
+    this._files.update((current) =>
+      current.map((f) => (f.originalName === item.originalName ? { ...f, ...changes } : f)),
     );
   }
 
@@ -137,8 +138,8 @@ export class FilesStore {
    * Updates a file by name with partial changes.
    */
   updateFileByName(name: string, changes: Partial<ProcessedFile>): void {
-    this._files.update(current =>
-      current.map(f => f.originalName === name ? { ...f, ...changes } : f)
+    this._files.update((current) =>
+      current.map((f) => (f.originalName === name ? { ...f, ...changes } : f)),
     );
   }
 
@@ -146,21 +147,21 @@ export class FilesStore {
    * Gets a file by its original name.
    */
   getFileByName(name: string): ProcessedFile | undefined {
-    return this._files().find(f => f.originalName === name);
+    return this._files().find((f) => f.originalName === name);
   }
 
   /**
    * Removes a file by index.
    */
   removeFileByIndex(index: number): void {
-    this._files.update(current => current.filter((_, i) => i !== index));
+    this._files.update((current) => current.filter((_, i) => i !== index));
   }
 
   /**
    * Removes a file by name.
    */
   removeFile(name: string): void {
-    this._files.update(current => current.filter(f => f.originalName !== name));
+    this._files.update((current) => current.filter((f) => f.originalName !== name));
   }
 
   /**
@@ -207,24 +208,31 @@ export class FilesStore {
 
   // === Debug Helpers ===
 
-  updateDebugStep(file: ProcessedFile, stepIndex: number, changes: Partial<import('../models/processed-file.model').DebugStep>): void {
+  updateDebugStep(
+    file: ProcessedFile,
+    stepIndex: number,
+    changes: Partial<import('../models/processed-file.model').DebugStep>,
+  ): void {
     // Look up the fresh file instance from the store
-    const currentFile = this._files().find(f => f.originalName === file.originalName);
+    const currentFile = this._files().find((f) => f.originalName === file.originalName);
 
     // If not found or debug not enabled, abort
     if (!currentFile || !currentFile.debugData) return;
 
     // Create a deep copy of the steps array
     const newSteps = currentFile.debugData.steps.map((step, index) =>
-        index === stepIndex ? { ...step, ...changes } : step
+      index === stepIndex ? { ...step, ...changes } : step,
     );
 
     this.updateFile(currentFile, {
-        debugData: {
-            ...currentFile.debugData,
-            steps: newSteps,
-            currentStepIndex: changes.status === 'success' || changes.status === 'failed' ? stepIndex + 1 : currentFile.debugData.currentStepIndex
-        }
+      debugData: {
+        ...currentFile.debugData,
+        steps: newSteps,
+        currentStepIndex:
+          changes.status === 'success' || changes.status === 'failed'
+            ? stepIndex + 1
+            : currentFile.debugData.currentStepIndex,
+      },
     });
   }
 
@@ -272,13 +280,17 @@ export class FilesStore {
       album: getVal('album', rel?.title, item.currentTags?.album),
       bpm: getVal('bpm', item.currentTags?.bpm),
       genre: getVal('genre', discogsGenre, item.currentTags?.genre),
-      year: getVal('year', rel?.year ? parseInt(String(rel.year)) : undefined, item.currentTags?.year),
+      year: getVal(
+        'year',
+        rel?.year ? parseInt(String(rel.year)) : undefined,
+        item.currentTags?.year,
+      ),
       label: getVal('label', rel?.labels?.[0]?.name, item.currentTags?.label),
       albumArtist: getVal('albumArtist', rel?.artist, item.currentTags?.albumArtist),
       trackNumber: getVal('trackNumber', defaultTrackNum),
       discNumber: getVal('discNumber', item.currentTags?.discNumber),
       composer: getVal('composer', item.currentTags?.composer),
-      comment: getVal('comment', item.currentTags?.comment)
+      comment: getVal('comment', item.currentTags?.comment),
     });
   }
 
@@ -296,7 +308,7 @@ export class FilesStore {
       tagOverrides: { ...newTags },
       manualArtist: newTags.artist || item.manualArtist,
       manualTitle: newTags.title || item.manualTitle,
-      statusMessage: 'Tags saved.'
+      statusMessage: 'Tags saved.',
     });
 
     this._editingItem.set(null);
@@ -316,20 +328,20 @@ export class FilesStore {
    * Gets files that are ready for download (have selected track and release).
    */
   getDownloadableFiles(): ProcessedFile[] {
-    return this.filteredFiles().filter(f => f.selectedTrack && f.selectedRelease);
+    return this.filteredFiles().filter((f) => f.selectedTrack && f.selectedRelease);
   }
 
   /**
    * Gets files that need BPM analysis.
    */
   getFilesNeedingBpm(): ProcessedFile[] {
-    return this.filteredFiles().filter(f => !f.tagOverrides?.bpm && !f.currentTags?.bpm);
+    return this.filteredFiles().filter((f) => !f.tagOverrides?.bpm && !f.currentTags?.bpm);
   }
 
   /**
    * Gets files that are pending or ready for search.
    */
   getSearchableFiles(): ProcessedFile[] {
-    return this.filteredFiles().filter(f => f.status === 'pending' || f.status === 'ready');
+    return this.filteredFiles().filter((f) => f.status === 'pending' || f.status === 'ready');
   }
 }

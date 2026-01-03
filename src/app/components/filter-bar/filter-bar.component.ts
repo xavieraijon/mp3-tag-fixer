@@ -9,7 +9,7 @@ import { ButtonComponent } from '../ui/button/button.component';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ButtonComponent],
   templateUrl: './filter-bar.component.html',
-  styleUrl: './filter-bar.component.css'
+  styleUrl: './filter-bar.component.css',
 })
 export class FilterBarComponent {
   // Inputs/Models

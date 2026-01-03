@@ -5,7 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { DiscogsRelease } from '../models/discogs.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MusicBrainzService {
   private http = inject(HttpClient);
@@ -18,26 +18,28 @@ export class MusicBrainzService {
     if (artist) params['artist'] = artist;
     if (release) params['title'] = release;
 
-    return this.http.get<DiscogsRelease[]>(`${this.API_URL}/search`, { params })
+    return this.http
+      .get<DiscogsRelease[]>(`${this.API_URL}/search`, { params })
       .pipe(
-        catchError(err => {
+        catchError((err) => {
           console.error('[MusicBrainzService] Search failed', err);
           return of([]);
-        })
+        }),
       )
       .toPromise()
-      .then(res => res || []);
+      .then((res) => res || []);
   }
 
   getReleaseDetails(id: string): Promise<DiscogsRelease | null> {
-    return this.http.get<DiscogsRelease>(`${this.API_URL}/release/${id}`)
+    return this.http
+      .get<DiscogsRelease>(`${this.API_URL}/release/${id}`)
       .pipe(
-        catchError(err => {
+        catchError((err) => {
           console.error('[MusicBrainzService] Get details failed', err);
           return of(null);
-        })
+        }),
       )
       .toPromise()
-      .then(res => res || null);
+      .then((res) => res || null);
   }
 }

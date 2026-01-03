@@ -3,6 +3,7 @@ import { parseBuffer, IAudioMetadata } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { FilenameParser } from '../correction/utils/filename-parser';
 
 export interface Mp3Tags {
   title?: string;
@@ -114,40 +115,7 @@ export class FilesService {
    * Parse filename to extract artist and title
    */
   parseFilename(filename: string): ParsedFilename {
-    // Remove extension
-    let name = filename.replace(/\.[^/.]+$/, '');
-
-    // Remove common prefixes (track numbers, vinyl codes)
-    name = name
-      .replace(/^[A-Z]?\d+[\s._-]+/i, '') // A1, 01, etc.
-      .replace(/^\d+[\s._-]+/, '') // Track numbers
-      .replace(/\s*\[.*?\]\s*/g, '') // [anything]
-      .replace(
-        /\s*\((?:320|128|192|256|vbr|mp3|flac|wav)\s*(?:kbps?)?\)\s*/gi,
-        '',
-      ) // Bitrate info
-      .trim();
-
-    // Try to split by common separators
-    const separators = [' - ', ' – ', ' — ', '_-_', ' _ '];
-
-    for (const sep of separators) {
-      if (name.includes(sep)) {
-        const parts = name.split(sep);
-        if (parts.length >= 2) {
-          return {
-            artist: parts[0].trim(),
-            title: parts.slice(1).join(sep).trim(),
-          };
-        }
-      }
-    }
-
-    // If no separator found, return filename as title
-    return {
-      artist: '',
-      title: name.trim(),
-    };
+    return FilenameParser.parseFilename(filename);
   }
 
   /**

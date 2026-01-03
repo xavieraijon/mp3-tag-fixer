@@ -58,8 +58,7 @@ export class YoutubeInputComponent {
       const message =
         err instanceof Error
           ? err.message
-          : (err as { error?: { message?: string } })?.error?.message ||
-            'Failed to download audio';
+          : (err as { error?: { message?: string } })?.error?.message || 'Failed to download audio';
       this.error.set(message);
       this.notificationService.error(message);
     } finally {

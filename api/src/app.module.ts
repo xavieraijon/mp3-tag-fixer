@@ -13,6 +13,7 @@ import { AiModule } from './ai/ai.module';
 
 import { MusicBrainzModule } from './musicbrainz/musicbrainz.module'; // Added import
 import { YoutubeModule } from './youtube/youtube.module';
+import { CorrectionModule } from './correction/correction.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { YoutubeModule } from './youtube/youtube.module';
     AiModule,
     MusicBrainzModule, // Added module
     YoutubeModule,
+    CorrectionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

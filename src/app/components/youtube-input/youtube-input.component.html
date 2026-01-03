@@ -1,42 +1,43 @@
 <div class="flex gap-3">
-      <!-- URL Input -->
-      <div class="flex-1 relative">
-        <input
-          type="text"
-          [value]="url()"
-          (input)="onUrlChange($event)"
-          (keydown.enter)="download()"
-          placeholder="https://youtube.com/watch?v=..."
-          class="w-full px-4 py-3 rounded-xl backdrop-blur-md bg-white/50 border border-white/50 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 transition-all"
-          [class.border-red-400]="error()"
-          [class.focus:ring-red-400/50]="error()"
-          [disabled]="loading()"
-        />
-        @if (error()) {
-          <p class="absolute -bottom-5 left-0 text-red-500 text-xs">{{ error() }}</p>
-        }
-      </div>
+  <!-- URL Input -->
+  <div class="flex-1 relative">
+    <input
+      type="text"
+      [value]="url()"
+      (input)="onUrlChange($event)"
+      (keydown.enter)="download()"
+      placeholder="https://youtube.com/watch?v=..."
+      class="w-full px-4 py-3 rounded-xl backdrop-blur-md bg-white/50 border border-white/50 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 transition-all"
+      [class.border-red-400]="error()"
+      [class.focus:ring-red-400/50]="error()"
+      [disabled]="loading()"
+    />
+    @if (error()) {
+      <p class="absolute -bottom-5 left-0 text-red-500 text-xs">{{ error() }}</p>
+    }
+  </div>
 
-      <!-- Download Button -->
-      <button
-        (click)="download()"
-        [disabled]="loading() || !isValid()"
-        class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg"
-        [class.bg-gradient-to-r]="!loading() && isValid()"
-        [class.from-red-500]="!loading() && isValid()"
-        [class.to-pink-500]="!loading() && isValid()"
-        [class.text-white]="!loading() && isValid()"
-        [class.hover:shadow-red-500/25]="!loading() && isValid()"
-        [class.hover:scale-105]="!loading() && isValid()"
-        [class.bg-slate-200]="loading() || !isValid()"
-        [class.text-slate-400]="loading() || !isValid()"
-        [class.cursor-not-allowed]="loading() || !isValid()">
-        @if (loading()) {
-          <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
-          <span>Downloading...</span>
-        } @else {
-          <lucide-icon name="download" class="w-5 h-5"></lucide-icon>
-          <span>Download</span>
-        }
-      </button>
-    </div>
+  <!-- Download Button -->
+  <button
+    (click)="download()"
+    [disabled]="loading() || !isValid()"
+    class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg"
+    [class.bg-gradient-to-r]="!loading() && isValid()"
+    [class.from-red-500]="!loading() && isValid()"
+    [class.to-pink-500]="!loading() && isValid()"
+    [class.text-white]="!loading() && isValid()"
+    [class.hover:shadow-red-500/25]="!loading() && isValid()"
+    [class.hover:scale-105]="!loading() && isValid()"
+    [class.bg-slate-200]="loading() || !isValid()"
+    [class.text-slate-400]="loading() || !isValid()"
+    [class.cursor-not-allowed]="loading() || !isValid()"
+  >
+    @if (loading()) {
+      <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
+      <span>Downloading...</span>
+    } @else {
+      <lucide-icon name="download" class="w-5 h-5"></lucide-icon>
+      <span>Download</span>
+    }
+  </button>
+</div>

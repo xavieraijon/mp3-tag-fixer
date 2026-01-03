@@ -1,18 +1,9 @@
-import { Injectable } from '@angular/core';
-
-/**
- * Service for string normalization and comparison utilities.
- * Used for artist names, track titles, and filename parsing.
- */
-@Injectable({
-  providedIn: 'root',
-})
-export class StringUtilsService {
+export class StringUtils {
   /**
    * Converts superscript characters to normal numbers.
    * Example: "HS²" → "HS2"
    */
-  normalizeSuperscripts(str: string): string {
+  static normalizeSuperscripts(str: string): string {
     return str
       .replace(/¹/g, '1')
       .replace(/²/g, '2')
@@ -30,7 +21,7 @@ export class StringUtilsService {
    * Generates multiple search variants for an artist name.
    * Handles DJ prefixes, hyphens, dots, etc.
    */
-  normalizeArtistName(artist: string): string[] {
+  static normalizeArtistName(artist: string): string[] {
     if (!artist) return [];
 
     const variants: string[] = [artist];
@@ -61,7 +52,8 @@ export class StringUtilsService {
 
     // Remove numbers at end: Brain 6 -> Brain
     const noNumbers = normalized.replace(/\s*\d+\s*$/, '').trim();
-    if (noNumbers !== normalized && noNumbers.length > 2) variants.push(noNumbers);
+    if (noNumbers !== normalized && noNumbers.length > 2)
+      variants.push(noNumbers);
 
     // Clean special chars (remove dots, etc): L.I.N.D.A. -> LINDA
     const noDots = normalized.replace(/\./g, '');
@@ -69,7 +61,11 @@ export class StringUtilsService {
 
     // Try adding dots between letters for short names (Linda -> L.I.N.D.A.)
     const words = normalized.split(/\s+/);
-    if (words.length === 1 && normalized.length >= 3 && normalized.length <= 8) {
+    if (
+      words.length === 1 &&
+      normalized.length >= 3 &&
+      normalized.length <= 8
+    ) {
       const withDots = normalized.split('').join('.') + '.';
       variants.push(withDots);
       variants.push(withDots.toUpperCase());
@@ -93,7 +89,7 @@ export class StringUtilsService {
    * Cleans artist name by removing "Vol/Volume/Part" suffixes which are often release info.
    * Example: "Octopussy Vol 2" -> "Octopussy"
    */
-  cleanArtistName(artist: string): string {
+  static cleanArtistName(artist: string): string {
     if (!artist) return '';
 
     // Remove "Vol X", "Volume X", "Vol. X", "Part X", "Pt X", "Pt. X"
@@ -101,7 +97,8 @@ export class StringUtilsService {
     const volRegex = /\s+(?:vol|volume|pt|part)\.?\s*(?:\d+|[IVX]+)\s*$/i;
 
     // Also handle just "Vol 2" without space if it happens (rare) or " - Vol 2"
-    const volRegexLoose = /[\s-]+(?:vol|volume|pt|part)\.?\s*(?:\d+|[IVX]+)\s*$/i;
+    const volRegexLoose =
+      /[\s-]+(?:vol|volume|pt|part)\.?\s*(?:\d+|[IVX]+)\s*$/i;
 
     let cleaned = artist.replace(volRegex, '').trim();
     if (cleaned === artist) {
@@ -115,7 +112,7 @@ export class StringUtilsService {
    * Normalizes an artist name for comparison.
    * Converts variants like "L.I.N.D.A." and "Linda" to the same format.
    */
-  normalizeArtistForComparison(str: string): string {
+  static normalizeArtistForComparison(str: string): string {
     return str
       .toLowerCase()
       .replace(/^(dj|mc|dr|mr|ms|the)\s+/i, '')
@@ -128,7 +125,7 @@ export class StringUtilsService {
   /**
    * Normalizes a string for general comparison (titles, etc.)
    */
-  normalizeForComparison(str: string): string {
+  static normalizeForComparison(str: string): string {
     if (!str) return '';
     return str
       .toLowerCase()
@@ -143,7 +140,7 @@ export class StringUtilsService {
    * Normalizes a title for track matching.
    * Removes punctuation, apostrophes, extra spaces.
    */
-  normalizeTitleForMatching(str: string): string {
+  static normalizeTitleForMatching(str: string): string {
     return str
       .toLowerCase()
       .replace(/[.'!?,;:\-_'"]/g, '')
@@ -155,7 +152,11 @@ export class StringUtilsService {
    * Extracts base title and mix/version info from parentheses.
    * Example: "Rock This Place (H.Seral V.)" → { base: "Rock This Place", mixInfo: "H.Seral V." }
    */
-  extractParenthesisInfo(title: string): { base: string; mixInfo: string; full: string } {
+  static extractParenthesisInfo(title: string): {
+    base: string;
+    mixInfo: string;
+    full: string;
+  } {
     const match = title.match(/^(.+?)\s*[([]([^)\]]+)[)\]]\s*$/);
     if (match) {
       return {
@@ -171,7 +172,7 @@ export class StringUtilsService {
    * Aggressively removes ALL content within parentheses or brackets.
    * "Spring (1996 Original) (Vocal Mix)" -> "Spring"
    */
-  stripParentheses(str: string): string {
+  static stripParentheses(str: string): string {
     if (!str) return '';
     return str
       .replace(/[([].*?[)\]]/g, '')
@@ -182,7 +183,7 @@ export class StringUtilsService {
   /**
    * Generates search variants for a title.
    */
-  normalizeTitleForSearch(title: string): string[] {
+  static normalizeTitleForSearch(title: string): string[] {
     if (!title) return [];
 
     const variants: string[] = [title];
@@ -222,7 +223,7 @@ export class StringUtilsService {
    * Calculates similarity between two strings (0-1).
    * Based on Levenshtein distance.
    */
-  calculateStringSimilarity(str1: string, str2: string): number {
+  static calculateStringSimilarity(str1: string, str2: string): number {
     if (!str1 || !str2) return 0;
     if (str1 === str2) return 1;
 
@@ -267,7 +268,7 @@ export class StringUtilsService {
    * Checks if a string looks like a raw filename (not a proper tag).
    * A proper tag should be either a pure artist OR a pure title, not both combined.
    */
-  looksLikeFilename(tag: string): boolean {
+  static looksLikeFilename(tag: string): boolean {
     // Too long for a real title/artist
     if (tag.length > 80) return true;
 
@@ -324,21 +325,9 @@ export class StringUtilsService {
   }
 
   /**
-   * Validates if a tag value is usable (not empty and not a filename).
-   */
-  isValidTag(tag: string | undefined): boolean {
-    if (!tag || tag.trim().length < 2) return false;
-    return !this.looksLikeFilename(tag);
-  }
-
-  /**
    * Fixes common typos by reducing repeated letters.
-   * Examples: "Twoo" → "Two", "Goood" → "Good", "Daaance" → "Dance"
-   *
-   * Strategy: Process word by word to avoid breaking legitimate double letters
-   * like "good", "cool", "bass", etc.
    */
-  fixRepeatedLetters(str: string): string[] {
+  static fixRepeatedLetters(str: string): string[] {
     // Common words with legitimate double letters that should NOT be reduced
     const legitimateDoubles = new Set([
       'good',
@@ -486,7 +475,8 @@ export class StringUtilsService {
 
             // Also try triple to double
             const toDouble = word.replace(/(.)\1{2,}/gi, '$1$1');
-            if (toDouble !== word && toDouble !== reduced) wordVariants.push(toDouble);
+            if (toDouble !== word && toDouble !== reduced)
+              wordVariants.push(toDouble);
           }
 
           // Try reducing double to single (only if not legitimate)
@@ -503,11 +493,17 @@ export class StringUtilsService {
     }
 
     // Generate all combinations of word variants
-    const generateCombinations = (arrays: string[][], index = 0, current = ''): string[] => {
+    const generateCombinations = (
+      arrays: string[][],
+      index = 0,
+      current = '',
+    ): string[] => {
       if (index === arrays.length) return [current];
       const results: string[] = [];
       for (const variant of arrays[index]) {
-        results.push(...generateCombinations(arrays, index + 1, current + variant));
+        results.push(
+          ...generateCombinations(arrays, index + 1, current + variant),
+        );
       }
       return results;
     };
@@ -520,7 +516,7 @@ export class StringUtilsService {
    * Generates fuzzy variants for a search term.
    * Handles common typos and variations.
    */
-  generateFuzzyVariants(str: string): string[] {
+  static generateFuzzyVariants(str: string): string[] {
     if (!str || str.length < 2) return [str];
 
     const variants: string[] = [str];
@@ -608,7 +604,7 @@ export class StringUtilsService {
    * Generates compound variants for single-word artists.
    * Example: "Basemania" -> "Base Mania"
    */
-  generateCompoundVariants(str: string): string[] {
+  static generateCompoundVariants(str: string): string[] {
     if (!str || str.includes(' ') || str.length < 5) return [];
 
     const variants: string[] = [];
@@ -723,7 +719,9 @@ export class StringUtilsService {
         variants.push(variant);
 
         const capVariant =
-          this.capitalizeFirst(prefix) + ' ' + this.capitalizeFirst(str.substring(prefixLen));
+          this.capitalizeFirst(prefix) +
+          ' ' +
+          this.capitalizeFirst(str.substring(prefixLen));
         variants.push(capVariant);
       }
     }
@@ -731,37 +729,8 @@ export class StringUtilsService {
     return [...new Set(variants)];
   }
 
-  private capitalizeFirst(s: string): string {
+  static capitalizeFirst(s: string): string {
     if (!s) return '';
     return s.charAt(0).toUpperCase() + s.slice(1);
-  }
-
-  /**
-   * Calculates if two strings are "close enough" considering typos.
-   * Returns true if similarity is above threshold after trying fuzzy variants.
-   */
-  areSimilarWithTypos(str1: string, str2: string, threshold = 0.7): boolean {
-    // Direct comparison
-    const directSim = this.calculateStringSimilarity(
-      this.normalizeArtistForComparison(str1),
-      this.normalizeArtistForComparison(str2),
-    );
-    if (directSim >= threshold) return true;
-
-    // Try fuzzy variants
-    const variants1 = this.generateFuzzyVariants(str1);
-    const variants2 = this.generateFuzzyVariants(str2);
-
-    for (const v1 of variants1) {
-      for (const v2 of variants2) {
-        const sim = this.calculateStringSimilarity(
-          this.normalizeArtistForComparison(v1),
-          this.normalizeArtistForComparison(v2),
-        );
-        if (sim >= threshold) return true;
-      }
-    }
-
-    return false;
   }
 }

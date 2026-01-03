@@ -11,7 +11,14 @@ import { InputComponent } from '../ui/input/input.component';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideAngularModule,
+    ModalComponent,
+    ButtonComponent,
+    InputComponent,
+  ],
   template: `
     <app-modal [title]="'Sign In'" (closeModal)="closeModal.emit()" footerAlign="center">
       <!-- Form -->
@@ -38,8 +45,14 @@ import { InputComponent } from '../ui/input/input.component';
 
         <!-- Error Message -->
         @if (errorMessage()) {
-          <div class="bg-red-50/80 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-2">
-            <lucide-icon name="circle-alert" [size]="18" class="flex-shrink-0 mt-0.5 text-red-500"></lucide-icon>
+          <div
+            class="bg-red-50/80 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-start gap-2"
+          >
+            <lucide-icon
+              name="circle-alert"
+              [size]="18"
+              class="flex-shrink-0 mt-0.5 text-red-500"
+            ></lucide-icon>
             <p class="text-sm">{{ errorMessage() }}</p>
           </div>
         }
@@ -50,12 +63,7 @@ import { InputComponent } from '../ui/input/input.component';
         <app-button variant="secondary" (click)="closeModal.emit()" [disabled]="isLoading()">
           Cancel
         </app-button>
-        <app-button
-          variant="primary"
-          type="submit"
-          (click)="onSubmit()"
-          [disabled]="!canSubmit()"
-        >
+        <app-button variant="primary" type="submit" (click)="onSubmit()" [disabled]="!canSubmit()">
           @if (isLoading()) {
             <lucide-icon name="loader-circle" [size]="16" class="animate-spin mr-2"></lucide-icon>
             <span>Signing in...</span>
@@ -68,14 +76,14 @@ import { InputComponent } from '../ui/input/input.component';
 
       <!-- Sub-footer: Link to Register -->
       <div sub-footer class="mt-2 text-slate-600">
-          Don't have an account?
-          <button
-            (click)="switchToRegister.emit()"
-            class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700 focus:outline-none"
-            type="button"
-          >
-            Sign up
-          </button>
+        Don't have an account?
+        <button
+          (click)="switchToRegister.emit()"
+          class="text-blue-600 hover:text-blue-700 font-semibold ml-1 underline decoration-blue-600/30 hover:decoration-blue-700 focus:outline-none"
+          type="button"
+        >
+          Sign up
+        </button>
       </div>
     </app-modal>
   `,
@@ -97,11 +105,7 @@ export class LoginComponent {
 
   // Computed
   canSubmit = computed(() => {
-    return (
-      !this.isLoading() &&
-      this.email().trim() !== '' &&
-      this.password().trim() !== ''
-    );
+    return !this.isLoading() && this.email().trim() !== '' && this.password().trim() !== '';
   });
 
   async onSubmit() {
@@ -117,8 +121,9 @@ export class LoginComponent {
       this.closeModal.emit();
     } catch (error: unknown) {
       console.error('[LoginComponent] Login failed:', error);
-      const err = error as { error?: { message?: string }, message?: string };
-      const message = err.error?.message || err.message || 'Login failed. Please check your credentials.';
+      const err = error as { error?: { message?: string }; message?: string };
+      const message =
+        err.error?.message || err.message || 'Login failed. Please check your credentials.';
       this.errorMessage.set(message);
     }
   }

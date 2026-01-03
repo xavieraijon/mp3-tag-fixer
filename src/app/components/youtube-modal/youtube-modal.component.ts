@@ -10,7 +10,7 @@ import { YoutubeDownloadResponse } from '../../services/youtube.service';
   standalone: true,
   imports: [CommonModule, LucideAngularModule, ModalComponent, YoutubeInputComponent],
   templateUrl: './youtube-modal.component.html',
-  styleUrl: './youtube-modal.component.css'
+  styleUrl: './youtube-modal.component.css',
 })
 export class YoutubeModalComponent {
   closed = output<void>();

@@ -11,7 +11,7 @@ export interface Notification {
  * Uses Angular Signals for reactive state management.
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
   private readonly _message = signal<Notification | null>(null);
@@ -37,7 +37,7 @@ export class NotificationService {
     const notification: Notification = {
       id: this._nextId++,
       text,
-      type
+      type,
     };
 
     this._message.set(notification);

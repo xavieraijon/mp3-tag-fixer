@@ -10,9 +10,16 @@ import { InputComponent } from '../ui/input/input.component';
 @Component({
   selector: 'app-tag-editor',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    LucideAngularModule,
+    ModalComponent,
+    ButtonComponent,
+    InputComponent,
+  ],
   templateUrl: './tag-editor.component.html',
-  styleUrl: './tag-editor.component.css'
+  styleUrl: './tag-editor.component.css',
 })
 export class TagEditorComponent {
   // Inputs from parent
@@ -45,7 +52,7 @@ export class TagEditorComponent {
       this.title.set(t.title || '');
       this.album.set(t.album || '');
       this.year.set(t.year);
-      this.genre.set(Array.isArray(t.genre) ? t.genre.join(', ') : (t.genre || ''));
+      this.genre.set(Array.isArray(t.genre) ? t.genre.join(', ') : t.genre || '');
       this.bpm.set(t.bpm);
       this.label.set(t.label || '');
       this.albumArtist.set(t.albumArtist || '');
@@ -60,7 +67,7 @@ export class TagEditorComponent {
     // Helper to normalize empty values
     const str = (v: string): string | undefined => v?.trim() || undefined;
     const num = (v: number | undefined | null): number | undefined =>
-      (v !== undefined && v !== null && !Number.isNaN(v)) ? v : undefined;
+      v !== undefined && v !== null && !Number.isNaN(v) ? v : undefined;
 
     // Build the updated tags object (don't spread original - we want explicit values)
     const updatedTags: Mp3Tags = {
@@ -77,11 +84,10 @@ export class TagEditorComponent {
       composer: str(this.composer()),
       comment: str(this.comment()),
       // Preserve image from original
-      image: this.tags().image
+      image: this.tags().image,
     };
 
     console.log('[TagEditor] Saving:', updatedTags);
     this.save.emit(updatedTags);
   }
 }
-

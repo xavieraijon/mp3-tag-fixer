@@ -9,10 +9,12 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="flex flex-col gap-1.5 w-full">
       @if (label()) {
-      <label [for]="id()" class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
-        {{ label() }}
-        @if (required()) { <span class="text-red-500 ml-0.5">*</span> }
-      </label>
+        <label [for]="id()" class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+          {{ label() }}
+          @if (required()) {
+            <span class="text-red-500 ml-0.5">*</span>
+          }
+        </label>
       }
       <div class="relative group">
         <input
@@ -31,12 +33,14 @@ import { FormsModule } from '@angular/forms';
       }
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-      width: 100%;
-    }
-  `]
+  styles: [
+    `
+      :host {
+        display: block;
+        width: 100%;
+      }
+    `,
+  ],
 })
 export class InputComponent {
   // Inputs

@@ -1,120 +1,114 @@
-<div class="sticky top-0 z-40 backdrop-blur-xl bg-white/30 border border-white/40 rounded-2xl p-4 shadow-xl flex flex-wrap gap-3 items-center justify-between">
-    <!-- Search/Filter Input -->
-    <div class="flex-1 min-w-[250px] relative group">
-        <lucide-icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
-        <input
-            type="text"
-            [ngModel]="filterText()"
-            (ngModelChange)="filterText.set($event)"
-            placeholder="Filter by filename, artist, title..."
-            class="w-full pl-10 pr-10 py-2.5 backdrop-blur-md bg-white/50 border border-white/50 rounded-xl focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 text-slate-700 placeholder-slate-400 text-sm transition-all"
-        >
-        @if (filterText()) {
-            <button (click)="filterText.set('')" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-lg transition-all">
-                <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
-            </button>
-        }
-    </div>
-
-    <!-- AI Toggle -->
-    <div class="flex items-center gap-2 px-3 py-1.5 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl">
-        <lucide-icon
-            name="sparkles"
-            [class]="aiEnabled() ? 'w-4 h-4 text-violet-500' : 'w-4 h-4 text-slate-400'"
-        ></lucide-icon>
-        <span class="text-xs font-medium text-slate-600">AI</span>
-        <button
-            (click)="aiEnabled.set(!aiEnabled())"
-            [class]="aiEnabled()
-                ? 'relative w-9 h-5 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-200 shadow-inner'
-                : 'relative w-9 h-5 bg-slate-300 rounded-full transition-all duration-200 shadow-inner'"
-            [title]="aiEnabled() ? 'Disable AI-powered search' : 'Enable AI-powered search'"
-        >
-            <span
-                [class]="aiEnabled()
-                    ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-                    : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'"
-            ></span>
-        </button>
-    </div>
-
-    <!-- Debug Toggle -->
-    <div class="flex items-center gap-2 px-3 py-1.5 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl">
-        <lucide-icon
-            name="bug"
-            [class]="debugMode() ? 'w-4 h-4 text-orange-500' : 'w-4 h-4 text-slate-400'"
-        ></lucide-icon>
-        <span class="text-xs font-medium text-slate-600">Debug</span>
-        <button
-            (click)="debugMode.set(!debugMode())"
-            [class]="debugMode()
-                ? 'relative w-9 h-5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-200 shadow-inner'
-                : 'relative w-9 h-5 bg-slate-300 rounded-full transition-all duration-200 shadow-inner'"
-            [title]="debugMode() ? 'Disable Debug Mode' : 'Enable Debug Mode'"
-        >
-            <span
-                [class]="debugMode()
-                    ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-                    : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'"
-            ></span>
-        </button>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="flex items-center gap-2">
-      <!-- YouTube Button - Always Enabled -->
-      <app-button
-          (click)="openYoutubeModal.emit()"
-          palette="red"
-          variant="glass"
-          icon="youtube"
+<div
+  class="sticky top-0 z-40 backdrop-blur-xl bg-white/30 border border-white/40 rounded-2xl p-4 shadow-xl flex flex-wrap gap-3 items-center justify-between"
+>
+  <!-- Search/Filter Input -->
+  <div class="flex-1 min-w-[250px] relative group">
+    <lucide-icon
+      name="search"
+      class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-500 transition-colors"
+    ></lucide-icon>
+    <input
+      type="text"
+      [ngModel]="filterText()"
+      (ngModelChange)="filterText.set($event)"
+      placeholder="Filter by filename, artist, title..."
+      class="w-full pl-10 pr-10 py-2.5 backdrop-blur-md bg-white/50 border border-white/50 rounded-xl focus:outline-none focus:bg-white/70 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 text-slate-700 placeholder-slate-400 text-sm transition-all"
+    />
+    @if (filterText()) {
+      <button
+        (click)="filterText.set('')"
+        class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-lg transition-all"
       >
-          YouTube
-      </app-button>
+        <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+      </button>
+    }
+  </div>
 
-      <!-- Process Visible -->
-      <app-button
-          (click)="processVisible.emit()"
-          [disabled]="!hasFiles()"
-          palette="blue"
-          variant="glass"
-          icon="sparkles"
-      >
-          Process All
-      </app-button>
+  <!-- AI Toggle -->
+  <div class="flex items-center gap-2 px-3 py-1.5 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl">
+    <lucide-icon
+      name="sparkles"
+      [class]="aiEnabled() ? 'w-4 h-4 text-violet-500' : 'w-4 h-4 text-slate-400'"
+    ></lucide-icon>
+    <span class="text-xs font-medium text-slate-600">AI</span>
+    <button
+      (click)="aiEnabled.set(!aiEnabled())"
+      [class]="
+        aiEnabled()
+          ? 'relative w-9 h-5 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-200 shadow-inner'
+          : 'relative w-9 h-5 bg-slate-300 rounded-full transition-all duration-200 shadow-inner'
+      "
+      [title]="aiEnabled() ? 'Disable AI-powered search' : 'Enable AI-powered search'"
+    >
+      <span
+        [class]="
+          aiEnabled()
+            ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
+            : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
+        "
+      ></span>
+    </button>
+  </div>
 
-      <!-- Analyze BPM -->
-      <app-button
-        (click)="analyzeBpmAll.emit()"
-        [disabled]="!hasFiles()"
-        palette="purple"
-        variant="glass"
-        icon="activity"
-      >
-        BPM All
-      </app-button>
+  <!-- Debug Toggle -->
+  <div class="flex items-center gap-2 px-3 py-1.5 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl">
+    <lucide-icon name="bug" [class]="debugMode() ? 'w-4 h-4 text-orange-500' : 'w-4 h-4 text-slate-400'"></lucide-icon>
+    <span class="text-xs font-medium text-slate-600">Debug</span>
+    <button
+      (click)="debugMode.set(!debugMode())"
+      [class]="
+        debugMode()
+          ? 'relative w-9 h-5 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all duration-200 shadow-inner'
+          : 'relative w-9 h-5 bg-slate-300 rounded-full transition-all duration-200 shadow-inner'
+      "
+      [title]="debugMode() ? 'Disable Debug Mode' : 'Enable Debug Mode'"
+    >
+      <span
+        [class]="
+          debugMode()
+            ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
+            : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
+        "
+      ></span>
+    </button>
+  </div>
 
-      <!-- Download All -->
-      <app-button
-          (click)="downloadAll.emit()"
-          [disabled]="!hasFiles()"
-          palette="emerald"
-          variant="glass"
-          icon="download"
-      >
-          Download All
-      </app-button>
+  <!-- Action Buttons -->
+  <div class="flex items-center gap-2">
+    <!-- YouTube Button - Always Enabled -->
+    <app-button (click)="openYoutubeModal.emit()" palette="red" variant="glass" icon="youtube"> YouTube </app-button>
 
-      <!-- Clear List -->
-      <app-button
-          (click)="clearList.emit()"
-          [disabled]="!hasFiles()"
-          palette="red"
-          variant="glass"
-          shape="square"
-          icon="trash-2"
-          title="Clear List"
-      >
-      </app-button>
-    </div>
+    <!-- Process Visible -->
+    <app-button (click)="processVisible.emit()" [disabled]="!hasFiles()" palette="blue" variant="glass" icon="sparkles">
+      Process All
+    </app-button>
+
+    <!-- Analyze BPM -->
+    <app-button
+      (click)="analyzeBpmAll.emit()"
+      [disabled]="!hasFiles()"
+      palette="purple"
+      variant="glass"
+      icon="activity"
+    >
+      BPM All
+    </app-button>
+
+    <!-- Download All -->
+    <app-button (click)="downloadAll.emit()" [disabled]="!hasFiles()" palette="emerald" variant="glass" icon="download">
+      Download All
+    </app-button>
+
+    <!-- Clear List -->
+    <app-button
+      (click)="clearList.emit()"
+      [disabled]="!hasFiles()"
+      palette="red"
+      variant="glass"
+      shape="square"
+      icon="trash-2"
+      title="Clear List"
+    >
+    </app-button>
+  </div>
 </div>

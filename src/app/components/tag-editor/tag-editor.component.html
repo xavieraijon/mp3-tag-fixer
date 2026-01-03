@@ -2,15 +2,15 @@
   <!-- Header Content: Overrides default title to show cover + title/artist -->
   <div header class="flex items-center gap-4 w-full">
     @if (coverImageUrl()) {
-    <img
-      [src]="coverImageUrl()"
-      alt="Cover"
-      class="w-16 h-16 rounded-xl object-cover shadow-lg border border-white/30 flex-shrink-0"
-    />
+      <img
+        [src]="coverImageUrl()"
+        alt="Cover"
+        class="w-16 h-16 rounded-xl object-cover shadow-lg border border-white/30 flex-shrink-0"
+      />
     } @else {
-    <div class="w-16 h-16 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-      <lucide-icon name="music" class="w-8 h-8 text-blue-600"></lucide-icon>
-    </div>
+      <div class="w-16 h-16 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+        <lucide-icon name="music" class="w-8 h-8 text-blue-600"></lucide-icon>
+      </div>
     }
     <div class="flex-1 min-w-0">
       <h2 class="text-lg font-bold text-slate-800 truncate">{{ title() || 'Edit Tags' }}</h2>
@@ -21,106 +21,53 @@
   <!-- Body Content -->
   <div class="space-y-4">
     <div class="grid grid-cols-12 gap-4">
-
       <!-- Row 1: Title (8) + Track (2) + Disc (2) -->
       <div class="col-span-8 space-y-1.5">
-        <app-input
-          label="Title"
-          [(value)]="title"
-          placeholder="Track Title"
-        ></app-input>
+        <app-input label="Title" [(value)]="title" placeholder="Track Title"></app-input>
       </div>
       <div class="col-span-2 space-y-1.5">
-         <app-input
-          label="Track"
-          [(value)]="trackNumber"
-          type="number"
-          placeholder="1"
-        ></app-input>
+        <app-input label="Track" [(value)]="trackNumber" type="number" placeholder="1"></app-input>
       </div>
       <div class="col-span-2 space-y-1.5">
-        <app-input
-          label="Disc"
-          [(value)]="discNumber"
-          placeholder="1/1"
-        ></app-input>
+        <app-input label="Disc" [(value)]="discNumber" placeholder="1/1"></app-input>
       </div>
 
       <!-- Row 2: Artist (6) + Album Artist (6) -->
       <div class="col-span-6 space-y-1.5">
-        <app-input
-          label="Artist"
-          [(value)]="artist"
-          placeholder="Artist Name"
-        ></app-input>
+        <app-input label="Artist" [(value)]="artist" placeholder="Artist Name"></app-input>
       </div>
       <div class="col-span-6 space-y-1.5">
-        <app-input
-          label="Album Artist"
-          [(value)]="albumArtist"
-          placeholder="Album Artist"
-        ></app-input>
+        <app-input label="Album Artist" [(value)]="albumArtist" placeholder="Album Artist"></app-input>
       </div>
 
       <!-- Row 3: Album (8) + Year (4) -->
       <div class="col-span-8 space-y-1.5">
-        <app-input
-          label="Album"
-          [(value)]="album"
-          placeholder="Album Name"
-        ></app-input>
+        <app-input label="Album" [(value)]="album" placeholder="Album Name"></app-input>
       </div>
       <div class="col-span-4 space-y-1.5">
-         <app-input
-          label="Year"
-          [(value)]="year"
-          type="number"
-          placeholder="2024"
-        ></app-input>
+        <app-input label="Year" [(value)]="year" type="number" placeholder="2024"></app-input>
       </div>
 
       <!-- Row 4: Genre (5) + BPM (2) + Label (5) -->
       <div class="col-span-5 space-y-1.5">
-        <app-input
-          label="Genre"
-          [(value)]="genre"
-          placeholder="Genre"
-        ></app-input>
+        <app-input label="Genre" [(value)]="genre" placeholder="Genre"></app-input>
       </div>
       <div class="col-span-2 space-y-1.5">
-         <app-input
-          label="BPM"
-          [(value)]="bpm"
-          type="number"
-          placeholder="120"
-        ></app-input>
+        <app-input label="BPM" [(value)]="bpm" type="number" placeholder="120"></app-input>
       </div>
       <div class="col-span-5 space-y-1.5">
-        <app-input
-          label="Label"
-          [(value)]="label"
-          placeholder="Record Label"
-        ></app-input>
+        <app-input label="Label" [(value)]="label" placeholder="Record Label"></app-input>
       </div>
 
       <!-- Row 5: Composer (12) -->
       <div class="col-span-12 space-y-1.5">
-        <app-input
-          label="Composer"
-          [(value)]="composer"
-          placeholder="Composer Name"
-        ></app-input>
+        <app-input label="Composer" [(value)]="composer" placeholder="Composer Name"></app-input>
       </div>
 
       <!-- Row 6: Comment (12) -->
       <div class="col-span-12 space-y-1.5">
-        <app-input
-          label="Comment"
-          [(value)]="comment"
-          placeholder="Add a comment..."
-        ></app-input>
+        <app-input label="Comment" [(value)]="comment" placeholder="Add a comment..."></app-input>
       </div>
-
     </div>
   </div>
 

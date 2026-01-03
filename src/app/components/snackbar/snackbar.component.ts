@@ -36,11 +36,13 @@ import { NotificationService } from '../../services/notification.service';
       </div>
     }
   `,
-  styles: [`
-    :host {
-      display: contents;
-    }
-  `]
+  styles: [
+    `
+      :host {
+        display: contents;
+      }
+    `,
+  ],
 })
 export class SnackbarComponent {
   readonly notification = inject(NotificationService);

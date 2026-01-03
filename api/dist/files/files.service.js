@@ -45,6 +45,7 @@ const music_metadata_1 = require("music-metadata");
 const NodeID3 = __importStar(require("node-id3"));
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
+const filename_parser_1 = require("../correction/utils/filename-parser");
 let FilesService = class FilesService {
     uploadDir = path.join(process.cwd(), 'uploads');
     async readTags(buffer) {
@@ -115,29 +116,7 @@ let FilesService = class FilesService {
         }
     }
     parseFilename(filename) {
-        let name = filename.replace(/\.[^/.]+$/, '');
-        name = name
-            .replace(/^[A-Z]?\d+[\s._-]+/i, '')
-            .replace(/^\d+[\s._-]+/, '')
-            .replace(/\s*\[.*?\]\s*/g, '')
-            .replace(/\s*\((?:320|128|192|256|vbr|mp3|flac|wav)\s*(?:kbps?)?\)\s*/gi, '')
-            .trim();
-        const separators = [' - ', ' – ', ' — ', '_-_', ' _ '];
-        for (const sep of separators) {
-            if (name.includes(sep)) {
-                const parts = name.split(sep);
-                if (parts.length >= 2) {
-                    return {
-                        artist: parts[0].trim(),
-                        title: parts.slice(1).join(sep).trim(),
-                    };
-                }
-            }
-        }
-        return {
-            artist: '',
-            title: name.trim(),
-        };
+        return filename_parser_1.FilenameParser.parseFilename(filename);
     }
     async saveTemp(file) {
         const filename = `${Date.now()}-${file.originalname}`;

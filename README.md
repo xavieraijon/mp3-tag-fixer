@@ -10,6 +10,7 @@ A modern web application for automatically fixing and enriching MP3 file metadat
 
 ## Features
 
+- **YouTube to MP3** - Download and tag audio directly from YouTube videos
 - **Drag & Drop Upload** - Simply drag MP3 files into the browser
 - **Automatic Tag Reading** - Extracts existing ID3 tags and parses filenames
 - **Smart Search** - Multi-strategy search algorithm with 60+ fallback strategies
@@ -19,20 +20,25 @@ A modern web application for automatically fixing and enriching MP3 file metadat
 - **BPM Detection** - Automatic tempo detection using Web Audio API
 - **Batch Processing** - Process multiple files and download as ZIP
 - **Tag Editor** - Manual editing with real-time preview
+- **Modern UI** - Glassmorphism design with "Vinyl Wave" branding
 
 ## Tech Stack
 
 ### Frontend
+
 - **Framework:** Angular 21 (standalone components, signals, zoneless)
+- **Design:** Glassmorphism UI with TailwindCSS
 - **Build:** Vite via Angular CLI
 - **Styling:** TailwindCSS
 - **Testing:** Vitest
 
 ### Backend
+
 - **Framework:** NestJS 10
 - **Database:** PostgreSQL 16 with Prisma ORM
 - **Auth:** Clerk (Passkeys, OAuth, WebAuthn)
 - **Payments:** Stripe (subscriptions)
+- **Media:** `yt-dlp` for YouTube processing
 
 ## Quick Start
 
@@ -155,6 +161,7 @@ mp3-tag-fixer/
 ## API Endpoints
 
 ### Discogs (Public)
+
 ```
 GET  /api/discogs/search?q=query           # General search
 GET  /api/discogs/search/smart             # Multi-strategy search
@@ -166,6 +173,7 @@ GET  /api/discogs/image?url=               # Image proxy (CORS)
 ```
 
 ### Files (Auth Required)
+
 ```
 POST /api/files/upload                     # Upload MP3
 GET  /api/files/:id/tags                   # Read tags
@@ -173,6 +181,7 @@ POST /api/files/:id/write-tags             # Write tags
 ```
 
 ### Tracks (Auth Required)
+
 ```
 GET    /api/tracks                         # List user tracks
 POST   /api/tracks                         # Save track
@@ -182,6 +191,7 @@ DELETE /api/tracks/:id                     # Delete track
 ```
 
 ### Payments (Mixed)
+
 ```
 GET  /api/payments/plans                   # Available plans (public)
 GET  /api/payments/status                  # Subscription status
@@ -213,6 +223,7 @@ The search service generates 60+ strategies including:
 - Swapped artist/title fallback
 
 Each result is scored (0-100) based on:
+
 - Artist similarity (0-60 points)
 - Title match (0-30 points)
 - Metadata bonuses (year, cover, genre)
@@ -253,10 +264,11 @@ npx prisma studio  # Database GUI
 - [x] User authentication (Clerk)
 - [x] Track history
 - [x] Stripe payments
-- [ ] AI-powered search (AcoustID + Groq LLM)
+- [x] YouTube to MP3 Integration
+- [x] AI-powered search (AcoustID + Groq LLM)
 - [ ] MusicBrainz integration
 - [ ] Batch processing improvements
-- [ ] Mobile-responsive redesign
+- [x] Mobile-responsive UI/UX Redesign
 
 ## Contributing
 

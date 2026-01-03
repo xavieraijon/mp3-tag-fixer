@@ -34,7 +34,7 @@ A modern web application for automatically fixing and enriching MP3 file metadat
 
 ### Backend
 
-- **Framework:** NestJS 10
+- **Framework:** NestJS 11
 - **Database:** PostgreSQL 16 with Prisma ORM
 - **Auth:** Clerk (Passkeys, OAuth, WebAuthn)
 - **Payments:** Stripe (subscriptions)
@@ -133,10 +133,12 @@ mp3-tag-fixer/
 │   │   │   ├── tag-editor/       # Modal tag editor
 │   │   │   └── snackbar/         # Notifications
 │   │   ├── services/             # Business logic
+│   │   │   ├── ai-search.service.ts
 │   │   │   ├── discogs.service.ts
 │   │   │   ├── search.service.ts
 │   │   │   ├── file-processor.service.ts
-│   │   │   └── track-matcher.service.ts
+│   │   │   ├── track-matcher.service.ts
+│   │   │   └── youtube.service.ts
 │   │   ├── models/               # TypeScript interfaces
 │   │   └── store/                # Signal-based state
 │   └── styles.css                # Global styles
@@ -146,7 +148,11 @@ mp3-tag-fixer/
 │   │   ├── auth/                 # Clerk authentication
 │   │   ├── users/                # User management
 │   │   ├── files/                # MP3 upload & processing
+│   │   ├── correction/           # Tag Search & Intelligence
+│   │   ├── ai/                   # AI (Groq/AcoustID)
 │   │   ├── discogs/              # Discogs API proxy
+│   │   ├── musicbrainz/          # MusicBrainz Integration
+│   │   ├── youtube/              # YouTube Download
 │   │   ├── tracks/               # Track history CRUD
 │   │   ├── payments/             # Stripe integration
 │   │   └── prisma/               # Database service

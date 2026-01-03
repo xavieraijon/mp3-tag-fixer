@@ -30,7 +30,7 @@ export interface DiscogsTrack {
     type_: string;
 }
 export declare class DiscogsService {
-    private configService;
+    private readonly configService;
     private readonly API_URL;
     private readonly consumerKey;
     private readonly consumerSecret;

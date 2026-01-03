@@ -18,7 +18,7 @@ export class FileCardComponent {
   item = input.required<ProcessedFile>();
 
   // Events
-  search = output<void>();
+  requestSearch = output<void>();
   edit = output<void>();
   remove = output<void>();
   download = output<void>();

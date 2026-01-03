@@ -20,12 +20,41 @@ export interface UnifiedRelease {
   source: 'discogs' | 'musicbrainz';
 }
 
+interface MbArtistCredit {
+  name: string;
+}
+
+interface MbLabelInfo {
+  label?: { name: string };
+}
+
+interface MbTrack {
+  number: string;
+  title: string;
+  length?: number;
+  'artist-credit'?: MbArtistCredit[];
+}
+
+interface MbMedium {
+  tracks?: MbTrack[];
+}
+
+interface MusicBrainzRawRelease {
+  id: string;
+  title: string;
+  date?: string;
+  country?: string;
+  'label-info'?: MbLabelInfo[];
+  'artist-credit'?: MbArtistCredit[];
+  media?: MbMedium[];
+}
+
 @Injectable()
 export class MusicBrainzService {
   private readonly API_URL = 'https://musicbrainz.org/ws/2';
   private readonly USER_AGENT = 'MP3TagFixer/1.0 ( your-email@example.com )'; // Replace with config if needed
 
-  constructor(private configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) {}
 
   private getHeaders(): Record<string, string> {
     return {
@@ -54,8 +83,10 @@ export class MusicBrainzService {
       const response = await fetch(url, { headers: this.getHeaders() });
       if (!response.ok) return [];
 
-      const data = await response.json();
-      return (data.releases || []).map((r: any) => this.mapToUnified(r));
+      const data = (await response.json()) as {
+        releases: MusicBrainzRawRelease[];
+      };
+      return (data.releases || []).map((r) => this.mapToUnified(r));
     } catch (e) {
       console.error('[MusicBrainz] Search failed', e);
       return [];
@@ -72,7 +103,7 @@ export class MusicBrainzService {
       const response = await fetch(url, { headers: this.getHeaders() });
       if (!response.ok) return null;
 
-      const data = await response.json();
+      const data = (await response.json()) as MusicBrainzRawRelease;
       return this.mapToUnified(data, true);
     } catch (e) {
       console.error('[MusicBrainz] Get details failed', e);
@@ -80,10 +111,12 @@ export class MusicBrainzService {
     }
   }
 
-  private mapToUnified(mbRelease: any, detailed = false): UnifiedRelease {
+  private mapToUnified(
+    mbRelease: MusicBrainzRawRelease,
+    detailed = false,
+  ): UnifiedRelease {
     const artistCredit = mbRelease['artist-credit'] || [];
-    const artistName =
-      artistCredit.map((a: any) => a.name).join('') || 'Unknown';
+    const artistName = artistCredit.map((a) => a.name).join('') || 'Unknown';
 
     const release: UnifiedRelease = {
       id: mbRelease.id,
@@ -93,25 +126,25 @@ export class MusicBrainzService {
         ? parseInt(mbRelease.date.substring(0, 4))
         : undefined,
       country: mbRelease.country,
-      labels: (mbRelease['label-info'] || []).map((l: any) => ({
-        name: l.label?.name,
+      labels: (mbRelease['label-info'] || []).map((l) => ({
+        name: l.label?.name || '',
       })),
       artist: artistName,
-      artists: artistCredit.map((a: any) => ({ name: a.name })),
+      artists: artistCredit.map((a) => ({ name: a.name })),
       source: 'musicbrainz',
     };
 
     if (detailed && mbRelease.media) {
       release.tracklist = [];
-      mbRelease.media.forEach((medium: any) => {
+      mbRelease.media.forEach((medium) => {
         const tracks = medium.tracks || [];
-        tracks.forEach((t: any) => {
+        tracks.forEach((t) => {
           release.tracklist!.push({
             position: t.number, // or medium position + track position
             title: t.title,
             duration: t.length ? this.formatDuration(t.length) : '',
             type_: 'track',
-            artists: t['artist-credit']?.map((a: any) => ({ name: a.name })),
+            artists: t['artist-credit']?.map((a) => ({ name: a.name })),
           });
         });
       });

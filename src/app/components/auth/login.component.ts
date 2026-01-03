@@ -13,7 +13,7 @@ import { InputComponent } from '../ui/input/input.component';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
   template: `
-    <app-modal [title]="'Sign In'" (close)="close.emit()" footerAlign="center">
+    <app-modal [title]="'Sign In'" (closeModal)="closeModal.emit()" footerAlign="center">
       <!-- Form -->
       <form id="login-form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Email -->
@@ -47,7 +47,7 @@ import { InputComponent } from '../ui/input/input.component';
 
       <!-- Footer: Buttons -->
       <ng-container footer>
-        <app-button variant="secondary" (click)="close.emit()" [disabled]="isLoading()">
+        <app-button variant="secondary" (click)="closeModal.emit()" [disabled]="isLoading()">
           Cancel
         </app-button>
         <app-button
@@ -81,10 +81,10 @@ import { InputComponent } from '../ui/input/input.component';
   `,
 })
 export class LoginComponent {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   // Outputs
-  close = output<void>();
+  closeModal = output<void>();
   switchToRegister = output<void>();
 
   // Form fields as signals
@@ -114,10 +114,11 @@ export class LoginComponent {
         email: this.email(),
         password: this.password(),
       });
-      this.close.emit();
-    } catch (error: any) {
+      this.closeModal.emit();
+    } catch (error: unknown) {
       console.error('[LoginComponent] Login failed:', error);
-      const message = error.error?.message || error.message || 'Login failed. Please check your credentials.';
+      const err = error as { error?: { message?: string }, message?: string };
+      const message = err.error?.message || err.message || 'Login failed. Please check your credentials.';
       this.errorMessage.set(message);
     }
   }

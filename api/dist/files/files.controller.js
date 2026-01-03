@@ -110,7 +110,7 @@ let FilesController = class FilesController {
         });
         return new common_1.StreamableFile(taggedBuffer);
     }
-    async deleteFile(fileId, userId) {
+    deleteFile(fileId, userId) {
         const file = exports.uploadedFiles.get(fileId);
         if (!file || file.userId !== userId) {
             throw new common_1.BadRequestException('File not found');
@@ -176,7 +176,7 @@ __decorate([
     __param(1, (0, user_id_decorator_1.UserId)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, String]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], FilesController.prototype, "deleteFile", null);
 exports.FilesController = FilesController = __decorate([
     (0, common_1.Controller)('files'),

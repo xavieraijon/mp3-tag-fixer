@@ -1,7 +1,7 @@
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { TrackStatus } from '@prisma/client';
+import { TrackStatus, Prisma } from '@prisma/client';
 export declare class TracksService {
     private readonly prisma;
     constructor(prisma: PrismaService);
@@ -199,6 +199,6 @@ export declare class TracksService {
         total: number;
         byStatus: Record<string, number>;
     }>;
-    createMany(userId: string, tracks: CreateTrackDto[]): Promise<import(".prisma/client").Prisma.BatchPayload>;
-    updateManyStatus(userId: string, ids: string[], status: TrackStatus): Promise<import(".prisma/client").Prisma.BatchPayload>;
+    createMany(userId: string, tracks: CreateTrackDto[]): Promise<Prisma.BatchPayload>;
+    updateManyStatus(userId: string, ids: string[], status: TrackStatus): Promise<Prisma.BatchPayload>;
 }

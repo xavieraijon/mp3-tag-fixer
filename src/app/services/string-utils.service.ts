@@ -130,7 +130,7 @@ export class StringUtilsService {
     if (!str) return '';
     return str
       .toLowerCase()
-      .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, '')
+      .replace(/\s*[([][^)\]]*[)\]]\s*/g, '')
       .replace(/\s*(feat\.?|ft\.?|featuring)\s+.*/gi, '')
       .replace(/[^a-z0-9\s]/g, '')
       .replace(/\s+/g, ' ')
@@ -154,7 +154,7 @@ export class StringUtilsService {
    * Example: "Rock This Place (H.Seral V.)" → { base: "Rock This Place", mixInfo: "H.Seral V." }
    */
   extractParenthesisInfo(title: string): { base: string; mixInfo: string; full: string } {
-    const match = title.match(/^(.+?)\s*[\(\[]([^\)\]]+)[\)\]]\s*$/);
+    const match = title.match(/^(.+?)\s*[([]([^)\]]+)[)\]]\s*$/);
     if (match) {
       return {
         base: match[1].trim(),
@@ -171,7 +171,7 @@ export class StringUtilsService {
    */
   stripParentheses(str: string): string {
     if (!str) return '';
-    return str.replace(/[\(\[].*?[\)\]]/g, '').replace(/\s+/g, ' ').trim();
+    return str.replace(/[([].*?[)\]]/g, '').replace(/\s+/g, ' ').trim();
   }
 
   /**
@@ -195,7 +195,7 @@ export class StringUtilsService {
 
     // Remove common suffixes
     let cleaned = title
-      .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, ' ')
+      .replace(/\s*[([][^)\]]*[)\]]\s*/g, ' ')
       .replace(/\s*-\s*(original mix|radio edit|extended mix|club mix|dub mix|remix|instrumental).*$/gi, '')
       .replace(/\s+/g, ' ')
       .trim();
@@ -279,7 +279,7 @@ export class StringUtilsService {
     if (/^\d{1,2}-[A-Za-z]/.test(tag)) return true;
 
     // Starts with vinyl code: (A1), [B2], A1, etc.
-    if (/^[\(\[]?[A-D][1-9²³¹][\)\]]?\s/i.test(tag)) return true;
+    if (/^[([ ]?[A-D][1-9²³¹][)\]]?\s/i.test(tag)) return true;
 
     // Contains underscores in long strings (typical filename separator)
     if (/_/.test(tag) && tag.length > 25) return true;
@@ -327,7 +327,7 @@ export class StringUtilsService {
    * like "good", "cool", "bass", etc.
    */
   fixRepeatedLetters(str: string): string[] {
-    const variants: string[] = [str];
+
 
     // Common words with legitimate double letters that should NOT be reduced
     const legitimateDoubles = new Set([

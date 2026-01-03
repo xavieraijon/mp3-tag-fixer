@@ -26,7 +26,7 @@
         [tags]="editForm()"
         [coverImageUrl]="editingItem()!.coverImageUrl"
         (save)="saveEditor($event)"
-        (cancel)="closeEditor()">
+        (cancelEdit)="closeEditor()">
       </app-tag-editor>
   }
 
@@ -128,7 +128,7 @@
              <app-file-card
               class="mb-2"
                [item]="item"
-               (search)="search(item)"
+               (requestSearch)="search(item)"
                (edit)="openEditor(item)"
                (remove)="removeFile(i)"
                (download)="downloadFile(item)"
@@ -154,14 +154,14 @@
   <!-- Auth Modals -->
   @if (showLoginModal()) {
     <app-login
-      (close)="showLoginModal.set(false)"
+      (closeModal)="showLoginModal.set(false)"
       (switchToRegister)="switchToRegister()">
     </app-login>
   }
 
   @if (showRegisterModal()) {
     <app-register
-      (close)="showRegisterModal.set(false)"
+      (closeModal)="showRegisterModal.set(false)"
       (switchToLogin)="switchToLogin()">
     </app-register>
   }

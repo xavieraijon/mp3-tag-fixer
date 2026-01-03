@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Logger, Param, Res, StreamableFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  Param,
+  Res,
+  StreamableFile,
+  BadRequestException,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { YoutubeService } from './youtube.service';
 import { YoutubeDownloadDto } from './dto/youtube-download.dto';
@@ -120,14 +129,20 @@ export class YoutubeController {
         if (imageResponse.ok) {
           const arrayBuffer = await imageResponse.arrayBuffer();
           tags.image = Buffer.from(arrayBuffer);
-          this.logger.log(`[YoutubeController] Cover image fetched: ${tags.image.length} bytes`);
+          this.logger.log(
+            `[YoutubeController] Cover image fetched: ${tags.image.length} bytes`,
+          );
         }
-      } catch (error) {
-        this.logger.warn(`[YoutubeController] Failed to fetch cover image: ${dto.coverImageUrl}`);
+      } catch {
+        this.logger.warn(
+          `[YoutubeController] Failed to fetch cover image: ${dto.coverImageUrl}`,
+        );
       }
     }
 
-    this.logger.log(`[YoutubeController] Writing tags for ${fileId}: ${dto.artist} - ${dto.title}`);
+    this.logger.log(
+      `[YoutubeController] Writing tags for ${fileId}: ${dto.artist} - ${dto.title}`,
+    );
 
     // Write tags to buffer
     const taggedBuffer = await this.filesService.writeTags(file.buffer, tags);

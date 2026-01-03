@@ -67,7 +67,7 @@ let DiscogsService = class DiscogsService {
             console.error('[DiscogsService] Search failed:', response.status);
             return [];
         }
-        const data = await response.json();
+        const data = (await response.json());
         return (data.results || []).map((r) => this.parseSearchResult(r));
     }
     async searchByTrack(artist, track, type = 'all') {
@@ -84,7 +84,7 @@ let DiscogsService = class DiscogsService {
         const response = await fetch(url, { headers: this.getHeaders() });
         if (!response.ok)
             return [];
-        const data = await response.json();
+        const data = (await response.json());
         return (data.results || []).map((r) => this.parseSearchResult(r));
     }
     async searchQuery(query, type = 'all') {
@@ -100,7 +100,7 @@ let DiscogsService = class DiscogsService {
         const response = await fetch(url, { headers: this.getHeaders() });
         if (!response.ok)
             return [];
-        const data = await response.json();
+        const data = (await response.json());
         return (data.results || []).map((r) => this.parseSearchResult(r));
     }
     async getReleaseDetails(id, type = 'release') {
@@ -120,13 +120,13 @@ let DiscogsService = class DiscogsService {
                 });
                 if (fallbackResponse.ok) {
                     console.log(`[DiscogsService] Fallback successful: Found as ${fallbackType}`);
-                    const details = await fallbackResponse.json();
+                    const details = (await fallbackResponse.json());
                     return this.mapToDiscogsRelease(details);
                 }
             }
             return null;
         }
-        const details = await response.json();
+        const details = (await response.json());
         return this.mapToDiscogsRelease(details);
     }
     mapToDiscogsRelease(details) {

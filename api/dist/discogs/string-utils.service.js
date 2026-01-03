@@ -83,7 +83,7 @@ let StringUtilsService = class StringUtilsService {
             return '';
         return str
             .toLowerCase()
-            .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, '')
+            .replace(/\s*[([][^)\]]*[)\]]\s*/g, '')
             .replace(/\s*(feat\.?|ft\.?|featuring)\s+.*/gi, '')
             .replace(/[^a-z0-9\s]/g, '')
             .replace(/\s+/g, ' ')
@@ -97,7 +97,7 @@ let StringUtilsService = class StringUtilsService {
             .trim();
     }
     extractParenthesisInfo(title) {
-        const match = title.match(/^(.+?)\s*[\(\[]([^\)\]]+)[\)\]]\s*$/);
+        const match = title.match(/^(.+?)\s*[([]([^)\]]+)[)\]]\s*$/);
         if (match) {
             return {
                 base: match[1].trim(),
@@ -119,7 +119,7 @@ let StringUtilsService = class StringUtilsService {
             variants.push(`${parsed.base} ${parsed.mixInfo}`);
         }
         let cleaned = title
-            .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, ' ')
+            .replace(/\s*[([][^)\]]*[)\]]\s*/g, ' ')
             .replace(/\s*-\s*(original mix|radio edit|extended mix|club mix|dub mix|remix|instrumental).*$/gi, '')
             .replace(/\s+/g, ' ')
             .trim();
@@ -182,7 +182,7 @@ let StringUtilsService = class StringUtilsService {
             return true;
         if (/^\d{1,2}-[A-Za-z]/.test(tag))
             return true;
-        if (/^[\(\[]?[A-D][1-9²³¹][\)\]]?\s/i.test(tag))
+        if (/^[([][A-D][1-9²³¹][)\]]?\s/i.test(tag))
             return true;
         if (/_/.test(tag) && tag.length > 25)
             return true;

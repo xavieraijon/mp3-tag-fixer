@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import fpcalc from 'fpcalc';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import * as os from 'os';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
+import * as os from 'node:os';
 
 export interface AcoustidRecording {
   id: string;
@@ -34,7 +34,7 @@ export class AcoustidService {
   private readonly apiKey: string | undefined;
   private readonly apiUrl = 'https://api.acoustid.org/v2/lookup';
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.apiKey = this.configService.get<string>('ACOUSTID_API_KEY');
 
     if (this.apiKey) {
@@ -99,7 +99,11 @@ export class AcoustidService {
 
     try {
       const response = await fetch(url);
-      const data = await response.json();
+      const data = (await response.json()) as {
+        status: string;
+        results?: AcoustidResult[];
+        error?: { message: string };
+      };
 
       if (data.status !== 'ok') {
         this.logger.error(`AcoustID API error: ${JSON.stringify(data)}`);

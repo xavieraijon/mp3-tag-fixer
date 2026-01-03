@@ -27,7 +27,7 @@ export class NotificationService {
    * @param type - Type of notification (info, success, error)
    * @param duration - Duration in ms (0 = no auto-dismiss)
    */
-  show(text: string, type: 'info' | 'success' | 'error' = 'info', duration: number = 4000): void {
+  show(text: string, type: 'info' | 'success' | 'error' = 'info', duration = 4000): void {
     // Clear any existing timeout
     if (this._dismissTimeout) {
       clearTimeout(this._dismissTimeout);
@@ -52,21 +52,21 @@ export class NotificationService {
   /**
    * Shows an info notification.
    */
-  info(text: string, duration: number = 4000): void {
+  info(text: string, duration = 4000): void {
     this.show(text, 'info', duration);
   }
 
   /**
    * Shows a success notification.
    */
-  success(text: string, duration: number = 4000): void {
+  success(text: string, duration = 4000): void {
     this.show(text, 'success', duration);
   }
 
   /**
    * Shows an error notification.
    */
-  error(text: string, duration: number = 5000): void {
+  error(text: string, duration = 5000): void {
     this.show(text, 'error', duration);
   }
 

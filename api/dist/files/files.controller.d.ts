@@ -20,7 +20,7 @@ export declare class FilesController {
     getTags(fileId: string, userId: string): Promise<Mp3Tags>;
     writeTags(fileId: string, dto: WriteTagsDto, userId: string, res: Response): Promise<StreamableFile>;
     writeTagsWithCover(fileId: string, dto: WriteTagsDto, coverFile: Express.Multer.File, userId: string, res: Response): Promise<StreamableFile>;
-    deleteFile(fileId: string, userId: string): Promise<{
+    deleteFile(fileId: string, userId: string): {
         success: boolean;
-    }>;
+    };
 }

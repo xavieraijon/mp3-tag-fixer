@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
-import { TrackStatus } from '@prisma/client';
+import { TrackStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class TracksService {
@@ -32,7 +32,7 @@ export class TracksService {
       take?: number;
     },
   ) {
-    const where: any = { userId };
+    const where: Prisma.TrackWhereInput = { userId };
 
     if (options?.status) {
       where.status = options.status;

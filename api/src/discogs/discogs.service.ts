@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 export interface DiscogsRelease {
@@ -27,13 +27,48 @@ export interface DiscogsTrack {
   type_: string;
 }
 
+interface DiscogsRawResult {
+  id: number;
+  title: string;
+  type?: 'release' | 'master';
+  year?: number;
+  thumb?: string;
+  cover_image?: string;
+  country?: string;
+  format?: string[];
+  label?: string[];
+  genre?: string[];
+  style?: string[];
+}
+
+interface DiscogsRawDetail {
+  id: number;
+  title: string;
+  year?: number;
+  artists?: { name: string }[];
+  labels?: { name: string }[];
+  genres?: string[];
+  styles?: string[];
+  country?: string;
+  thumb?: string;
+  images?: { uri: string }[];
+  tracklist?: {
+    position: string;
+    title: string;
+    duration?: string;
+    artists?: { name: string }[];
+    type_: string;
+  }[];
+  main_release?: number;
+}
+
 @Injectable()
 export class DiscogsService {
   private readonly API_URL = 'https://api.discogs.com';
   private readonly consumerKey: string;
   private readonly consumerSecret: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.consumerKey =
       this.configService.get<string>('DISCOGS_CONSUMER_KEY') || '';
     this.consumerSecret =
@@ -51,7 +86,7 @@ export class DiscogsService {
     };
   }
 
-  private parseSearchResult(r: any): DiscogsRelease {
+  private parseSearchResult(r: DiscogsRawResult): DiscogsRelease {
     return {
       id: r.id,
       title: r.title.includes(' - ')
@@ -94,8 +129,8 @@ export class DiscogsService {
       return [];
     }
 
-    const data = await response.json();
-    return (data.results || []).map((r: any) => this.parseSearchResult(r));
+    const data = (await response.json()) as { results: DiscogsRawResult[] };
+    return (data.results || []).map((r) => this.parseSearchResult(r));
   }
 
   /**
@@ -119,8 +154,8 @@ export class DiscogsService {
 
     if (!response.ok) return [];
 
-    const data = await response.json();
-    return (data.results || []).map((r: any) => this.parseSearchResult(r));
+    const data = (await response.json()) as { results: DiscogsRawResult[] };
+    return (data.results || []).map((r) => this.parseSearchResult(r));
   }
 
   /**
@@ -143,8 +178,8 @@ export class DiscogsService {
 
     if (!response.ok) return [];
 
-    const data = await response.json();
-    return (data.results || []).map((r: any) => this.parseSearchResult(r));
+    const data = (await response.json()) as { results: DiscogsRawResult[] };
+    return (data.results || []).map((r) => this.parseSearchResult(r));
   }
 
   /**
@@ -181,7 +216,7 @@ export class DiscogsService {
           console.log(
             `[DiscogsService] Fallback successful: Found as ${fallbackType}`,
           );
-          const details = await fallbackResponse.json();
+          const details = (await fallbackResponse.json()) as DiscogsRawDetail;
           return this.mapToDiscogsRelease(details); // Refactored mapping to shared method
         }
       }
@@ -189,28 +224,28 @@ export class DiscogsService {
       return null;
     }
 
-    const details = await response.json();
+    const details = (await response.json()) as DiscogsRawDetail;
     return this.mapToDiscogsRelease(details);
   }
 
-  private mapToDiscogsRelease(details: any): DiscogsRelease {
+  private mapToDiscogsRelease(details: DiscogsRawDetail): DiscogsRelease {
     return {
       id: details.id,
       title: details.title,
       year: details.year,
       artist: details.artists?.[0]?.name,
-      artists: details.artists?.map((a: any) => ({ name: a.name })),
-      labels: details.labels?.map((l: any) => ({ name: l.name })) || [],
+      artists: details.artists?.map((a) => ({ name: a.name })),
+      labels: details.labels?.map((l) => ({ name: l.name })) || [],
       genres: details.genres || [],
       styles: details.styles || [],
       country: details.country,
       thumb: details.thumb,
       cover_image: details.images?.[0]?.uri || details.thumb,
-      tracklist: details.tracklist?.map((t: any) => ({
+      tracklist: details.tracklist?.map((t) => ({
         position: t.position,
         title: t.title,
         duration: t.duration,
-        artists: t.artists?.map((a: any) => ({ name: a.name })),
+        artists: t.artists?.map((a) => ({ name: a.name })),
         type_: t.type_,
       })),
       main_release: details.main_release,

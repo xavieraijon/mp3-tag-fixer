@@ -1,4 +1,4 @@
-<app-modal (close)="cancel.emit()">
+<app-modal (closeModal)="cancelEdit.emit()">
   <!-- Header Content: Overrides default title to show cover + title/artist -->
   <div header class="flex items-center gap-4 w-full">
     @if (coverImageUrl()) {
@@ -126,7 +126,7 @@
 
   <!-- Footer Content -->
   <ng-container footer>
-    <app-button variant="secondary" (click)="cancel.emit()"> Cancel </app-button>
+    <app-button variant="secondary" (click)="cancelEdit.emit()"> Cancel </app-button>
     <app-button variant="primary" (click)="onSave()"> Save Changes </app-button>
   </ng-container>
 </app-modal>

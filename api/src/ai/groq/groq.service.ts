@@ -115,7 +115,7 @@ Input: "01 - Aphex Twin - Windowlicker"
 Analysis: 01 is track number
 Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('GROQ_API_KEY');
 
     if (apiKey) {
@@ -148,9 +148,10 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
 
     try {
       return await this.callGroqApi(this.model, userPrompt);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as { status?: number; code?: string };
       // Handle Rate Limit (429) specifically
-      if (error?.status === 429 || error?.code === 'rate_limit_exceeded') {
+      if (err?.status === 429 || err?.code === 'rate_limit_exceeded') {
         this.logger.warn(
           `Groq Rate Limit exceeded for ${this.model}. Switching to fallback model: ${this.fallbackModel}`,
         );
@@ -165,7 +166,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
         }
       }
 
-      this.logger.error(`Groq API error: ${error}`);
+      this.logger.error(`Groq API error: ${String(error)}`);
       return this.fallbackParse(filename);
     }
   }
@@ -245,7 +246,11 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
           .trim();
       }
 
-      const parsed = JSON.parse(jsonStr);
+      const parsed = JSON.parse(jsonStr) as {
+        artist?: string;
+        title?: string;
+        confidence?: number;
+      };
 
       if (
         typeof parsed.artist === 'string' &&

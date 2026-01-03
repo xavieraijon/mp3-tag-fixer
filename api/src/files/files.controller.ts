@@ -208,7 +208,7 @@ export class FilesController {
    * Delete an uploaded file from memory
    */
   @Delete(':fileId')
-  async deleteFile(@Param('fileId') fileId: string, @UserId() userId: string) {
+  deleteFile(@Param('fileId') fileId: string, @UserId() userId: string) {
     const file = uploadedFiles.get(fileId);
 
     if (!file || file.userId !== userId) {

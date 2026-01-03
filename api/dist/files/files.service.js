@@ -78,7 +78,7 @@ let FilesService = class FilesService {
             throw new common_1.BadRequestException('Failed to read MP3 tags');
         }
     }
-    async writeTags(buffer, tags) {
+    writeTags(buffer, tags) {
         try {
             const id3Tags = {
                 title: tags.title,
@@ -107,7 +107,7 @@ let FilesService = class FilesService {
             if (!taggedBuffer) {
                 throw new Error('Failed to write tags');
             }
-            return taggedBuffer;
+            return Promise.resolve(taggedBuffer);
         }
         catch (error) {
             console.error('[FilesService] Error writing tags:', error);
@@ -153,7 +153,7 @@ let FilesService = class FilesService {
         try {
             await fs.unlink(filepath);
         }
-        catch (error) {
+        catch {
             console.warn('[FilesService] Failed to delete temp file:', filepath);
         }
     }

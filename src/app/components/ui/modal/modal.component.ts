@@ -9,7 +9,13 @@ import { LucideAngularModule } from 'lucide-angular';
   template: `
     <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-sm animate-in fade-in duration-200">
       <!-- Backdrop click handler -->
-      <div class="absolute inset-0" (click)="close.emit()"></div>
+      <button
+        type="button"
+        class="absolute inset-0 w-full h-full cursor-default focus:outline-none"
+        (click)="closeModal.emit()"
+        tabindex="-1"
+        aria-label="Close modal">
+      </button>
 
       <div
         class="relative z-10 bg-white opacity-80 rounded-3xl shadow-2xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300"
@@ -23,7 +29,7 @@ import { LucideAngularModule } from 'lucide-angular';
                <h2 class="text-lg font-bold text-slate-900 truncate">{{ title() }}</h2>
             }
           </div>
-          <button (click)="close.emit()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0">
+          <button (click)="closeModal.emit()" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all flex-shrink-0">
             <lucide-icon name="x" class="w-5 h-5"></lucide-icon>
           </button>
         </div>
@@ -62,5 +68,5 @@ export class ModalComponent {
   title = input<string>('');
   maxWidth = input<string>('max-w-lg');
   footerAlign = input<'start' | 'center' | 'end'>('end');
-  close = output<void>();
+  closeModal = output<void>();
 }

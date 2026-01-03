@@ -13,7 +13,7 @@ import { InputComponent } from '../ui/input/input.component';
   standalone: true,
   imports: [CommonModule, FormsModule, LucideAngularModule, ModalComponent, ButtonComponent, InputComponent],
   template: `
-    <app-modal [title]="'Create Account'" (close)="close.emit()" footerAlign="center">
+    <app-modal [title]="'Create Account'" (closeModal)="closeModal.emit()" footerAlign="center">
       <!-- Form -->
       <form id="register-form" (ngSubmit)="onSubmit()" class="space-y-4">
         <!-- Name & Last Name Row -->
@@ -90,7 +90,7 @@ import { InputComponent } from '../ui/input/input.component';
 
       <!-- Footer: Buttons -->
       <ng-container footer>
-        <app-button variant="secondary" (click)="close.emit()" [disabled]="isLoading()">
+        <app-button variant="secondary" (click)="closeModal.emit()" [disabled]="isLoading()">
           Cancel
         </app-button>
         <app-button
@@ -124,10 +124,10 @@ import { InputComponent } from '../ui/input/input.component';
   `,
 })
 export class RegisterComponent {
-  private authService = inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   // Outputs
-  close = output<void>();
+  closeModal = output<void>();
   switchToLogin = output<void>();
 
   // Form fields as signals
@@ -165,10 +165,11 @@ export class RegisterComponent {
         name: this.name() || undefined,
         lastName: this.lastName() || undefined,
       });
-      this.close.emit();
-    } catch (error: any) {
+      this.closeModal.emit();
+    } catch (error: unknown) {
       console.error('[RegisterComponent] Registration failed:', error);
-      const message = error.error?.message || error.message || 'Registration failed. Please try again.';
+      const err = error as { error?: { message?: string }, message?: string };
+      const message = err.error?.message || err.message || 'Registration failed. Please try again.';
       this.errorMessage.set(message);
     }
   }

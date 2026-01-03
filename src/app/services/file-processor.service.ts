@@ -6,13 +6,25 @@ import { analyze } from 'web-audio-beat-detector';
 import { Mp3Tags } from '../models/mp3-tags.model';
 
 // Global Buffer shim
-(window as any).Buffer = Buffer;
+interface WindowWithBuffer extends Window {
+  Buffer: typeof Buffer;
+  webkitAudioContext?: typeof AudioContext;
+}
+
+(window as unknown as WindowWithBuffer).Buffer = Buffer;
+
+interface ID3WriterInterface {
+  setFrame(id: string, value: unknown): void;
+  addTag(): void;
+  getBlob(): Blob;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class FileProcessorService {
 
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   constructor() { }
 
   async readTags(file: File): Promise<Mp3Tags> {
@@ -42,7 +54,7 @@ export class FileProcessorService {
         image: cover,
         duration: metadata.format.duration
       };
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('Error parsing file:', e);
       return {};
     }
@@ -53,7 +65,7 @@ export class FileProcessorService {
     const safeName = name || '';
     let simplified = safeName.trim().replace(/\s+&\s+/g, '_&_');
     simplified = simplified.replace(/[\s,/]+/g, '_');
-    return simplified.replace(/[^a-zA-Z0-9_\-\.\(\)&]/g, '');
+    return simplified.replace(/[^a-zA-Z0-9_.()&]/g, '');
   }
 
   /**
@@ -77,7 +89,7 @@ export class FileProcessorService {
 
       // Códigos de vinilo: (A1), [B2], (A2), [A1], etc.
       // Incluye superíndices: ¹²³ (códigos Unicode 185, 178, 179)
-      cleaned = cleaned.replace(/^[\(\[]?[A-D][1-9¹²³][\)\]]?\s*[-:]?\s*/i, '');
+      cleaned = cleaned.replace(/^[([ ]?[A-D][1-9¹²³][)\] ]?\s*[-:]?\s*/i, '');
 
       // Track con guión espaciado: "02 - ", "1 - " (IMPORTANTE: antes de otros patrones)
       cleaned = cleaned.replace(/^\d{1,2}\s+-\s+/i, '');
@@ -86,7 +98,7 @@ export class FileProcessorService {
       cleaned = cleaned.replace(/^\d{1,2}\.\d{1,2}\.?\s*/i, '');
 
       // Números de track: 01., 1., 01-, 1-, 08, etc.
-      cleaned = cleaned.replace(/^\d{1,2}[\.\)\-]\s*/i, '');
+      cleaned = cleaned.replace(/^\d{1,2}[.)-]\s*/i, '');
       cleaned = cleaned.replace(/^\d{1,2}\s+(?=[A-Z])/i, '');
 
       // Corchetes con info de label/año: [Label (CODE) 1998 A2] -
@@ -155,7 +167,7 @@ export class FileProcessorService {
       cleaned = cleaned.replace(/(\))[-_]\d{1,2}$/, '$1');
 
       // Número simple al final: -1, -2 (después de texto)
-      cleaned = cleaned.replace(/([a-zA-Z\)])[-_]\d{1,2}$/, '$1');
+      cleaned = cleaned.replace(/([a-zA-Z)])[-_]\d{1,2}$/, '$1');
 
       // Guiones finales con basura
       cleaned = cleaned.replace(/[-_]+$/, '');
@@ -254,7 +266,7 @@ export class FileProcessorService {
    */
   parseFilename(filename: string): { artist: string, title: string } {
     // Quitar extensión
-    let base = filename.replace(/\.(mp3|wav|flac|aiff|m4a|ogg)$/i, '');
+    const base = filename.replace(/\.(mp3|wav|flac|aiff|m4a|ogg)$/i, '');
 
     console.log(`[ParseFilename] Original: "${base}"`);
 
@@ -267,7 +279,7 @@ export class FileProcessorService {
     console.log(`[ParseFilename] After suffix clean: "${cleaned}"`);
 
     // Paso 3: Intentar extraer artista y título
-    let result = this.extractArtistTitle(cleaned);
+    const result = this.extractArtistTitle(cleaned);
 
     // Paso 4: Si el título aún tiene basura, limpiar más
     if (result.title) {
@@ -294,7 +306,7 @@ export class FileProcessorService {
   async detectBpm(file: File): Promise<number | undefined> {
        try {
            const buffer = await file.arrayBuffer();
-           const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+           const audioContext = new (window.AudioContext || (window as unknown as WindowWithBuffer).webkitAudioContext!)();
            // decodeAudioData detaches the buffer, passing a slice if we wanted to keep it,
            // but we don't need the original buffer here anymore.
            const audioBuffer = await audioContext.decodeAudioData(buffer);
@@ -315,7 +327,7 @@ export class FileProcessorService {
       if (tags.title) writer.setFrame('TIT2', tags.title);
       if (tags.artist) writer.setFrame('TPE1', [tags.artist]);
       if (tags.album) writer.setFrame('TALB', tags.album);
-      if (tags.year && tags.year > 0) (writer as any).setFrame('TYER', tags.year);
+      if (tags.year && tags.year > 0) (writer as unknown as ID3WriterInterface).setFrame('TYER', tags.year);
       if (tags.genre) {
           const g = Array.isArray(tags.genre) ? tags.genre : [tags.genre];
           writer.setFrame('TCON', g);
@@ -323,9 +335,9 @@ export class FileProcessorService {
       if (tags.trackNumber) writer.setFrame('TRCK', String(tags.trackNumber));
       if (tags.discNumber) writer.setFrame('TPOS', tags.discNumber);
       if (tags.label) writer.setFrame('TPUB', tags.label);
-      if (tags.bpm) (writer as any).setFrame('TBPM', String(Math.floor(tags.bpm)));
+      if (tags.bpm) (writer as unknown as ID3WriterInterface).setFrame('TBPM', String(Math.floor(tags.bpm)));
       if (tags.albumArtist) writer.setFrame('TPE2', tags.albumArtist);
-      if (tags.composer) (writer as any).setFrame('TCOM', [tags.composer]);
+      if (tags.composer) (writer as unknown as ID3WriterInterface).setFrame('TCOM', [tags.composer]);
 
       if (tags.comment) {
           writer.setFrame('COMM', {
@@ -339,14 +351,13 @@ export class FileProcessorService {
       if (tags.image) {
           try {
               const imageBuffer = await tags.image.arrayBuffer();
-              const imageType = tags.image.type || 'image/jpeg';
               writer.setFrame('APIC', {
                   type: 3, // Front cover
                   data: imageBuffer,
                   description: 'Cover',
                   useUnicodeEncoding: false
               });
-          } catch (e) {
+          } catch (e: unknown) {
               console.warn('Could not write cover image:', e);
           }
       }

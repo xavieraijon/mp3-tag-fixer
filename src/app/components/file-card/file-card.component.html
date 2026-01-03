@@ -141,63 +141,71 @@
 
       <!-- Artist Input -->
       <div class="flex-1 min-w-[120px] max-w-[180px]">
-          <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Artist</label>
-          <input
-              type="text"
-              [value]="item().manualArtist"
-              (input)="onArtistChange($any($event.target).value)"
-              placeholder="Artist..."
-              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
-          >
+          <label class="block">
+              <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Artist</span>
+              <input
+                  type="text"
+                  [value]="item().manualArtist"
+                  (input)="onArtistChange($any($event.target).value)"
+                  placeholder="Artist..."
+                  class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
+              >
+          </label>
       </div>
 
       <!-- Title Input -->
       <div class="flex-1 min-w-[120px] max-w-[180px]">
-          <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Title</label>
-          <input
-              type="text"
-              [value]="item().manualTitle"
-              (input)="onTitleChange($any($event.target).value)"
-              placeholder="Title..."
-              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
-          >
+          <label class="block">
+              <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Title</span>
+              <input
+                  type="text"
+                  [value]="item().manualTitle"
+                  (input)="onTitleChange($any($event.target).value)"
+                  placeholder="Title..."
+                  class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
+              >
+          </label>
       </div>
 
       <!-- Release Select -->
       @if (item().searchResults && item().searchResults.length > 0) {
         <div class="flex-1 min-w-[200px]">
-            <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Release</label>
-            <select
-              [ngModel]="getSelectedReleaseId()"
-              (ngModelChange)="onReleaseSelectChange($event)"
-              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all cursor-pointer">
-              <option value="">-- Select --</option>
-              @for (release of item().searchResults; track release.id) {
-                <option [ngValue]="release.id.toString()">
-                  {{ release.source === 'musicbrainz' ? '[MB] ' : '[DC] ' }}{{ release.artist }} - {{ release.title }}@if (release.year) { ({{ release.year }}) }
-                </option>
-              }
-            </select>
+            <label class="block">
+                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Release</span>
+                <select
+                  [ngModel]="getSelectedReleaseId()"
+                  (ngModelChange)="onReleaseSelectChange($event)"
+                  class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all cursor-pointer">
+                  <option value="">-- Select --</option>
+                  @for (release of item().searchResults; track release.id) {
+                    <option [ngValue]="release.id.toString()">
+                      {{ release.source === 'musicbrainz' ? '[MB] ' : '[DC] ' }}{{ release.artist }} - {{ release.title }}@if (release.year) { ({{ release.year }}) }
+                    </option>
+                  }
+                </select>
+            </label>
         </div>
       }
 
       <!-- Track Select -->
       @if (item().tracks && item().tracks.length > 0) {
         <div class="flex-1 min-w-[180px]">
-            <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Track ({{ getRealTracks(item().tracks).length }})</label>
-            <select
-              [ngModel]="item().selectedTrack?.position || ''"
-              (ngModelChange)="onTrackSelectChange($event)"
-              class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20 transition-all cursor-pointer">
-              <option value="">-- Select --</option>
-              @for (track of item().tracks; track track.position + track.title) {
-                @if (track.type_ === 'track') {
-                  <option [ngValue]="track.position">
-                    {{ track.position }}. {{ track.title }}@if (track.duration) { ({{ track.duration }}) }
-                  </option>
-                }
-              }
-            </select>
+            <label class="block">
+                <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Track ({{ getRealTracks(item().tracks).length }})</span>
+                <select
+                  [ngModel]="item().selectedTrack?.position || ''"
+                  (ngModelChange)="onTrackSelectChange($event)"
+                  class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20 transition-all cursor-pointer">
+                  <option value="">-- Select --</option>
+                  @for (track of item().tracks; track track.position + track.title) {
+                    @if (track.type_ === 'track') {
+                      <option [ngValue]="track.position">
+                        {{ track.position }}. {{ track.title }}@if (track.duration) { ({{ track.duration }}) }
+                      </option>
+                    }
+                  }
+                </select>
+            </label>
         </div>
       }
 
@@ -205,7 +213,7 @@
       <div class="flex items-center gap-2">
           <!-- Search Button -->
           <app-button
-              (click)="search.emit()"
+              (click)="requestSearch.emit()"
               [disabled]="item().status === 'searching'"
               palette="blue"
               variant="glass"

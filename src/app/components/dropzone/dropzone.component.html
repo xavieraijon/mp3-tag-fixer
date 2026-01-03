@@ -3,7 +3,12 @@
     (dragover)="onDragOver($event)"
     (dragleave)="onDragLeave($event)"
     (drop)="onDrop($event)"
-    (click)="openFileDialog()">
+    (click)="openFileDialog()"
+    (keydown.enter)="openFileDialog()"
+    (keydown.space)="openFileDialog()"
+    tabindex="0"
+    role="button"
+    aria-label="Upload files">
 
     <!-- Hidden File Input -->
     <input

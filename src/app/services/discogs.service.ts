@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -23,7 +23,7 @@ interface ApiResponse<T> {
 export class DiscogsService {
   private readonly API_URL = '/api/discogs';
 
-  constructor(private readonly http: HttpClient) {}
+  private readonly http = inject(HttpClient);
 
   /**
    * Search by artist and release title
@@ -35,10 +35,10 @@ export class DiscogsService {
   ): Promise<DiscogsRelease[]> {
     if (!artist && !release) return [];
 
-    const params: any = {};
-    if (artist) params.artist = artist;
-    if (release) params.release = release;
-    if (type !== 'all') params.type = type;
+    const params: Record<string, string> = {};
+    if (artist) params['artist'] = artist;
+    if (release) params['release'] = release;
+    if (type !== 'all') params['type'] = type;
 
     const obs = this.http.get<ApiResponse<DiscogsRelease>>(
       `${this.API_URL}/search/release`,
@@ -58,9 +58,9 @@ export class DiscogsService {
   ): Promise<DiscogsRelease[]> {
     if (!track) return [];
 
-    const params: any = { track };
-    if (artist) params.artist = artist;
-    if (type !== 'all') params.type = type;
+    const params: Record<string, string> = { track };
+    if (artist) params['artist'] = artist;
+    if (type !== 'all') params['type'] = type;
 
     const obs = this.http.get<ApiResponse<DiscogsRelease>>(
       `${this.API_URL}/search/track`,
@@ -79,8 +79,8 @@ export class DiscogsService {
   ): Promise<DiscogsRelease[]> {
     if (!query || query.trim().length < 2) return [];
 
-    const params: any = { q: query.trim() };
-    if (type !== 'all') params.type = type;
+    const params: Record<string, string> = { q: query.trim() };
+    if (type !== 'all') params['type'] = type;
 
     const obs = this.http.get<ApiResponse<DiscogsRelease>>(
       `${this.API_URL}/search`,

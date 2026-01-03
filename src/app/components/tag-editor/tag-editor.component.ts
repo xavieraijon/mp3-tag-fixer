@@ -35,7 +35,7 @@ export class TagEditorComponent {
 
   // Outputs - save emits the edited tags
   save = output<Mp3Tags>();
-  cancel = output<void>();
+  cancelEdit = output<void>();
 
   constructor() {
     // Sync local state when tags input changes
@@ -60,7 +60,7 @@ export class TagEditorComponent {
     // Helper to normalize empty values
     const str = (v: string): string | undefined => v?.trim() || undefined;
     const num = (v: number | undefined | null): number | undefined =>
-      (v !== undefined && v !== null && !isNaN(v)) ? v : undefined;
+      (v !== undefined && v !== null && !Number.isNaN(v)) ? v : undefined;
 
     // Build the updated tags object (don't spread original - we want explicit values)
     const updatedTags: Mp3Tags = {

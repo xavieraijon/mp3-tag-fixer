@@ -362,7 +362,7 @@ export class AppComponent {
             } else {
                  this.store.updateDebugStep(item, 0, { status: 'skipped', logs: ['AI Service disabled'] });
             }
-        } catch (e) {
+        } catch {
             this.store.updateDebugStep(item, 0, { status: 'failed', durationMs: Date.now() - start1, logs: ['Error executing AcoustID'] });
         }
 
@@ -381,7 +381,7 @@ export class AppComponent {
                 if (res && res.confidence >= 0.7) {
                     this.store.updateDebugStep(item, 1, {
                         status: 'success',
-                        result: res as any,
+                        result: res,
                         durationMs: duration
                     });
                      // Use this if we don't have a better one yet (AcoustID wins usually)
@@ -392,7 +392,7 @@ export class AppComponent {
                 } else {
                     this.store.updateDebugStep(item, 1, {
                         status: 'failed',
-                        result: res as any,
+                        result: res || undefined,
                         durationMs: duration,
                         logs: ['Confidence too low']
                     });
@@ -400,7 +400,7 @@ export class AppComponent {
             } else {
                 this.store.updateDebugStep(item, 1, { status: 'skipped', logs: ['AI Service disabled'] });
             }
-        } catch (e) {
+        } catch {
              this.store.updateDebugStep(item, 1, { status: 'failed', durationMs: Date.now() - start2 });
         }
 
@@ -477,7 +477,8 @@ export class AppComponent {
           statusMessage: tracks.length > 0 ? 'Select a track.' : 'No tracks found.'
         });
       }
-    } catch (e) {
+    } catch (e: unknown) {
+      console.error('Error in selectRelease:', e);
       this.store.updateFile(item, {
         status: 'error',
         statusMessage: 'Failed to load details.'
@@ -526,7 +527,7 @@ export class AppComponent {
         saveAs(blob, `${cleanName}.mp3`);
         this.store.updateFile(item, { status: 'done', statusMessage: 'Download started.' });
       }
-    } catch (e) {
+    } catch {
       this.store.updateFile(item, { status: 'error', statusMessage: 'Failed to write tags.' });
     }
   }
@@ -599,7 +600,6 @@ export class AppComponent {
 
     const zip = new JSZip();
     let completed = 0;
-    let failed = 0;
 
     for (const item of files) {
       try {
@@ -614,8 +614,7 @@ export class AppComponent {
           completed++;
           this.notification.show(`Processing: ${completed}/${files.length}...`, 'info', 0);
         }
-      } catch (e) {
-        failed++;
+      } catch (e: unknown) {
         console.error('Failed to process', item.originalName, e);
       }
     }
@@ -627,7 +626,7 @@ export class AppComponent {
         const timestamp = new Date().toISOString().slice(0, 10);
         saveAs(zipBlob, `mp3-tagged-${timestamp}.zip`);
         this.notification.success(`Download started: ${completed} files in ZIP.`);
-      } catch (e) {
+      } catch {
         this.notification.error('Failed to generate ZIP file.');
       }
     } else {

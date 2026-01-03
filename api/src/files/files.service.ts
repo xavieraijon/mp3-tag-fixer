@@ -69,7 +69,7 @@ export class FilesService {
   /**
    * Write ID3 tags to an MP3 buffer
    */
-  async writeTags(buffer: Buffer, tags: Mp3Tags): Promise<Buffer> {
+  writeTags(buffer: Buffer, tags: Mp3Tags): Promise<Buffer> {
     try {
       const id3Tags: NodeID3.Tags = {
         title: tags.title,
@@ -103,7 +103,7 @@ export class FilesService {
         throw new Error('Failed to write tags');
       }
 
-      return taggedBuffer;
+      return Promise.resolve(taggedBuffer);
     } catch (error) {
       console.error('[FilesService] Error writing tags:', error);
       throw new BadRequestException('Failed to write MP3 tags');
@@ -176,7 +176,7 @@ export class FilesService {
   async deleteTemp(filepath: string): Promise<void> {
     try {
       await fs.unlink(filepath);
-    } catch (error) {
+    } catch {
       console.warn('[FilesService] Failed to delete temp file:', filepath);
     }
   }

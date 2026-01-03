@@ -93,6 +93,11 @@
         class="block mb-8">
     </app-dropzone>
 
+    <!-- YouTube Input -->
+    <app-youtube-input
+      (downloaded)="handleYoutubeDownload($event)">
+    </app-youtube-input>
+
     <!-- App Content -->
     @if (files().length > 0) {
 

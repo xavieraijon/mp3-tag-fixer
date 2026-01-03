@@ -21,7 +21,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 // In-memory storage for uploaded files (per session)
 // Exported for use by other modules (e.g., AcoustID identification)
-export const uploadedFiles = new Map<string, { buffer: Buffer; originalName: string; userId: string }>();
+export const uploadedFiles = new Map<
+  string,
+  { buffer: Buffer; originalName: string; userId: string }
+>();
 
 @Controller('files')
 @UseGuards(JwtAuthGuard)
@@ -36,7 +39,10 @@ export class FilesController {
     FileInterceptor('file', {
       limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max
       fileFilter: (req, file, cb) => {
-        if (!file.mimetype.includes('audio') && !file.originalname.endsWith('.mp3')) {
+        if (
+          !file.mimetype.includes('audio') &&
+          !file.originalname.endsWith('.mp3')
+        ) {
           cb(new BadRequestException('Only MP3 files are allowed'), false);
         } else {
           cb(null, true);
@@ -84,10 +90,7 @@ export class FilesController {
    * Get tags from an uploaded file
    */
   @Get(':fileId/tags')
-  async getTags(
-    @Param('fileId') fileId: string,
-    @UserId() userId: string,
-  ) {
+  async getTags(@Param('fileId') fileId: string, @UserId() userId: string) {
     const file = uploadedFiles.get(fileId);
 
     if (!file || file.userId !== userId) {
@@ -205,10 +208,7 @@ export class FilesController {
    * Delete an uploaded file from memory
    */
   @Delete(':fileId')
-  async deleteFile(
-    @Param('fileId') fileId: string,
-    @UserId() userId: string,
-  ) {
+  async deleteFile(@Param('fileId') fileId: string, @UserId() userId: string) {
     const file = uploadedFiles.get(fileId);
 
     if (!file || file.userId !== userId) {

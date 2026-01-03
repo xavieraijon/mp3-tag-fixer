@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsNumber,
-  IsOptional,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, Max } from 'class-validator';
 
 export class WriteTagsDto {
   @IsOptional()
@@ -55,4 +49,8 @@ export class WriteTagsDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsString()
+  coverImageUrl?: string;
 }

@@ -15,6 +15,7 @@ import { NotificationService } from './services/notification.service';
 import { AuthService } from './services/auth.service';
 import { MusicBrainzService } from './services/musicbrainz.service';
 import { AiSearchService } from './services/ai-search.service';
+import { YoutubeService, YoutubeDownloadResponse } from './services/youtube.service';
 
 // Store
 import { FilesStore } from './store/files.store';
@@ -33,6 +34,7 @@ import { SnackbarComponent } from './components/snackbar/snackbar.component';
 import { LoginComponent } from './components/auth/login.component';
 import { RegisterComponent } from './components/auth/register.component';
 import { ButtonComponent } from './components/ui/button/button.component';
+import { YoutubeInputComponent } from './components/youtube-input/youtube-input.component';
 
 @Component({
   selector: 'app-root',
@@ -48,7 +50,8 @@ import { ButtonComponent } from './components/ui/button/button.component';
     SnackbarComponent,
     LoginComponent,
     RegisterComponent,
-    ButtonComponent
+    ButtonComponent,
+    YoutubeInputComponent
   ],
   templateUrl: './app.component.html'
 })
@@ -63,6 +66,7 @@ export class AppComponent {
   private readonly notification = inject(NotificationService);
   readonly authService = inject(AuthService); // Public for template
   readonly aiService = inject(AiSearchService); // Public for template (toggle)
+  private readonly youtubeService = inject(YoutubeService);
 
   // Store (exposed for template)
   readonly store = inject(FilesStore);
@@ -101,6 +105,34 @@ export class AppComponent {
   clearList(): void {
     if (confirm('Remove all listed files?')) {
       this.store.clearAll();
+    }
+  }
+
+  /**
+   * Handles YouTube download completion
+   * Adds the downloaded file to the store and triggers search
+   */
+  async handleYoutubeDownload(response: YoutubeDownloadResponse): Promise<void> {
+    // Create a ProcessedFile from the YouTube download response
+    const processedFile: ProcessedFile = {
+      file: new File([], response.originalName), // Dummy file, actual data stored on server
+      originalName: response.originalName,
+      currentTags: response.currentTags as ProcessedFile['currentTags'],
+      status: 'pending',
+      searchResults: [],
+      tracks: [],
+      manualArtist: response.parsedFilename.artist || response.youtubeInfo?.channel || '',
+      manualTitle: response.parsedFilename.title || response.youtubeInfo?.title || '',
+      serverFileId: response.fileId, // Store server file ID for later download
+    };
+
+    // Add to store
+    this.store.addProcessedFile(processedFile);
+
+    // Trigger automatic search
+    const addedFile = this.store.getFileByName(response.originalName);
+    if (addedFile) {
+      await this.search(addedFile);
     }
   }
 
@@ -675,6 +707,25 @@ export class AppComponent {
       }
     }
 
+    // For YouTube files (with serverFileId), use server-side tag writing
+    if (item.serverFileId) {
+      return this.youtubeService.writeTags(item.serverFileId, {
+        title: finalTags.title,
+        artist: finalTags.artist,
+        album: finalTags.album,
+        year: finalTags.year,
+        genre: Array.isArray(finalTags.genre) ? finalTags.genre.join(', ') : finalTags.genre,
+        trackNumber: finalTags.trackNumber,
+        bpm: finalTags.bpm,
+        label: finalTags.label,
+        albumArtist: finalTags.albumArtist,
+        composer: finalTags.composer,
+        comment: finalTags.comment,
+        coverImageUrl: release.cover_image,
+      });
+    }
+
+    // For local files, use client-side tag writing
     return this.processor.writeTags(item.file, finalTags);
   }
 

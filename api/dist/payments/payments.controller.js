@@ -45,7 +45,9 @@ let PaymentsController = class PaymentsController {
     }
     async cancelSubscription(userId) {
         await this.paymentsService.cancelSubscription(userId);
-        return { message: 'Subscription will be canceled at the end of the billing period' };
+        return {
+            message: 'Subscription will be canceled at the end of the billing period',
+        };
     }
     async handleWebhook(signature, payload) {
         await this.paymentsService.handleWebhook(signature, payload);

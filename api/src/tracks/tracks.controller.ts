@@ -50,7 +50,12 @@ export class TracksController {
     @Query('skip', new DefaultValuePipe(0), ParseIntPipe) skip?: number,
     @Query('take', new DefaultValuePipe(50), ParseIntPipe) take?: number,
   ) {
-    return this.tracksService.findAllByUser(userId, { status, search, skip, take });
+    return this.tracksService.findAllByUser(userId, {
+      status,
+      search,
+      skip,
+      take,
+    });
   }
 
   /**
@@ -65,8 +70,14 @@ export class TracksController {
    * Check for duplicates by file hash
    */
   @Get('duplicates/:fileHash')
-  async findDuplicates(@UserId() userId: string, @Param('fileHash') fileHash: string) {
-    const duplicates = await this.tracksService.findDuplicates(userId, fileHash);
+  async findDuplicates(
+    @UserId() userId: string,
+    @Param('fileHash') fileHash: string,
+  ) {
+    const duplicates = await this.tracksService.findDuplicates(
+      userId,
+      fileHash,
+    );
     return { duplicates, count: duplicates.length };
   }
 

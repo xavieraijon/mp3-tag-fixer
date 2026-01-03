@@ -23,6 +23,7 @@ class WriteTagsDto {
     albumArtist;
     composer;
     comment;
+    coverImageUrl;
 }
 exports.WriteTagsDto = WriteTagsDto;
 __decorate([
@@ -85,4 +86,9 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], WriteTagsDto.prototype, "comment", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], WriteTagsDto.prototype, "coverImageUrl", void 0);
 //# sourceMappingURL=write-tags.dto.js.map

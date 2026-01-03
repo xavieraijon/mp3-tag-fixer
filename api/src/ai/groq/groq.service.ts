@@ -143,7 +143,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     const userPrompt = this.buildUserPrompt(
       filename,
       existingArtist,
-      existingTitle
+      existingTitle,
     );
 
     try {
@@ -151,12 +151,16 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     } catch (error: any) {
       // Handle Rate Limit (429) specifically
       if (error?.status === 429 || error?.code === 'rate_limit_exceeded') {
-        this.logger.warn(`Groq Rate Limit exceeded for ${this.model}. Switching to fallback model: ${this.fallbackModel}`);
+        this.logger.warn(
+          `Groq Rate Limit exceeded for ${this.model}. Switching to fallback model: ${this.fallbackModel}`,
+        );
 
         try {
           return await this.callGroqApi(this.fallbackModel, userPrompt);
         } catch (fallbackError) {
-          this.logger.error(`Groq Fallback (${this.fallbackModel}) also failed: ${fallbackError}`);
+          this.logger.error(
+            `Groq Fallback (${this.fallbackModel}) also failed: ${fallbackError}`,
+          );
           return this.fallbackParse(filename);
         }
       }
@@ -166,30 +170,33 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     }
   }
 
-  private async callGroqApi(model: string, prompt: string): Promise<ParseFilenameResponse> {
-      const completion = await this.groq!.chat.completions.create({
-        model: model,
-        messages: [
-          { role: 'system', content: this.systemPrompt },
-          { role: 'user', content: prompt },
-        ],
-        temperature: 0.3,
-        max_tokens: 256,
-      });
+  private async callGroqApi(
+    model: string,
+    prompt: string,
+  ): Promise<ParseFilenameResponse> {
+    const completion = await this.groq!.chat.completions.create({
+      model: model,
+      messages: [
+        { role: 'system', content: this.systemPrompt },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.3,
+      max_tokens: 256,
+    });
 
-      const content = completion.choices[0]?.message?.content || '';
-      this.logger.debug(`Groq response (${model}): ${content}`);
+    const content = completion.choices[0]?.message?.content || '';
+    this.logger.debug(`Groq response (${model}): ${content}`);
 
-      const parsed = this.parseResponse(content);
+    const parsed = this.parseResponse(content);
 
-      if (parsed) {
-        return {
-          ...parsed,
-          source: 'groq',
-        };
-      }
+    if (parsed) {
+      return {
+        ...parsed,
+        source: 'groq',
+      };
+    }
 
-      throw new Error('Failed to parse Groq response JSON');
+    throw new Error('Failed to parse Groq response JSON');
   }
 
   private buildUserPrompt(
@@ -205,8 +212,10 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
       prompt += `\n- Title tag: "${existingTitle || '(empty)'}"`;
 
       // Help the AI identify garbage
-      const hasGarbageArtist = existingArtist && /[ºª§ß¢¶{}þÕÛê^°¨©®™]/.test(existingArtist);
-      const hasGarbageTitle = existingTitle && /[ºª§ß¢¶{}þÕÛê^°¨©®™]/.test(existingTitle);
+      const hasGarbageArtist =
+        existingArtist && /[ºª§ß¢¶{}þÕÛê^°¨©®™]/.test(existingArtist);
+      const hasGarbageTitle =
+        existingTitle && /[ºª§ß¢¶{}þÕÛê^°¨©®™]/.test(existingTitle);
 
       if (hasGarbageArtist && !hasGarbageTitle) {
         prompt += `\n\n⚠️ DETECTED: Artist tag contains ENCODING GARBAGE. Title tag looks CLEAN.`;
@@ -221,14 +230,19 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     return prompt;
   }
 
-  private parseResponse(content: string): { artist: string; title: string; confidence: number } | null {
+  private parseResponse(
+    content: string,
+  ): { artist: string; title: string; confidence: number } | null {
     try {
       // Try to extract JSON from response (handle potential markdown code blocks)
       let jsonStr = content.trim();
 
       // Remove markdown code blocks if present
       if (jsonStr.startsWith('```')) {
-        jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+        jsonStr = jsonStr
+          .replace(/```json?\n?/g, '')
+          .replace(/```/g, '')
+          .trim();
       }
 
       const parsed = JSON.parse(jsonStr);
@@ -270,7 +284,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     // Try to split by " - "
     const parts = base.split(' - ');
     if (parts.length >= 2) {
-      let artist = parts[0].trim();
+      const artist = parts[0].trim();
       let title = parts.slice(1).join(' - ').trim();
 
       // Check if artist is garbage

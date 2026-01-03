@@ -1,6 +1,9 @@
 import { Controller, Post, Body, Get } from '@nestjs/common';
 import { GroqService } from './groq.service';
-import { ParseFilenameDto, ParseFilenameResponse } from '../dto/parse-filename.dto';
+import {
+  ParseFilenameDto,
+  ParseFilenameResponse,
+} from '../dto/parse-filename.dto';
 import { Public } from '../../auth/decorators/public.decorator';
 
 @Controller('ai')
@@ -24,7 +27,9 @@ export class GroqController {
    */
   @Public()
   @Post('parse-filename')
-  async parseFilename(@Body() dto: ParseFilenameDto): Promise<ParseFilenameResponse> {
+  async parseFilename(
+    @Body() dto: ParseFilenameDto,
+  ): Promise<ParseFilenameResponse> {
     return this.groqService.parseFilename(
       dto.filename,
       dto.existingArtist,

@@ -14,13 +14,13 @@ declare module 'fpcalc' {
 
   function fpcalc(
     file: string | NodeJS.ReadableStream,
-    callback: FpcalcCallback
+    callback: FpcalcCallback,
   ): void;
 
   function fpcalc(
     file: string | NodeJS.ReadableStream,
     options: FpcalcOptions,
-    callback: FpcalcCallback
+    callback: FpcalcCallback,
   ): void;
 
   export default fpcalc;

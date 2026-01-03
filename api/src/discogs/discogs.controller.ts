@@ -10,7 +10,12 @@ import {
 import type { Response } from 'express';
 import { DiscogsService } from './discogs.service';
 import { SearchService } from './search.service';
-import { SearchReleaseDto, SearchTrackDto, SearchQueryDto, SmartSearchDto } from './dto/search.dto';
+import {
+  SearchReleaseDto,
+  SearchTrackDto,
+  SearchQueryDto,
+  SmartSearchDto,
+} from './dto/search.dto';
 import { Public } from '../auth/decorators/public.decorator';
 
 @Public() // All Discogs endpoints are public for now
@@ -29,7 +34,10 @@ export class DiscogsController {
     if (!dto.artist && !dto.title) {
       throw new BadRequestException('Artist or title is required');
     }
-    const results = await this.searchService.search(dto.artist || '', dto.title || '');
+    const results = await this.searchService.search(
+      dto.artist || '',
+      dto.title || '',
+    );
     return { results, count: results.length };
   }
 
@@ -112,7 +120,10 @@ export class DiscogsController {
       throw new BadRequestException('Invalid master ID');
     }
 
-    const details = await this.discogsService.getReleaseDetails(masterId, 'master');
+    const details = await this.discogsService.getReleaseDetails(
+      masterId,
+      'master',
+    );
 
     if (!details) {
       throw new BadRequestException('Master not found');

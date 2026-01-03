@@ -10,4 +10,5 @@ export declare class WriteTagsDto {
     albumArtist?: string;
     composer?: string;
     comment?: string;
+    coverImageUrl?: string;
 }

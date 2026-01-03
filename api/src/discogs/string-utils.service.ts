@@ -59,7 +59,8 @@ export class StringUtilsService {
 
     // Remove numbers at end: Brain 6 -> Brain
     const noNumbers = normalized.replace(/\s*\d+\s*$/, '').trim();
-    if (noNumbers !== normalized && noNumbers.length > 2) variants.push(noNumbers);
+    if (noNumbers !== normalized && noNumbers.length > 2)
+      variants.push(noNumbers);
 
     // Clean special chars (remove dots, etc): L.I.N.D.A. -> LINDA
     const noDots = normalized.replace(/\./g, '');
@@ -67,7 +68,11 @@ export class StringUtilsService {
 
     // Try adding dots between letters for short names (Linda -> L.I.N.D.A.)
     const words = normalized.split(/\s+/);
-    if (words.length === 1 && normalized.length >= 3 && normalized.length <= 8) {
+    if (
+      words.length === 1 &&
+      normalized.length >= 3 &&
+      normalized.length <= 8
+    ) {
       const withDots = normalized.split('').join('.') + '.';
       variants.push(withDots);
       variants.push(withDots.toUpperCase());
@@ -78,10 +83,13 @@ export class StringUtilsService {
     if (upperNoDots !== normalized.toUpperCase()) variants.push(upperNoDots);
 
     // Clean special chars
-    const clean = normalized.replace(/[^\w\s\-'&]/g, ' ').replace(/\s+/g, ' ').trim();
+    const clean = normalized
+      .replace(/[^\w\s\-'&]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
     if (clean !== normalized) variants.push(clean);
 
-    return [...new Set(variants)].filter(v => v.length > 0);
+    return [...new Set(variants)].filter((v) => v.length > 0);
   }
 
   /**
@@ -128,7 +136,11 @@ export class StringUtilsService {
    * Extracts base title and mix/version info from parentheses.
    * Example: "Rock This Place (H.Seral V.)" → { base: "Rock This Place", mixInfo: "H.Seral V." }
    */
-  extractParenthesisInfo(title: string): { base: string; mixInfo: string; full: string } {
+  extractParenthesisInfo(title: string): {
+    base: string;
+    mixInfo: string;
+    full: string;
+  } {
     const match = title.match(/^(.+?)\s*[\(\[]([^\)\]]+)[\)\]]\s*$/);
     if (match) {
       return {
@@ -162,7 +174,10 @@ export class StringUtilsService {
     // Remove common suffixes
     let cleaned = title
       .replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, ' ')
-      .replace(/\s*-\s*(original mix|radio edit|extended mix|club mix|dub mix|remix|instrumental).*$/gi, '')
+      .replace(
+        /\s*-\s*(original mix|radio edit|extended mix|club mix|dub mix|remix|instrumental).*$/gi,
+        '',
+      )
       .replace(/\s+/g, ' ')
       .trim();
     if (cleaned !== title && cleaned.length > 2) {
@@ -173,7 +188,7 @@ export class StringUtilsService {
     cleaned = title.replace(/\s*(feat\.?|ft\.?|featuring)\s+.*/gi, '').trim();
     if (cleaned !== title) variants.push(cleaned);
 
-    return [...new Set(variants)].filter(v => v.length > 0);
+    return [...new Set(variants)].filter((v) => v.length > 0);
   }
 
   /**

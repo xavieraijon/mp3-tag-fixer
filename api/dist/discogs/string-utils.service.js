@@ -51,7 +51,9 @@ let StringUtilsService = class StringUtilsService {
         if (noDots !== normalized)
             variants.push(noDots);
         const words = normalized.split(/\s+/);
-        if (words.length === 1 && normalized.length >= 3 && normalized.length <= 8) {
+        if (words.length === 1 &&
+            normalized.length >= 3 &&
+            normalized.length <= 8) {
             const withDots = normalized.split('').join('.') + '.';
             variants.push(withDots);
             variants.push(withDots.toUpperCase());
@@ -59,10 +61,13 @@ let StringUtilsService = class StringUtilsService {
         const upperNoDots = normalized.toUpperCase().replace(/[^A-Z0-9]/g, '');
         if (upperNoDots !== normalized.toUpperCase())
             variants.push(upperNoDots);
-        const clean = normalized.replace(/[^\w\s\-'&]/g, ' ').replace(/\s+/g, ' ').trim();
+        const clean = normalized
+            .replace(/[^\w\s\-'&]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
         if (clean !== normalized)
             variants.push(clean);
-        return [...new Set(variants)].filter(v => v.length > 0);
+        return [...new Set(variants)].filter((v) => v.length > 0);
     }
     normalizeArtistForComparison(str) {
         return str
@@ -124,7 +129,7 @@ let StringUtilsService = class StringUtilsService {
         cleaned = title.replace(/\s*(feat\.?|ft\.?|featuring)\s+.*/gi, '').trim();
         if (cleaned !== title)
             variants.push(cleaned);
-        return [...new Set(variants)].filter(v => v.length > 0);
+        return [...new Set(variants)].filter((v) => v.length > 0);
     }
     calculateStringSimilarity(str1, str2) {
         if (!str1 || !str2)

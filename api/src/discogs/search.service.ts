@@ -228,11 +228,19 @@ export class SearchService {
   async executeStrategy(strategy: SearchStrategy): Promise<DiscogsRelease[]> {
     switch (strategy.type) {
       case 'track':
-        return this.discogs.searchByTrack(strategy.artist, strategy.title, strategy.searchType);
+        return this.discogs.searchByTrack(
+          strategy.artist,
+          strategy.title,
+          strategy.searchType,
+        );
       case 'query':
         return this.discogs.searchQuery(strategy.title, strategy.searchType);
       case 'release':
-        return this.discogs.searchRelease(strategy.artist, strategy.title, strategy.searchType);
+        return this.discogs.searchRelease(
+          strategy.artist,
+          strategy.title,
+          strategy.searchType,
+        );
       default:
         return [];
     }
@@ -241,14 +249,20 @@ export class SearchService {
   /**
    * Calculates relevance score for a search result.
    */
-  calculateResultScore(result: DiscogsRelease, searchArtist: string, searchTitle: string): number {
+  calculateResultScore(
+    result: DiscogsRelease,
+    searchArtist: string,
+    searchTitle: string,
+  ): number {
     let score = 0;
     const resultArtist = result.artist || '';
     const resultTitle = result.title || '';
 
     // === ARTIST MATCHING (0-60 points) ===
-    const normalizedResultArtist = this.stringUtils.normalizeArtistForComparison(resultArtist);
-    const normalizedSearchArtist = this.stringUtils.normalizeArtistForComparison(searchArtist);
+    const normalizedResultArtist =
+      this.stringUtils.normalizeArtistForComparison(resultArtist);
+    const normalizedSearchArtist =
+      this.stringUtils.normalizeArtistForComparison(searchArtist);
 
     const artistSimilarity = this.stringUtils.calculateStringSimilarity(
       normalizedResultArtist,
@@ -305,10 +319,21 @@ export class SearchService {
     if (result.type === 'master') score += 2;
     if (result.thumb || result.cover_image) score += 1;
 
-    const genres = [...(result.genres || []), ...(result.styles || [])].map((g) => g.toLowerCase());
+    const genres = [...(result.genres || []), ...(result.styles || [])].map(
+      (g) => g.toLowerCase(),
+    );
     if (
       genres.some((g) =>
-        ['electronic', 'techno', 'house', 'trance', 'dance', 'hardcore', 'gabber', 'makina'].includes(g),
+        [
+          'electronic',
+          'techno',
+          'house',
+          'trance',
+          'dance',
+          'hardcore',
+          'gabber',
+          'makina',
+        ].includes(g),
       )
     ) {
       score += 3;
@@ -332,7 +357,9 @@ export class SearchService {
   ): Promise<SearchResult[]> {
     const strategies = this.generateStrategies(artist, title);
 
-    console.log(`[SearchService] Generated ${strategies.length} strategies for "${artist} - ${title}"`);
+    console.log(
+      `[SearchService] Generated ${strategies.length} strategies for "${artist} - ${title}"`,
+    );
 
     const allResults: SearchResult[] = [];
     let attemptCount = 0;
@@ -342,13 +369,17 @@ export class SearchService {
       attemptCount++;
 
       if (onProgress) {
-        onProgress(`Search ${attemptCount}/${Math.min(strategies.length, maxAttempts)}: ${strategy.description}`);
+        onProgress(
+          `Search ${attemptCount}/${Math.min(strategies.length, maxAttempts)}: ${strategy.description}`,
+        );
       }
 
       try {
         const results = await this.executeStrategy(strategy);
 
-        console.log(`[SearchService] Strategy "${strategy.description}" returned ${results.length} results`);
+        console.log(
+          `[SearchService] Strategy "${strategy.description}" returned ${results.length} results`,
+        );
 
         if (results.length > 0) {
           for (const r of results) {
@@ -364,17 +395,27 @@ export class SearchService {
           const topScore = allResults[0]?._score || 0;
 
           if (topScore >= this.EXCELLENT_SCORE) {
-            console.log(`[SearchService] Excellent match found (score ${topScore}), stopping`);
+            console.log(
+              `[SearchService] Excellent match found (score ${topScore}), stopping`,
+            );
             break;
           }
 
-          if (allResults.length >= this.MIN_RESULTS_FOR_GOOD && topScore >= this.GOOD_SCORE) {
-            console.log(`[SearchService] Found ${allResults.length} results with top score ${topScore}, stopping`);
+          if (
+            allResults.length >= this.MIN_RESULTS_FOR_GOOD &&
+            topScore >= this.GOOD_SCORE
+          ) {
+            console.log(
+              `[SearchService] Found ${allResults.length} results with top score ${topScore}, stopping`,
+            );
             break;
           }
         }
       } catch (e) {
-        console.warn(`[SearchService] Strategy "${strategy.description}" failed:`, e);
+        console.warn(
+          `[SearchService] Strategy "${strategy.description}" failed:`,
+          e,
+        );
       }
 
       await this.delay(this.API_DELAY);
@@ -384,7 +425,9 @@ export class SearchService {
     if (allResults.length > 0) {
       console.log(`[SearchService] Final ranking for "${artist} - ${title}":`);
       allResults.slice(0, 5).forEach((r, i) => {
-        console.log(`  ${i + 1}. [Score: ${r._score}] ${r.artist} - ${r.title}`);
+        console.log(
+          `  ${i + 1}. [Score: ${r._score}] ${r.artist} - ${r.title}`,
+        );
       });
     }
 

@@ -40,7 +40,9 @@ export class AcoustidService {
     if (this.apiKey) {
       this.logger.log('AcoustID service initialized');
     } else {
-      this.logger.warn('ACOUSTID_API_KEY not configured - audio fingerprinting disabled');
+      this.logger.warn(
+        'ACOUSTID_API_KEY not configured - audio fingerprinting disabled',
+      );
     }
   }
 
@@ -51,24 +53,37 @@ export class AcoustidService {
   /**
    * Generate chromaprint fingerprint from audio file
    */
-  async generateFingerprint(filePath: string): Promise<{ fingerprint: string; duration: number }> {
+  async generateFingerprint(
+    filePath: string,
+  ): Promise<{ fingerprint: string; duration: number }> {
     return new Promise((resolve, reject) => {
-      fpcalc(filePath, (err: Error | null, result: { fingerprint: string; duration: number }) => {
-        if (err) {
-          this.logger.error(`Fingerprint generation failed: ${err.message}`);
-          reject(err);
-          return;
-        }
-        this.logger.debug(`Generated fingerprint for ${path.basename(filePath)}, duration: ${result.duration}s`);
-        resolve(result);
-      });
+      fpcalc(
+        filePath,
+        (
+          err: Error | null,
+          result: { fingerprint: string; duration: number },
+        ) => {
+          if (err) {
+            this.logger.error(`Fingerprint generation failed: ${err.message}`);
+            reject(err);
+            return;
+          }
+          this.logger.debug(
+            `Generated fingerprint for ${path.basename(filePath)}, duration: ${result.duration}s`,
+          );
+          resolve(result);
+        },
+      );
     });
   }
 
   /**
    * Look up fingerprint in AcoustID database
    */
-  async lookup(fingerprint: string, duration: number): Promise<AcoustidResult[]> {
+  async lookup(
+    fingerprint: string,
+    duration: number,
+  ): Promise<AcoustidResult[]> {
     if (!this.apiKey) {
       throw new Error('AcoustID API key not configured');
     }
@@ -88,7 +103,9 @@ export class AcoustidService {
 
       if (data.status !== 'ok') {
         this.logger.error(`AcoustID API error: ${JSON.stringify(data)}`);
-        throw new Error(`AcoustID API error: ${data.error?.message || 'Unknown error'}`);
+        throw new Error(
+          `AcoustID API error: ${data.error?.message || 'Unknown error'}`,
+        );
       }
 
       return data.results || [];
@@ -118,7 +135,8 @@ export class AcoustidService {
       this.logger.debug(`Saved temp file: ${tempFile}`);
 
       // Generate fingerprint
-      const { fingerprint, duration } = await this.generateFingerprint(tempFile);
+      const { fingerprint, duration } =
+        await this.generateFingerprint(tempFile);
 
       // Look up in AcoustID
       const results = await this.lookup(fingerprint, duration);
@@ -137,17 +155,21 @@ export class AcoustidService {
       }
 
       // Get first recording with artist info
-      const recording = bestResult.recordings.find(r => r.artists && r.artists.length > 0);
+      const recording = bestResult.recordings.find(
+        (r) => r.artists && r.artists.length > 0,
+      );
 
       if (!recording) {
         this.logger.debug('No recording with artist info found');
         return null;
       }
 
-      const artist = recording.artists.map(a => a.name).join(', ');
+      const artist = recording.artists.map((a) => a.name).join(', ');
       const album = recording.releasegroups?.[0]?.title;
 
-      this.logger.log(`AcoustID identified: "${artist} - ${recording.title}" (score: ${bestResult.score})`);
+      this.logger.log(
+        `AcoustID identified: "${artist} - ${recording.title}" (score: ${bestResult.score})`,
+      );
 
       return {
         source: 'acoustid',
@@ -182,7 +204,8 @@ export class AcoustidService {
 
     try {
       // Generate fingerprint directly from file
-      const { fingerprint, duration } = await this.generateFingerprint(filePath);
+      const { fingerprint, duration } =
+        await this.generateFingerprint(filePath);
 
       // Look up in AcoustID
       const results = await this.lookup(fingerprint, duration);
@@ -201,17 +224,21 @@ export class AcoustidService {
       }
 
       // Get first recording with artist info
-      const recording = bestResult.recordings.find(r => r.artists && r.artists.length > 0);
+      const recording = bestResult.recordings.find(
+        (r) => r.artists && r.artists.length > 0,
+      );
 
       if (!recording) {
         this.logger.debug('No recording with artist info found');
         return null;
       }
 
-      const artist = recording.artists.map(a => a.name).join(', ');
+      const artist = recording.artists.map((a) => a.name).join(', ');
       const album = recording.releasegroups?.[0]?.title;
 
-      this.logger.log(`AcoustID identified: "${artist} - ${recording.title}" (score: ${bestResult.score})`);
+      this.logger.log(
+        `AcoustID identified: "${artist} - ${recording.title}" (score: ${bestResult.score})`,
+      );
 
       return {
         source: 'acoustid',

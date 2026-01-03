@@ -19,22 +19,26 @@ let DiscogsService = class DiscogsService {
     consumerSecret;
     constructor(configService) {
         this.configService = configService;
-        this.consumerKey = this.configService.get('DISCOGS_CONSUMER_KEY') || '';
-        this.consumerSecret = this.configService.get('DISCOGS_CONSUMER_SECRET') || '';
+        this.consumerKey =
+            this.configService.get('DISCOGS_CONSUMER_KEY') || '';
+        this.consumerSecret =
+            this.configService.get('DISCOGS_CONSUMER_SECRET') || '';
         if (!this.consumerKey || !this.consumerSecret) {
             console.warn('[DiscogsService] API credentials not configured');
         }
     }
     getHeaders() {
         return {
-            'Authorization': `Discogs key=${this.consumerKey}, secret=${this.consumerSecret}`,
+            Authorization: `Discogs key=${this.consumerKey}, secret=${this.consumerSecret}`,
             'User-Agent': 'MP3TagFixer/1.0',
         };
     }
     parseSearchResult(r) {
         return {
             id: r.id,
-            title: r.title.includes(' - ') ? r.title.split(' - ').slice(1).join(' - ') : r.title,
+            title: r.title.includes(' - ')
+                ? r.title.split(' - ').slice(1).join(' - ')
+                : r.title,
             type: r.type,
             year: r.year,
             thumb: r.thumb,
@@ -111,7 +115,9 @@ let DiscogsService = class DiscogsService {
                 const fallbackUrl = fallbackType === 'master'
                     ? `${this.API_URL}/masters/${id}`
                     : `${this.API_URL}/releases/${id}`;
-                const fallbackResponse = await fetch(fallbackUrl, { headers: this.getHeaders() });
+                const fallbackResponse = await fetch(fallbackUrl, {
+                    headers: this.getHeaders(),
+                });
                 if (fallbackResponse.ok) {
                     console.log(`[DiscogsService] Fallback successful: Found as ${fallbackType}`);
                     const details = await fallbackResponse.json();

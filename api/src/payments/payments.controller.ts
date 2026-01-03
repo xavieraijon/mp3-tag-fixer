@@ -45,7 +45,10 @@ export class PaymentsController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('checkout')
-  async createCheckout(@UserId() userId: string, @Body() dto: CreateCheckoutDto) {
+  async createCheckout(
+    @UserId() userId: string,
+    @Body() dto: CreateCheckoutDto,
+  ) {
     // Get user email from database
     const user = await this.usersService.findById(userId);
 
@@ -79,7 +82,9 @@ export class PaymentsController {
   @Post('cancel')
   async cancelSubscription(@UserId() userId: string) {
     await this.paymentsService.cancelSubscription(userId);
-    return { message: 'Subscription will be canceled at the end of the billing period' };
+    return {
+      message: 'Subscription will be canceled at the end of the billing period',
+    };
   }
 
   /**

@@ -51,9 +51,10 @@ export class FilesService {
         label: common.label?.[0],
         albumArtist: common.albumartist,
         composer: common.composer?.[0],
-        comment: typeof common.comment?.[0] === 'string'
-          ? common.comment[0]
-          : common.comment?.[0]?.text,
+        comment:
+          typeof common.comment?.[0] === 'string'
+            ? common.comment[0]
+            : common.comment?.[0]?.text,
         duration: format.duration ? Math.round(format.duration) : undefined,
         image: common.picture?.[0]?.data
           ? Buffer.from(common.picture[0].data)
@@ -81,7 +82,9 @@ export class FilesService {
         publisher: tags.label,
         performerInfo: tags.albumArtist,
         composer: tags.composer,
-        comment: tags.comment ? { language: 'eng', text: tags.comment } : undefined,
+        comment: tags.comment
+          ? { language: 'eng', text: tags.comment }
+          : undefined,
       };
 
       // Add cover image if provided
@@ -119,7 +122,10 @@ export class FilesService {
       .replace(/^[A-Z]?\d+[\s._-]+/i, '') // A1, 01, etc.
       .replace(/^\d+[\s._-]+/, '') // Track numbers
       .replace(/\s*\[.*?\]\s*/g, '') // [anything]
-      .replace(/\s*\((?:320|128|192|256|vbr|mp3|flac|wav)\s*(?:kbps?)?\)\s*/gi, '') // Bitrate info
+      .replace(
+        /\s*\((?:320|128|192|256|vbr|mp3|flac|wav)\s*(?:kbps?)?\)\s*/gi,
+        '',
+      ) // Bitrate info
       .trim();
 
     // Try to split by common separators

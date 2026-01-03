@@ -43,4 +43,7 @@ export interface ProcessedFile {
 
   // State flags
   isAnalyzingBpm?: boolean;
+
+  // Server-side file ID (for YouTube downloads stored on backend)
+  serverFileId?: string;
 }

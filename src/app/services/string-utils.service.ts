@@ -88,6 +88,28 @@ export class StringUtilsService {
   }
 
   /**
+   * Cleans artist name by removing "Vol/Volume/Part" suffixes which are often release info.
+   * Example: "Octopussy Vol 2" -> "Octopussy"
+   */
+  cleanArtistName(artist: string): string {
+    if (!artist) return '';
+
+    // Remove "Vol X", "Volume X", "Vol. X", "Part X", "Pt X", "Pt. X"
+    // Handles numbers (1, 2) and Roman numerals (I, II, III, IV, V)
+    const volRegex = /\s+(?:vol|volume|pt|part)\.?\s*(?:\d+|[IVX]+)\s*$/i;
+
+    // Also handle just "Vol 2" without space if it happens (rare) or " - Vol 2"
+    const volRegexLoose = /[\s-]+(?:vol|volume|pt|part)\.?\s*(?:\d+|[IVX]+)\s*$/i;
+
+    let cleaned = artist.replace(volRegex, '').trim();
+    if (cleaned === artist) {
+        cleaned = artist.replace(volRegexLoose, '').trim();
+    }
+
+    return cleaned;
+  }
+
+  /**
    * Normalizes an artist name for comparison.
    * Converts variants like "L.I.N.D.A." and "Linda" to the same format.
    */
@@ -141,6 +163,15 @@ export class StringUtilsService {
       };
     }
     return { base: title, mixInfo: '', full: title };
+  }
+
+  /**
+   * Aggressively removes ALL content within parentheses or brackets.
+   * "Spring (1996 Original) (Vocal Mix)" -> "Spring"
+   */
+  stripParentheses(str: string): string {
+    if (!str) return '';
+    return str.replace(/[\(\[].*?[\)\]]/g, '').replace(/\s+/g, ' ').trim();
   }
 
   /**

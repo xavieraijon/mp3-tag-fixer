@@ -19,6 +19,7 @@ const discogs_module_1 = require("./discogs/discogs.module");
 const tracks_module_1 = require("./tracks/tracks.module");
 const payments_module_1 = require("./payments/payments.module");
 const ai_module_1 = require("./ai/ai.module");
+const musicbrainz_module_1 = require("./musicbrainz/musicbrainz.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -37,6 +38,7 @@ exports.AppModule = AppModule = __decorate([
             tracks_module_1.TracksModule,
             payments_module_1.PaymentsModule,
             ai_module_1.AiModule,
+            musicbrainz_module_1.MusicBrainzModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

@@ -76,6 +76,21 @@
               <h3 class="font-bold text-slate-800 truncate text-base">
                   {{ item().selectedTrack?.title || item().manualTitle || item().originalName }}
               </h3>
+
+              <!-- Source Badge (Link) -->
+              @if (item().selectedRelease; as release) {
+                  <a [href]="getReleaseUrl(release)"
+                     target="_blank"
+                     class="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider hover:opacity-80 transition-opacity"
+                     [class.bg-[#CB77FF]]="release.source === 'musicbrainz'"
+                     [class.text-white]="release.source === 'musicbrainz'"
+                     [class.bg-slate-800]="release.source !== 'musicbrainz'"
+                     [class.text-white]="release.source !== 'musicbrainz'"
+                     [title]="release.source === 'musicbrainz' ? 'View on MusicBrainz' : 'View on Discogs'">
+                      {{ release.source === 'musicbrainz' ? 'MB' : 'DC' }}
+                  </a>
+              }
+
               <div class="group/info relative">
                   <lucide-icon name="info" class="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help"></lucide-icon>
                   <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 backdrop-blur-xl bg-white/90 border border-white/50 text-xs rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 whitespace-nowrap z-[60]">
@@ -159,7 +174,7 @@
               <option value="">-- Select --</option>
               @for (release of item().searchResults; track release.id) {
                 <option [ngValue]="release.id.toString()">
-                  {{ release.artist }} - {{ release.title }}@if (release.year) { ({{ release.year }}) }
+                  {{ release.source === 'musicbrainz' ? '[MB] ' : '[DC] ' }}{{ release.artist }} - {{ release.title }}@if (release.year) { ({{ release.year }}) }
                 </option>
               }
             </select>

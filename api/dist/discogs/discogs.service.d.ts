@@ -41,5 +41,6 @@ export declare class DiscogsService {
     searchByTrack(artist: string, track: string, type?: 'release' | 'master' | 'all'): Promise<DiscogsRelease[]>;
     searchQuery(query: string, type?: 'release' | 'master' | 'all'): Promise<DiscogsRelease[]>;
     getReleaseDetails(id: number, type?: 'release' | 'master'): Promise<DiscogsRelease | null>;
+    private mapToDiscogsRelease;
     fetchCoverImage(imageUrl: string): Promise<Buffer | null>;
 }

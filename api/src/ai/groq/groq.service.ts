@@ -8,6 +8,7 @@ export class GroqService {
   private readonly logger = new Logger(GroqService.name);
   private readonly groq: Groq | null;
   private readonly model = 'llama-3.3-70b-versatile';
+  private readonly fallbackModel = 'llama-3.1-8b-instant';
 
   private readonly systemPrompt = `You are a world-class expert at parsing electronic music filenames. Your job is to extract the CORRECT artist and title from messy, corrupted, or poorly formatted filenames.
 
@@ -146,18 +147,38 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     );
 
     try {
-      const completion = await this.groq.chat.completions.create({
-        model: this.model,
+      return await this.callGroqApi(this.model, userPrompt);
+    } catch (error: any) {
+      // Handle Rate Limit (429) specifically
+      if (error?.status === 429 || error?.code === 'rate_limit_exceeded') {
+        this.logger.warn(`Groq Rate Limit exceeded for ${this.model}. Switching to fallback model: ${this.fallbackModel}`);
+
+        try {
+          return await this.callGroqApi(this.fallbackModel, userPrompt);
+        } catch (fallbackError) {
+          this.logger.error(`Groq Fallback (${this.fallbackModel}) also failed: ${fallbackError}`);
+          return this.fallbackParse(filename);
+        }
+      }
+
+      this.logger.error(`Groq API error: ${error}`);
+      return this.fallbackParse(filename);
+    }
+  }
+
+  private async callGroqApi(model: string, prompt: string): Promise<ParseFilenameResponse> {
+      const completion = await this.groq!.chat.completions.create({
+        model: model,
         messages: [
           { role: 'system', content: this.systemPrompt },
-          { role: 'user', content: userPrompt },
+          { role: 'user', content: prompt },
         ],
         temperature: 0.3,
         max_tokens: 256,
       });
 
       const content = completion.choices[0]?.message?.content || '';
-      this.logger.debug(`Groq response: ${content}`);
+      this.logger.debug(`Groq response (${model}): ${content}`);
 
       const parsed = this.parseResponse(content);
 
@@ -168,12 +189,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
         };
       }
 
-      this.logger.warn('Failed to parse Groq response, using fallback');
-      return this.fallbackParse(filename);
-    } catch (error) {
-      this.logger.error(`Groq API error: ${error}`);
-      return this.fallbackParse(filename);
-    }
+      throw new Error('Failed to parse Groq response JSON');
   }
 
   private buildUserPrompt(

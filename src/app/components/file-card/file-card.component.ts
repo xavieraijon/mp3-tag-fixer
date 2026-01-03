@@ -49,7 +49,7 @@ export class FileCardComponent {
 
   onReleaseSelectChange(releaseId: string) {
     if (!releaseId) return;
-    const release = this.item().searchResults?.find(r => r.id === parseInt(releaseId, 10));
+    const release = this.item().searchResults?.find(r => r.id.toString() === releaseId);
     if (release) {
       this.selectRelease.emit(release);
     }
@@ -102,5 +102,13 @@ export class FileCardComponent {
     }
     // Otherwise fallback to currentTags
     return item.currentTags?.bpm ?? 'BPM';
+  }
+
+  getReleaseUrl(release: DiscogsRelease): string {
+    if (!release) return '';
+    if (release.source === 'musicbrainz') {
+      return `https://musicbrainz.org/release/${release.id}`;
+    }
+    return `https://www.discogs.com/${release.type || 'release'}/${release.id}`;
   }
 }

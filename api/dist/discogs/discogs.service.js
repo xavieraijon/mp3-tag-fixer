@@ -105,16 +105,25 @@ let DiscogsService = class DiscogsService {
             : `${this.API_URL}/releases/${id}`;
         const response = await fetch(url, { headers: this.getHeaders() });
         if (!response.ok) {
-            console.error(`[DiscogsService] Get details failed for ${url}: ${response.status} ${response.statusText}`);
-            try {
-                const errorBody = await response.text();
-                console.error(`[DiscogsService] Error body: ${errorBody}`);
-            }
-            catch (e) {
+            console.warn(`[DiscogsService] Get details failed for ${type}/${id} (${response.status}). Trying fallback...`);
+            if (response.status === 404 || response.status === 400) {
+                const fallbackType = type === 'master' ? 'release' : 'master';
+                const fallbackUrl = fallbackType === 'master'
+                    ? `${this.API_URL}/masters/${id}`
+                    : `${this.API_URL}/releases/${id}`;
+                const fallbackResponse = await fetch(fallbackUrl, { headers: this.getHeaders() });
+                if (fallbackResponse.ok) {
+                    console.log(`[DiscogsService] Fallback successful: Found as ${fallbackType}`);
+                    const details = await fallbackResponse.json();
+                    return this.mapToDiscogsRelease(details);
+                }
             }
             return null;
         }
         const details = await response.json();
+        return this.mapToDiscogsRelease(details);
+    }
+    mapToDiscogsRelease(details) {
         return {
             id: details.id,
             title: details.title,

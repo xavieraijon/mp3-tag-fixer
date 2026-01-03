@@ -13,6 +13,7 @@ import { TrackMatcherService } from './services/track-matcher.service';
 import { StringUtilsService } from './services/string-utils.service';
 import { NotificationService } from './services/notification.service';
 import { AuthService } from './services/auth.service';
+import { MusicBrainzService } from './services/musicbrainz.service';
 import { AiSearchService } from './services/ai-search.service';
 
 // Store
@@ -58,6 +59,7 @@ export class AppComponent {
   private readonly searchService = inject(SearchService);
   private readonly trackMatcher = inject(TrackMatcherService);
   private readonly stringUtils = inject(StringUtilsService);
+  private readonly mbService = inject(MusicBrainzService);
   private readonly notification = inject(NotificationService);
   readonly authService = inject(AuthService); // Public for template
   readonly aiService = inject(AiSearchService); // Public for template (toggle)
@@ -408,7 +410,16 @@ export class AppComponent {
     });
 
     try {
-      const details = await this.discogs.getReleaseDetails(release.id, release.type || 'release');
+      let details: DiscogsRelease | null = null;
+
+      if (release.source === 'musicbrainz') {
+        details = await this.mbService.getReleaseDetails(release.id as string);
+      } else {
+        details = await this.discogs.getReleaseDetails(release.id as number, release.type || 'release');
+      }
+
+      if (!details) throw new Error('Could not fetch release details');
+
       const tracks = details.tracklist || [];
       const coverImageUrl = details.cover_image || release.thumb;
 

@@ -12,7 +12,7 @@ import { LucideAngularModule } from 'lucide-angular';
       <div class="absolute inset-0" (click)="close.emit()"></div>
 
       <div
-        class="relative z-10 bg-white rounded-3xl shadow-2xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300"
+        class="relative z-10 bg-white opacity-80 rounded-3xl shadow-2xl w-full border border-slate-100 overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300"
         [ngClass]="maxWidth()"
       >
         <!-- Header -->

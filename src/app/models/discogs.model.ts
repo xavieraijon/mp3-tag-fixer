@@ -1,5 +1,6 @@
 export interface DiscogsRelease {
-  id: number;
+  id: string | number;
+  source?: 'discogs' | 'musicbrainz';
   title: string;
   year?: string | number;
   thumb?: string;

@@ -11,6 +11,8 @@ import { TracksModule } from './tracks/tracks.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AiModule } from './ai/ai.module';
 
+import { MusicBrainzModule } from './musicbrainz/musicbrainz.module'; // Added import
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -25,6 +27,7 @@ import { AiModule } from './ai/ai.module';
     TracksModule,
     PaymentsModule,
     AiModule,
+    MusicBrainzModule, // Added module
   ],
   controllers: [AppController],
   providers: [AppService],

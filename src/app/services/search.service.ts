@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { StringUtilsService } from './string-utils.service';
 import { DiscogsService } from './discogs.service';
+import { MusicBrainzService } from './musicbrainz.service';
 import { DiscogsRelease } from '../models/discogs.model';
 
 export interface SearchStrategy {
@@ -10,6 +11,7 @@ export interface SearchStrategy {
   searchType: 'master' | 'release' | 'all';
   description: string;
   priority: number;
+  source?: 'discogs' | 'musicbrainz';
 }
 
 export interface SearchResult extends DiscogsRelease {
@@ -26,6 +28,7 @@ export interface SearchResult extends DiscogsRelease {
 export class SearchService {
   private readonly stringUtils = inject(StringUtilsService);
   private readonly discogs = inject(DiscogsService);
+  private readonly mbService = inject(MusicBrainzService);
 
   /** API delay between requests (Discogs limit: 60/min) */
   private readonly API_DELAY = 1200;
@@ -53,6 +56,18 @@ export class SearchService {
         description: `Direct: "${artist} - ${title}"`,
         priority: priority++
       });
+
+      // 0.1b Direct MusicBrainz
+       strategies.push({
+        type: 'release',
+        artist: artist,
+        title: title,
+        searchType: 'release',
+        description: `MB Direct: "${artist} - ${title}"`,
+        priority: priority, // Same priority to run in parallel batch
+        source: 'musicbrainz'
+      });
+      priority++;
 
       // 0.2 Query without dash
       strategies.push({
@@ -115,6 +130,17 @@ export class SearchService {
           description: `Parsed from title: "${possibleArtist} - ${possibleTitle}"`,
           priority: priority++
         });
+
+        strategies.push({
+          type: 'release',
+          artist: possibleArtist,
+          title: possibleTitle,
+          searchType: 'release',
+          description: `MB Parsed: "${possibleArtist} - ${possibleTitle}"`,
+          priority: priority,
+          source: 'musicbrainz'
+        });
+        priority++;
 
         strategies.push({
           type: 'track',
@@ -200,6 +226,17 @@ export class SearchService {
       });
 
       strategies.push({
+        type: 'release',
+        artist: artist,
+        title: titleParsed.base,
+        searchType: 'release',
+        description: `MB Base: "${artist} - ${titleParsed.base}"`,
+        priority: priority,
+        source: 'musicbrainz'
+      });
+      priority++;
+
+      strategies.push({
         type: 'query',
         artist: '',
         title: `${artist} ${titleParsed.base}`,
@@ -225,6 +262,33 @@ export class SearchService {
         description: `Master base: "${artist}" - "${titleParsed.base}"`,
         priority: priority++
       });
+    }
+
+    // === PHASE 1.5: Super Clean Base (Aggressive strip) ===
+    // "Spring (1996 Original) (Vocal Mix)" -> "Spring"
+    const superCleanTitle = this.stringUtils.stripParentheses(title);
+    if (superCleanTitle !== title && superCleanTitle !== titleParsed.base && superCleanTitle.length > 2) {
+        strategies.push({
+            type: 'track',
+            artist: artist,
+            title: superCleanTitle,
+            searchType: 'all',
+            description: `Super Clean: "${artist} - ${superCleanTitle}"`,
+            priority: priority++,
+            source: 'discogs'
+        });
+
+        // MusicBrainz: Super Clean
+        strategies.push({
+            type: 'release',
+            artist: artist,
+            title: superCleanTitle,
+            searchType: 'release',
+            description: `MB Super Clean: "${artist} - ${superCleanTitle}"`,
+            priority: priority,
+            source: 'musicbrainz'
+        });
+        priority++;
     }
 
     // === PHASE 2: Artist variants ===
@@ -253,7 +317,61 @@ export class SearchService {
       }
     }
 
+    // === PHASE 3.5: Artist is actually Release Title ===
+    // Case: Artist="Octopussy Vol 2", Title="Punctures The Cunt"
+    // Search for Release="Octopussy Vol 2"
+    strategies.push({
+        type: 'release',
+        artist: '', // No specific artist
+        title: artist, // Use the "artist" input as the release title
+        searchType: 'release',
+        description: `Artist as Release: "${artist}"`,
+        priority: priority++
+    });
+
+    // MusicBrainz equivalent
+    strategies.push({
+        type: 'release',
+        artist: '',
+        title: artist,
+        searchType: 'release',
+        description: `MB Artist as Release: "${artist}"`,
+        priority: priority,
+        source: 'musicbrainz'
+    });
+    priority++;
+
+
     // === PHASE 4: Broader searches ===
+    // === PHASE 2.5: Clean Artist Base (Strip "Vol 2", "Pt 1") ===
+    // "Octopussy Vol 2" -> "Octopussy"
+    const cleanArtist = this.stringUtils.cleanArtistName(artist);
+    if (cleanArtist !== artist && cleanArtist.length > 2) {
+       strategies.push({
+        type: 'track',
+        artist: cleanArtist,
+        title: title, // Try strict title first: "Punctures The Cunt"
+        searchType: 'all',
+        description: `Clean Artist: "${cleanArtist}" - "${title}"`,
+        priority: priority++,
+        source: 'discogs'
+      });
+
+      // Also try appending the suffix to title? e.g. Artist="Octopussy" Title="Vol 2 Punctures The Cunt"
+      // Might be overkill, start with strict clean artist.
+
+      strategies.push({
+        type: 'release',
+        artist: cleanArtist,
+        title: title,
+        searchType: 'release',
+        description: `MB Clean Artist: "${cleanArtist}" - "${title}"`,
+        priority: priority,
+        source: 'musicbrainz'
+      });
+      priority++;
+    }
+
     strategies.push({
       type: 'track',
       artist: '',
@@ -314,7 +432,7 @@ export class SearchService {
     return strategies
       .sort((a, b) => a.priority - b.priority)
       .filter(s => {
-        const key = `${s.type}:${s.artist}:${s.title}:${s.searchType}`;
+        const key = `${s.type}:${s.artist}:${s.title}:${s.searchType}:${s.source || 'discogs'}`;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -325,6 +443,10 @@ export class SearchService {
    * Executes a single search strategy.
    */
   async executeStrategy(strategy: SearchStrategy): Promise<DiscogsRelease[]> {
+    if (strategy.source === 'musicbrainz') {
+       return this.mbService.searchReleases(strategy.artist, strategy.title);
+    }
+
     switch (strategy.type) {
       case 'track':
         return this.discogs.searchByTrack(strategy.artist, strategy.title, strategy.searchType);
@@ -432,12 +554,15 @@ export class SearchService {
     );
 
     let crossFieldBoost = 0;
-    if (artistInTitleSimilarity >= 0.8) {
-        console.log(`[SearchService] Cross-field match: Artist "${searchArtist}" matches Release "${resultTitle}"`);
-        crossFieldBoost = 40;
-    } else if (titleInArtistSimilarity >= 0.8) {
-        console.log(`[SearchService] Reverse cross-field match: Title "${searchTitle}" matches Artist "${resultArtist}"`);
-        crossFieldBoost = 40;
+
+    // STRICTER Cross-field logic: Require BOTH fields to match (swapped) to award points.
+    // This prevents false positives where a generic title (e.g. "Spring") matches an artist ("DJ Spring").
+    if (artistInTitleSimilarity >= 0.8 && titleInArtistSimilarity >= 0.4) {
+        console.log(`[SearchService] Cross-field match: Artist "${searchArtist}" ~= Release "${resultTitle}"`);
+        crossFieldBoost = 35;
+    } else if (titleInArtistSimilarity >= 0.8 && artistInTitleSimilarity >= 0.4) {
+        console.log(`[SearchService] Reverse cross-field match: Title "${searchTitle}" ~= Artist "${resultArtist}"`);
+        crossFieldBoost = 35;
     }
 
     if (crossFieldBoost > 0) {

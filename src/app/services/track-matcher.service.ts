@@ -11,7 +11,7 @@ export class TrackMatcherService {
   private http = inject(HttpClient);
 
   /** Minimum score required to consider a match valid */
-  private readonly MIN_MATCH_SCORE = 30;
+  private readonly MIN_MATCH_SCORE = 20;
 
   /**
    * Finds the best matching track from a list of tracks.
@@ -47,6 +47,7 @@ export class TrackMatcherService {
       const payload = {
         artist: item.manualArtist || item.currentTags?.artist || '',
         title: item.manualTitle || item.currentTags?.title || '',
+        filename: item.originalName,
         duration: durationSeconds, // TODO: Enhance if file analysis provides duration
         tracks: realTracks.map((t) => ({
           position: t.position,

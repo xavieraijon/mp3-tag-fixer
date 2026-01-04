@@ -31,6 +31,10 @@ export class RankTracksDto {
   title: string;
 
   @IsOptional()
+  @IsString()
+  filename?: string;
+
+  @IsOptional()
   @IsNumber()
   duration?: number; // Duration in seconds
 

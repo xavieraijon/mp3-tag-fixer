@@ -26,8 +26,10 @@ export class CorrectionService {
   ) {}
 
   async findMatches(query: SearchQueryDto): Promise<MatchResult[]> {
-    const { artist, title, filename } = query;
+    const { artist, title, filename, useAiFallback = true } = query;
     const rawFilename = filename || '';
+
+    // ... (rest of the code until AI section)
 
     // 1. HEURISTIC PHASE
     this.logger.debug(
@@ -100,11 +102,13 @@ export class CorrectionService {
       (allResults.length > 0 && bestScore < this.GOOD_SCORE) ||
       allResults.length === 0;
 
-    // AI Fallback - only if explicitly requested via aiConfidence parameter
-    // Set to false to disable automatic AI fallback
-    const allowAiFallback = true; // TODO: Make this configurable via settings
-
-    if (needsAi && !discogsError && allowAiFallback && this.groqService.isAvailable()) {
+    // AI Fallback - strictly controlled by frontend flag AND strict necessity
+    if (
+      needsAi &&
+      !discogsError &&
+      useAiFallback &&
+      this.groqService.isAvailable()
+    ) {
       // Cap: Check if we already tried AI? implicit in flow: this is the one AI attempt.
       // We only do this if we haven't passed "aiConfidence" override (which suggests we are already in a retry loop or user driven)
       // Actually user passed aiConfidence might be from a previous AI run?
@@ -280,6 +284,20 @@ export class CorrectionService {
   }
 
   rankTracks(query: RankTracksDto) {
+    // HEURISTIC ENFORCEMENT
+    // We strictly prefer the backend's heuristic parsing over the potentially dirty tags
+    // sent by the frontend (which might include (A2), dates, etc).
+    if (query.filename) {
+      const heuristic = this.heuristicService.parse(query.filename);
+      // If we got a clean result, use it!
+      if (heuristic.primaryCandidate.artist && heuristic.primaryCandidate.title) {
+        this.logger.debug(
+          `Refining RankTracks Query: "${query.artist} - ${query.title}" -> "${heuristic.primaryCandidate.artist} - ${heuristic.primaryCandidate.title}"`
+        );
+        query.artist = heuristic.primaryCandidate.artist;
+        query.title = heuristic.primaryCandidate.title;
+      }
+    }
     return this.matchService.rankTracks(query);
   }
 }

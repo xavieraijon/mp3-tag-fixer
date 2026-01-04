@@ -33,6 +33,7 @@ export class SearchService {
     aiConfidence?: number,
     filename?: string,
     duration?: number,
+    useAiFallback?: boolean,
   ): Promise<SearchResult[]> {
     if (onProgress) {
       onProgress('Searching via Correction API...');
@@ -47,6 +48,7 @@ export class SearchService {
           filename, // Send filename for heuristic parsing
           duration, // Send duration for track matching
           aiConfidence,
+          useAiFallback,
         })
         .toPromise();
 

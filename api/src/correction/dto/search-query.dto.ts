@@ -6,7 +6,8 @@ export class SearchQueryDto {
   artist: string;
 
   @IsString()
-  title: string;
+  @IsOptional()
+  title?: string;
 
   @IsString()
   @IsOptional()
@@ -21,6 +22,9 @@ export class SearchQueryDto {
   @Min(0)
   @Max(1)
   aiConfidence?: number;
+
+  @IsOptional()
+  useAiFallback?: boolean;
 }
 
 export class MatchResult {

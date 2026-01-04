@@ -85,7 +85,10 @@ export class HeuristicParserService {
     title: string;
   } {
     let cleaned = baseFilename
+      .replace(/^([([])[A-Z]?\d+([)\]])\s*/i, '') // Remove (A1), [A1], (2), [02] etc at start
+      .replace(/^\d+\s*-\s*/, '') // Remove 01 -
       .replace(/-\d+\.\d+-\d+-\d+$/, '')
+      .replace(/-\d{4}-\d+-\d+$/, '') // Matches -2010-1-003236 style
       .replace(/-\d{6,}$/, '')
       .trim();
 

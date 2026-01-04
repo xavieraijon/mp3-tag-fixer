@@ -156,9 +156,11 @@ export class AppComponent {
       filename: this.processor.parseFilename(item.originalName),
     };
 
-    let primaryArtist = sources.manual.artist || sources.tags.artist || sources.filename.artist;
-    let primaryTitle = sources.manual.title || sources.tags.title || sources.filename.title;
-    let usedAiParsing = false;
+    let primaryArtist = sources.manual.artist || sources.tags.artist;
+    let primaryTitle = sources.manual.title || sources.tags.title;
+
+    // NOTE: We do NOT fallback to sources.filename here for the search query.
+    // We want the backend (Intelligent Heuristics) to parse the filename if manual/tags are missing.
     let usedAcoustid = false;
 
     // Update status to show we're starting
@@ -196,61 +198,22 @@ export class AppComponent {
           manualTitle: primaryTitle,
           statusMessage: `🎵 Audio identified: "${primaryArtist} - ${primaryTitle}"`,
         });
-      } else if (acoustidResult) {
-        console.log(
-          `[Search] AcoustID low confidence (${acoustidResult.confidence}), trying AI parsing`,
-        );
       }
     }
 
-    // Try AI parsing if AcoustID didn't work
-    if (!usedAcoustid && this.aiService.enabled()) {
-      this.store.updateFile(item, { statusMessage: 'AI analyzing filename...' });
+    // No logic for "fallback AI" here anymore. It's delegated to the backend.
 
-      const aiResult = await this.aiService.parseFilename(
-        item.originalName,
-        sources.tags.artist,
-        sources.tags.title,
-      );
+    if (!primaryArtist && !primaryTitle && !sources.filename.title && !item.originalName) {
+      // checks if we have ABSOLUTELY nothing to go on.
+      // sources.filename.title is just a proxy for "do we have a filename"?
+      // item.originalName is better.
 
-      if (aiResult && aiResult.confidence >= 0.7) {
-        console.log(
-          `[Search] AI parsing succeeded: "${aiResult.artist} - ${aiResult.title}" (confidence: ${aiResult.confidence})`,
-        );
-
-        // Trust AI result completely - empty artist means garbage was detected and should be ignored
-        // Don't fallback to garbage artist from tags when AI explicitly returns empty string
-        primaryArtist = aiResult.artist; // Empty string is intentional (garbage detected)
-        primaryTitle = aiResult.title || primaryTitle;
-        usedAiParsing = true;
-        aiConfidence = aiResult.confidence;
-
-        // Update manual fields with AI suggestions
-        const displayArtist = primaryArtist || '(unknown artist)';
-        this.store.updateFile(item, {
-          manualArtist: primaryArtist,
-          manualTitle: primaryTitle,
-          statusMessage: `AI: "${displayArtist} - ${primaryTitle}"`,
-        });
-      } else if (aiResult) {
-        console.log(
-          `[Search] AI parsing low confidence (${aiResult.confidence}), using traditional parsing`,
-        );
-      }
-    }
-
-    if (!primaryArtist && !primaryTitle) {
-      this.store.updateFile(item, {
-        status: 'error',
-        statusMessage: 'No artist or title found. Please enter manually.',
-      });
-      return;
     }
 
     this.store.updateFile(item, {
-      statusMessage: usedAiParsing
-        ? `AI searching: "${primaryArtist} - ${primaryTitle}"...`
-        : 'Analyzing search strategies...',
+      statusMessage: usedAcoustid
+        ? `Searching: "${primaryArtist} - ${primaryTitle}"...`
+        : 'Searching via Intelligent Backend...',
     });
 
     try {
@@ -259,7 +222,7 @@ export class AppComponent {
         primaryArtist,
         primaryTitle,
         usedAcoustid,
-        usedAiParsing,
+        this.aiService.enabled(), // useAiFallback: Backend decides if parsing fails
         aiConfidence,
       );
     } catch (e) {
@@ -277,7 +240,7 @@ export class AppComponent {
     artist: string,
     title: string,
     isAcoustid: boolean,
-    isAi: boolean,
+    useAiFallback: boolean,
     aiConfidence?: number,
   ) {
     const results = await this.searchService.search(
@@ -287,10 +250,11 @@ export class AppComponent {
       aiConfidence,
       item.originalName, // Pass filename for heuristic analysis
       item.currentTags?.duration, // Pass duration for track matching
+      useAiFallback,
     );
 
     if (results.length > 0) {
-      const aiLabel = isAcoustid ? ' (🎵 audio match)' : isAi ? ' (AI-assisted)' : '';
+      const aiLabel = isAcoustid ? ' (🎵 audio match)' : '';
       this.store.updateFile(item, {
         status: 'ready',
         searchResults: results,

@@ -143,7 +143,7 @@ export class AppComponent {
 
     // === Search ===
 
-  async search(item: ProcessedFile): Promise<void> {
+  async search(item: ProcessedFile, forceAi = false): Promise<void> {
     // DEBUG MODE FLOW
     if (this.store.debugMode()) {
       await this.runDebugSearch(item);
@@ -177,10 +177,11 @@ export class AppComponent {
       tracks: [],
       selectedTrack: undefined,
       coverImageUrl: undefined,
+
     });
 
     // Try AcoustID first (audio fingerprint) - most reliable for identification
-    if (this.aiService.enabled()) {
+    if (this.aiService.enabled() || forceAi) {
       this.store.updateFile(item, { statusMessage: 'Analyzing audio fingerprint...' });
 
       const acoustidResult = await this.aiService.identifyByFingerprint(item.file);
@@ -224,7 +225,7 @@ export class AppComponent {
         primaryArtist,
         primaryTitle,
         usedAcoustid,
-        this.aiService.enabled(), // useAiFallback: Backend decides if parsing fails
+        this.aiService.enabled() || forceAi, // useAiFallback: Backend decides if parsing fails
         aiConfidence,
       );
     } catch (e) {
@@ -267,6 +268,8 @@ export class AppComponent {
     }
 
     if (results.length > 0) {
+      const bestMatch = results[0];
+
       const aiLabel = isAcoustid ? ' (🎵 audio match)' : '';
       this.store.updateFile(item, {
         status: 'ready',
@@ -277,7 +280,7 @@ export class AppComponent {
       // Auto-select best result
       const updatedItem = this.store.getFileByName(item.originalName);
       if (updatedItem) {
-        await this.selectRelease(updatedItem, results[0]);
+        await this.selectRelease(updatedItem, bestMatch);
       }
     } else {
       this.store.updateFile(item, {
@@ -286,6 +289,14 @@ export class AppComponent {
         statusMessage: 'No results found. Try editing artist/title.',
       });
     }
+  }
+
+  /**
+   * Enables AI and retries search for specific item
+   */
+  async enableAiAndRetry(item: ProcessedFile): Promise<void> {
+    // Magic Wand: Use AI strictly for this search without enabling global toggle
+    await this.search(item, true);
   }
 
   // === Debug Search Logic ===

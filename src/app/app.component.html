@@ -1,17 +1,17 @@
 <!-- Main Container with Background Image -->
 <div class="min-h-screen relative font-sans">
   <!-- Background Image -->
-  <div class="fixed inset-0 z-0">
-    <img src="/assets/music-background.png" alt="Background" class="w-full h-full object-cover opacity-40 blur-sm" />
-    <div class="absolute inset-0 bg-gradient-to-br from-indigo-100/80 via-purple-50/80 to-pink-100/80"></div>
+  <div class="fixed inset-0 z-0 bg-slate-200">
+    <img src="/assets/music-background.png" alt="Background" class="w-full h-full object-cover opacity-50" />
+    <!-- <div class="absolute inset-0 bg-gradient-to-br from-sky-300/80 via-blue-300/70 to-indigo-300/80 mix-blend-multiply"></div> -->
   </div>
 
   <!-- Decorative Blobs -->
-  <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="absolute -top-40 -right-40 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 -left-40 w-80 h-80 bg-blue-300/20 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-pink-300/20 rounded-full blur-3xl"></div>
-  </div>
+  <!-- <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-cyan-300/30 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/2 -left-40 w-80 h-80 bg-blue-400/30 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl"></div>
+  </div> -->
 
   <!-- Global Snackbar -->
   <app-snackbar></app-snackbar>
@@ -44,9 +44,8 @@
         </div>
 
         <!-- Right: Auth Buttons -->
-        <div class="flex items-center gap-3">
+        <!-- <div class="flex items-center gap-3">
           @if (authService.isAuthenticated()) {
-            <!-- Authenticated: Show user menu -->
             <div class="relative">
               <app-button (click)="toggleUserMenu()" palette="neutral" variant="glass" icon="user">
                 {{ authService.userDisplayName() }}
@@ -67,7 +66,6 @@
               }
             </div>
           } @else {
-            <!-- Not Authenticated: Show login/register buttons -->
             <app-button (click)="showLoginModal.set(true)" palette="neutral" variant="glass" icon="log-in">
               Sign In
             </app-button>
@@ -75,7 +73,7 @@
               Sign Up
             </app-button>
           }
-        </div>
+        </div> -->
       </div>
     </header>
 
@@ -108,6 +106,7 @@
           <app-file-card
             class="mb-2"
             [item]="item"
+            [aiEnabled]="aiService.enabled()"
             (requestSearch)="search(item)"
             (edit)="openEditor(item)"
             (remove)="removeFile(i)"
@@ -117,6 +116,7 @@
             (detectBpm)="detectBpm(item)"
             (artistChange)="updateArtist(item, $event)"
             (titleChange)="updateTitle(item, $event)"
+            (retryWithAi)="enableAiAndRetry(item)"
           >
           </app-file-card>
         }

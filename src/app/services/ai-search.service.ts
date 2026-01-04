@@ -38,7 +38,7 @@ export class AiSearchService {
   private readonly API_URL = '/api/ai';
 
   // Feature flag - can be toggled by user
-  private readonly _enabled = signal<boolean>(true);
+  private readonly _enabled = signal<boolean>(false);
   readonly enabled = this._enabled.asReadonly();
 
   // Groq status cache

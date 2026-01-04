@@ -16,6 +16,7 @@ import { DebugStepperComponent } from '../debug-stepper/debug-stepper.component'
 })
 export class FileCardComponent {
   item = input.required<ProcessedFile>();
+  aiEnabled = input<boolean>(false);
 
   // Events
   requestSearch = output<void>();
@@ -27,6 +28,7 @@ export class FileCardComponent {
   detectBpm = output<void>();
   artistChange = output<string>();
   titleChange = output<string>();
+  retryWithAi = output<void>();
 
   // Helpers
   hasMatch = computed(() => !!this.item().selectedTrack);

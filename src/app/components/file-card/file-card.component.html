@@ -1,6 +1,6 @@
 <!-- Liquid Glass Card -->
 <div
-  class="group relative backdrop-blur-xl bg-white/20 border border-white/30 rounded-3xl p-5 shadow-xl shadow-black/5 hover:bg-white/25 hover:border-white/40 hover:shadow-2xl transition-all duration-300"
+  class="group relative backdrop-blur-xl bg-white/40 border border-white/30 rounded-3xl p-5 shadow-xl shadow-black/5 hover:bg-white/25 hover:border-white/40 hover:shadow-2xl transition-all duration-300"
 >
   <!-- Remove Button -->
   <!-- Remove Button -->
@@ -199,6 +199,23 @@
       </div>
     }
 
+    <!-- Empty State / No Results AI CTA -->
+    @if (item().status === 'error' && !aiEnabled()) {
+      <div class="w-full flex justify-center mt-2 mb-1 animate-in fade-in slide-in-from-top-1 duration-300">
+         <app-button
+          (click)="retryWithAi.emit()"
+          palette="purple"
+          variant="solid"
+          shape="default"
+          size="sm"
+          icon="sparkles"
+          title="Try deep scanning with AI"
+        >
+          No results? Auto-Fix with AI
+        </app-button>
+      </div>
+    }
+
     <!-- Track Select -->
     @if (item().tracks && item().tracks.length > 0) {
       <div class="flex-1 min-w-[180px]">
@@ -229,6 +246,19 @@
 
     <!-- Action Buttons -->
     <div class="flex items-center gap-2">
+      <!-- Magic Wand (AI Force) -->
+      @if (!aiEnabled()) {
+        <app-button
+          (click)="retryWithAi.emit()"
+          palette="purple"
+          variant="glass"
+          shape="square"
+          icon="sparkles"
+          title="Deep Scan with AI"
+        >
+        </app-button>
+      }
+
       <!-- Search Button -->
       <app-button
         (click)="requestSearch.emit()"
@@ -245,7 +275,7 @@
       <app-button
         (click)="detectBpm.emit()"
         [disabled]="!!item().isAnalyzingBpm"
-        palette="purple"
+        palette="emerald"
         variant="glass"
         icon="activity"
         title="Detect BPM"

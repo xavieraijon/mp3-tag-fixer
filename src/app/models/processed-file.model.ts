@@ -27,6 +27,8 @@ export interface ProcessedFile {
   tracks: DiscogsTrack[];
   selectedTrack?: DiscogsTrack;
 
+
+
   // Debug Mode Data
   debugData?: DebugData;
   debugInfo?: string;

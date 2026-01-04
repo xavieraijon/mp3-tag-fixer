@@ -50,26 +50,28 @@ import { LucideAngularModule } from 'lucide-angular';
         </div>
 
         <!-- Footer -->
-        <div
-          class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-4 bg-slate-50 dark:bg-slate-900/50 flex-shrink-0"
-        >
-          <!-- Main Footer Actions -->
+        @if (showFooter()) {
           <div
-            class="flex gap-3"
-            [ngClass]="{
-              'justify-start': footerAlign() === 'start',
-              'justify-center': footerAlign() === 'center',
-              'justify-end': footerAlign() === 'end'
-            }"
+            class="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-4 bg-slate-50 dark:bg-slate-900/50 flex-shrink-0"
           >
-            <ng-content select="[footer]"></ng-content>
-          </div>
+            <!-- Main Footer Actions -->
+            <div
+              class="flex gap-3"
+              [ngClass]="{
+                'justify-start': footerAlign() === 'start',
+                'justify-center': footerAlign() === 'center',
+                'justify-end': footerAlign() === 'end'
+              }"
+            >
+              <ng-content select="[footer]"></ng-content>
+            </div>
 
-          <!-- Sub-footer (Optional links like 'Forgot password') -->
-          <div class="flex justify-center text-sm">
-            <ng-content select="[sub-footer]"></ng-content>
+            <!-- Sub-footer (Optional links like 'Forgot password') -->
+            <div class="flex justify-center text-sm">
+              <ng-content select="[sub-footer]"></ng-content>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </div>
   `,
@@ -85,5 +87,6 @@ export class ModalComponent {
   title = input<string>('');
   maxWidth = input<string>('max-w-lg');
   footerAlign = input<'start' | 'center' | 'end'>('end');
+  showFooter = input<boolean>(true);
   closeModal = output<void>();
 }

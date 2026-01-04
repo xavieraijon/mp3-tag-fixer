@@ -2,11 +2,12 @@ import { Component, signal, computed, output, inject } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { YoutubeService, YoutubeDownloadResponse } from '../../services/youtube.service';
 import { NotificationService } from '../../services/notification.service';
+import { ButtonComponent } from '../ui/button/button.component';
 
 @Component({
   selector: 'app-youtube-input',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, ButtonComponent],
   templateUrl: './youtube-input.component.html',
 })
 export class YoutubeInputComponent {
@@ -65,4 +66,5 @@ export class YoutubeInputComponent {
       this.loading.set(false);
     }
   }
+
 }

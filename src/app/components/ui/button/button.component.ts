@@ -69,13 +69,21 @@ const BUTTON_STYLES: Record<ButtonVariant, Record<ButtonPalette, string>> = {
   template: `
     <button
       [type]="type()"
-      [disabled]="disabled()"
-      [attr.aria-disabled]="disabled()"
+      [disabled]="isDisabled()"
+      [attr.aria-disabled]="isDisabled()"
       [className]="computedClasses()"
       (click)="handleClick($event)"
       [title]="title()"
     >
-      @if (icon()) {
+      @if (loading()) {
+        <lucide-icon
+          name="loader-2"
+          class="animate-spin"
+          [size]="iconSize()"
+          [class.mr-2]="!isIconOnly()"
+          [class.mr-0]="isIconOnly()"
+        ></lucide-icon>
+      } @else if (icon()) {
         <lucide-icon
           [name]="icon()!"
           [size]="iconSize()"
@@ -92,6 +100,7 @@ export class ButtonComponent {
   palette = input<ButtonPalette>('primary');
   variant = input<ButtonVariant | LegacyVariant>('solid');
   shape = input<ButtonShape>('default');
+  loading = input<boolean>(false);
 
   // Existing Inputs
   size = input<ButtonSize>('md');
@@ -102,6 +111,7 @@ export class ButtonComponent {
   title = input<string | undefined>(undefined);
 
   isIconOnly = computed(() => this.shape() === 'circle' || this.shape() === 'square');
+  isDisabled = computed(() => this.disabled() || this.loading());
 
   computedClasses = computed(() => {
     const base =
@@ -132,7 +142,7 @@ export class ButtonComponent {
       BUTTON_STYLES[effectiveVariant]?.[effectivePalette] || BUTTON_STYLES['solid']['primary'];
     const sizeClass = this.getSizeClasses(this.shape(), this.size());
     const widthClass = this.fullWidth() ? 'w-full' : '';
-    const disabledClass = this.disabled()
+    const disabledClass = this.isDisabled()
       ? 'opacity-50 cursor-not-allowed pointer-events-none'
       : '';
 

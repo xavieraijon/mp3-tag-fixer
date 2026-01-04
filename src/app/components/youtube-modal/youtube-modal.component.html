@@ -1,4 +1,4 @@
-<app-modal (closeModal)="closed.emit()" [maxWidth]="'max-w-2xl'">
+<app-modal (closeModal)="closed.emit()" [maxWidth]="'max-w-2xl'" [showFooter]="false">
   <!-- Header Content -->
   <div header class="flex items-center gap-3">
     <div
@@ -7,11 +7,59 @@
       <lucide-icon name="youtube" class="w-5 h-5 text-red-500"></lucide-icon>
     </div>
     <div>
-      <h2 class="text-xl font-bold text-slate-800">YouTube to MP3</h2>
-      <p class="text-slate-500 text-sm">Download and tag music from YouTube</p>
+      <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100">YouTube to MP3</h2>
+      <p class="text-slate-500 text-sm dark:text-slate-400">Download and tag music from YouTube</p>
     </div>
   </div>
 
   <!-- Body Content -->
-  <app-youtube-input (downloaded)="onDownloaded($event)"> </app-youtube-input>
+  <div class="space-y-8">
+    <app-youtube-input (downloaded)="onDownloaded($event)"> </app-youtube-input>
+
+    <div class="bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-700/50">
+      <h3 class="text-lg font-semibold text-slate-600 dark:text-slate-400 mb-4 px-1">
+        Why use this?
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Feature 1 -->
+        <div class="flex flex-col gap-2">
+          <div class="p-2 w-fit rounded-lg bg-indigo-100/50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+            <lucide-icon name="sparkles" class="w-5 h-5"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="font-medium text-slate-800 dark:text-slate-200 text-sm">Best Quality</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Extracts the highest quality audio available (up to 320kbps).
+            </p>
+          </div>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="flex flex-col gap-2">
+          <div class="p-2 w-fit rounded-lg bg-pink-100/50 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400">
+            <lucide-icon name="music" class="w-5 h-5"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="font-medium text-slate-800 dark:text-slate-200 text-sm">Auto-Tagging</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Automatically detects artist, title, and fetches cover art.
+            </p>
+          </div>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="flex flex-col gap-2">
+          <div class="p-2 w-fit rounded-lg bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+            <lucide-icon name="circle-check" class="w-5 h-5"></lucide-icon>
+          </div>
+          <div>
+            <h4 class="font-medium text-slate-800 dark:text-slate-200 text-sm">Ready to Fix</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Added directly to your workspace for instant processing.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </app-modal>

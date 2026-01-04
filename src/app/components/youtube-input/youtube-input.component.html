@@ -7,7 +7,7 @@
       (input)="onUrlChange($event)"
       (keydown.enter)="download()"
       placeholder="https://youtube.com/watch?v=..."
-      class="w-full px-4 py-3 rounded-xl backdrop-blur-md bg-white/50 border border-white/50 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400/50 transition-all"
+      class="w-full px-4 py-3 rounded-xl backdrop-blur-md bg-white/50 dark:bg-slate-900/50 border border-white/50 dark:border-slate-700 text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 dark:focus:ring-indigo-500/50 focus:border-indigo-400/50 transition-all"
       [class.border-red-400]="error()"
       [class.focus:ring-red-400/50]="error()"
       [disabled]="loading()"
@@ -18,26 +18,15 @@
   </div>
 
   <!-- Download Button -->
-  <button
+  <app-button
     (click)="download()"
-    [disabled]="loading() || !isValid()"
-    class="px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg"
-    [class.bg-gradient-to-r]="!loading() && isValid()"
-    [class.from-red-500]="!loading() && isValid()"
-    [class.to-pink-500]="!loading() && isValid()"
-    [class.text-white]="!loading() && isValid()"
-    [class.hover:shadow-red-500/25]="!loading() && isValid()"
-    [class.hover:scale-105]="!loading() && isValid()"
-    [class.bg-slate-200]="loading() || !isValid()"
-    [class.text-slate-400]="loading() || !isValid()"
-    [class.cursor-not-allowed]="loading() || !isValid()"
+    [disabled]="!isValid()"
+    [loading]="loading()"
+    palette="red"
+    icon="download"
+    size="lg"
+
   >
-    @if (loading()) {
-      <lucide-icon name="loader-2" class="w-5 h-5 animate-spin"></lucide-icon>
-      <span>Downloading...</span>
-    } @else {
-      <lucide-icon name="download" class="w-5 h-5"></lucide-icon>
-      <span>Download</span>
-    }
-  </button>
+    {{ loading() ? 'Downloading...' : 'Download' }}
+  </app-button>
 </div>

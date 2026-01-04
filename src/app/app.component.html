@@ -1,17 +1,13 @@
-<!-- Main Container with Background Image -->
+<!-- Main Container -->
 <div class="min-h-screen relative font-sans">
-  <!-- Background Image -->
-  <div class="fixed inset-0 z-0 bg-slate-200">
-    <img src="/assets/music-background.png" alt="Background" class="w-full h-full object-cover opacity-50" />
-    <!-- <div class="absolute inset-0 bg-gradient-to-br from-sky-300/80 via-blue-300/70 to-indigo-300/80 mix-blend-multiply"></div> -->
+  <!-- Background -->
+  <div class="fixed inset-0 z-0 bg-gradient-to-br from-slate-100 via-slate-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+    <img
+      src="/assets/music-background.png"
+      alt=""
+      class="w-full h-full object-cover opacity-30 dark:opacity-10"
+    />
   </div>
-
-  <!-- Decorative Blobs -->
-  <!-- <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
-    <div class="absolute -top-40 -right-40 w-96 h-96 bg-cyan-300/30 rounded-full blur-3xl"></div>
-    <div class="absolute top-1/2 -left-40 w-80 h-80 bg-blue-400/30 rounded-full blur-3xl"></div>
-    <div class="absolute -bottom-40 right-1/3 w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl"></div>
-  </div> -->
 
   <!-- Global Snackbar -->
   <app-snackbar></app-snackbar>
@@ -29,60 +25,43 @@
 
   <!-- Content -->
   <div class="relative z-10">
-    <!-- Glass Header - Full Width -->
-    <header class="backdrop-blur-xl bg-white/30 border-b border-white/40 shadow-xl px-6 py-4 mb-6">
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-slate-900/80 border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm px-6 py-3"
+    >
       <div class="max-w-7xl mx-auto flex items-center justify-between">
         <!-- Left: Logo + Title -->
         <div class="flex items-center gap-3">
-          <div class="h-16 w-16 flex items-center justify-center">
-            <img src="/assets/logo.png" alt="App Logo" class="w-full h-full object-contain filter drop-shadow-md" />
+          <div class="h-12 w-12 flex items-center justify-center">
+            <img
+              src="/assets/logo.png"
+              alt="MP3 Tag Fixer"
+              class="w-full h-full object-contain filter drop-shadow-md"
+            />
           </div>
           <div>
-            <h1 class="text-xl font-extrabold text-slate-800 tracking-tight">MP3 Tag Fixer</h1>
-            <p class="text-slate-500 text-xs">Auto-magic metadata with Discogs</p>
+            <h1 class="text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+              MP3 Tag Fixer
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 text-xs">
+              Auto-magic metadata with Discogs
+            </p>
           </div>
         </div>
 
-        <!-- Right: Auth Buttons -->
-        <!-- <div class="flex items-center gap-3">
-          @if (authService.isAuthenticated()) {
-            <div class="relative">
-              <app-button (click)="toggleUserMenu()" palette="neutral" variant="glass" icon="user">
-                {{ authService.userDisplayName() }}
-              </app-button>
-
-              @if (showUserMenu()) {
-                <div
-                  class="absolute right-0 mt-2 w-48 backdrop-blur-xl bg-white/90 rounded-xl shadow-xl border border-white/40 overflow-hidden z-50"
-                >
-                  <button
-                    (click)="logout()"
-                    class="w-full px-4 py-3 text-left hover:bg-indigo-50 transition flex items-center gap-2 text-slate-700 text-sm font-medium"
-                  >
-                    <lucide-icon name="log-out" [size]="18"></lucide-icon>
-                    <span>Sign Out</span>
-                  </button>
-                </div>
-              }
-            </div>
-          } @else {
-            <app-button (click)="showLoginModal.set(true)" palette="neutral" variant="glass" icon="log-in">
-              Sign In
-            </app-button>
-            <app-button (click)="showRegisterModal.set(true)" palette="primary" variant="solid" icon="user-plus">
-              Sign Up
-            </app-button>
-          }
-        </div> -->
+        <!-- Right: Theme Toggle -->
+        <div class="flex items-center gap-3">
+          <app-theme-toggle></app-theme-toggle>
+        </div>
       </div>
     </header>
 
     <!-- Main Content Area -->
-    <div class="max-w-7xl mx-auto px-6 pb-10">
+    <main class="max-w-7xl mx-auto px-6 py-6">
       <!-- Drop Zone -->
-      <app-dropzone (filesDropped)="addFiles($event)" class="block mb-6"> </app-dropzone>
+      <app-dropzone (filesDropped)="addFiles($event)" class="block mb-6"></app-dropzone>
 
-      <!-- Filter Bar - Always Visible - Full Width -->
+      <!-- Filter Bar -->
       <app-filter-bar
         [filterText]="filterQuery"
         (filterTextChange)="filterQuery = $event"
@@ -102,40 +81,62 @@
 
       <!-- File Cards List -->
       @if (files().length > 0) {
-        @for (item of filteredFiles(); track item.originalName; let i = $index) {
-          <app-file-card
-            class="mb-2"
-            [item]="item"
-            [aiEnabled]="aiService.enabled()"
-            (requestSearch)="search(item)"
-            (edit)="openEditor(item)"
-            (remove)="removeFile(i)"
-            (download)="downloadFile(item)"
-            (selectRelease)="selectRelease(item, $event)"
-            (selectTrack)="selectTrack(item, $event)"
-            (detectBpm)="detectBpm(item)"
-            (artistChange)="updateArtist(item, $event)"
-            (titleChange)="updateTitle(item, $event)"
-            (retryWithAi)="enableAiAndRetry(item)"
-          >
-          </app-file-card>
-        }
+        <div class="space-y-3">
+          @for (item of filteredFiles(); track item.originalName; let i = $index) {
+            <app-file-card
+              [item]="item"
+              [aiEnabled]="aiService.enabled()"
+              (requestSearch)="search(item)"
+              (edit)="openEditor(item)"
+              (remove)="removeFile(i)"
+              (download)="downloadFile(item)"
+              (selectRelease)="selectRelease(item, $event)"
+              (selectTrack)="selectTrack(item, $event)"
+              (detectBpm)="detectBpm(item)"
+              (artistChange)="updateArtist(item, $event)"
+              (titleChange)="updateTitle(item, $event)"
+              (retryWithAi)="enableAiAndRetry(item)"
+            >
+            </app-file-card>
+          }
+        </div>
+      } @else {
+        <!-- Empty State -->
+        <div
+          class="text-center py-16 px-8 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white/30 dark:bg-slate-800/30"
+        >
+          <lucide-icon
+            name="music"
+            class="w-16 h-16 mx-auto text-slate-300 dark:text-slate-600 mb-4"
+          ></lucide-icon>
+          <h3 class="text-lg font-semibold text-slate-600 dark:text-slate-400 mb-2">
+            No files yet
+          </h3>
+          <p class="text-slate-500 dark:text-slate-500 text-sm">
+            Drop MP3 files above or click to browse
+          </p>
+        </div>
       }
-    </div>
+    </main>
   </div>
 
   <!-- YouTube Modal -->
   @if (showYoutubeModal()) {
-    <app-youtube-modal (closed)="showYoutubeModal.set(false)" (downloaded)="handleYoutubeDownload($event)">
+    <app-youtube-modal
+      (closed)="showYoutubeModal.set(false)"
+      (downloaded)="handleYoutubeDownload($event)"
+    >
     </app-youtube-modal>
   }
 
   <!-- Auth Modals -->
   @if (showLoginModal()) {
-    <app-login (closeModal)="showLoginModal.set(false)" (switchToRegister)="switchToRegister()"> </app-login>
+    <app-login (closeModal)="showLoginModal.set(false)" (switchToRegister)="switchToRegister()">
+    </app-login>
   }
 
   @if (showRegisterModal()) {
-    <app-register (closeModal)="showRegisterModal.set(false)" (switchToLogin)="switchToLogin()"> </app-register>
+    <app-register (closeModal)="showRegisterModal.set(false)" (switchToLogin)="switchToLogin()">
+    </app-register>
   }
 </div>

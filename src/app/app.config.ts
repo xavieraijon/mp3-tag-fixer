@@ -34,6 +34,8 @@ import {
   Loader2,
   Youtube,
   UploadCloud,
+  Moon,
+  Sun,
 } from 'lucide-angular';
 import { authInterceptor } from './interceptors/auth.interceptor';
 
@@ -71,6 +73,8 @@ export const appConfig: ApplicationConfig = {
         Loader2,
         Youtube,
         UploadCloud,
+        Moon,
+        Sun,
       }),
     ),
   ],

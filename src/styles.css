@@ -2,7 +2,145 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global Styles */
-body {
-  background-color: #f3f4f6; /* gray-100 */
+@layer base {
+  :root {
+    /* Surface Colors - Light Mode */
+    --color-surface: 248 250 252;           /* slate-50 */
+    --color-surface-elevated: 255 255 255;  /* white */
+    --color-surface-overlay: 255 255 255;   /* white */
+
+    /* Content Colors - Light Mode */
+    --color-content: 30 41 59;              /* slate-800 */
+    --color-content-secondary: 100 116 139; /* slate-500 */
+    --color-content-tertiary: 148 163 184;  /* slate-400 */
+    --color-content-inverse: 255 255 255;   /* white */
+
+    /* Border Colors - Light Mode */
+    --color-border: 226 232 240;            /* slate-200 */
+    --color-border-strong: 203 213 225;     /* slate-300 */
+
+    /* Accent Colors - Light Mode */
+    --color-accent: 99 102 241;             /* indigo-500 */
+    --color-accent-hover: 79 70 229;        /* indigo-600 */
+    --color-accent-muted: 224 231 255;      /* indigo-100 */
+
+    /* Glass Effects - Light Mode */
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-bg-hover: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+    /* Focus Ring */
+    --focus-ring-color: 99 102 241;         /* indigo-500 */
+  }
+
+  .dark {
+    /* Surface Colors - Dark Mode */
+    --color-surface: 15 23 42;              /* slate-900 */
+    --color-surface-elevated: 30 41 59;     /* slate-800 */
+    --color-surface-overlay: 51 65 85;      /* slate-700 */
+
+    /* Content Colors - Dark Mode */
+    --color-content: 241 245 249;           /* slate-100 */
+    --color-content-secondary: 148 163 184; /* slate-400 */
+    --color-content-tertiary: 100 116 139;  /* slate-500 */
+    --color-content-inverse: 15 23 42;      /* slate-900 */
+
+    /* Border Colors - Dark Mode */
+    --color-border: 51 65 85;               /* slate-700 */
+    --color-border-strong: 71 85 105;       /* slate-600 */
+
+    /* Accent Colors - Dark Mode */
+    --color-accent: 129 140 248;            /* indigo-400 */
+    --color-accent-hover: 165 180 252;      /* indigo-300 */
+    --color-accent-muted: 49 46 129;        /* indigo-900 */
+
+    /* Glass Effects - Dark Mode */
+    --glass-bg: rgba(30, 41, 59, 0.8);
+    --glass-bg-hover: rgba(51, 65, 85, 0.9);
+    --glass-border: rgba(71, 85, 105, 0.6);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+    /* Focus Ring - Dark Mode */
+    --focus-ring-color: 129 140 248;        /* indigo-400 */
+  }
+
+  /* Global focus visible styles */
+  *:focus-visible {
+    outline: 2px solid rgb(var(--focus-ring-color));
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus outline */
+  *:focus {
+    outline: none;
+  }
+
+  /* Global body styles with smooth transition */
+  body {
+    background-color: rgb(var(--color-surface));
+    color: rgb(var(--color-content));
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgb(var(--color-content-tertiary) / 0.3);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(var(--color-content-tertiary) / 0.5);
+  }
+}
+
+@layer components {
+  /* Glass card base class */
+  .glass-card {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-card:hover {
+    background: var(--glass-bg-hover);
+  }
+
+  /* Focus ring utility class */
+  .focus-ring {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    outline-color: rgb(var(--focus-ring-color));
+  }
+
+  /* Status colors with proper contrast */
+  .status-success {
+    @apply bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300;
+  }
+
+  .status-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300;
+  }
+
+  .status-warning {
+    @apply bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300;
+  }
+
+  .status-info {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300;
+  }
+
+  .status-pending {
+    @apply bg-slate-100 text-slate-600 dark:bg-slate-700/40 dark:text-slate-300;
+  }
 }

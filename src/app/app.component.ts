@@ -16,6 +16,7 @@ import { AuthService } from './services/auth.service';
 import { MusicBrainzService } from './services/musicbrainz.service';
 import { AiSearchService } from './services/ai-search.service';
 import { YoutubeService, YoutubeDownloadResponse } from './services/youtube.service';
+import { ThemeService } from './services/theme.service';
 
 // Store
 import { FilesStore } from './store/files.store';
@@ -35,6 +36,7 @@ import { LoginComponent } from './components/auth/login.component';
 import { RegisterComponent } from './components/auth/register.component';
 import { ButtonComponent } from './components/ui/button/button.component';
 import { YoutubeModalComponent } from './components/youtube-modal/youtube-modal.component';
+import { ThemeToggleComponent } from './components/ui/theme-toggle/theme-toggle.component';
 
 @Component({
   selector: 'app-root',
@@ -52,6 +54,7 @@ import { YoutubeModalComponent } from './components/youtube-modal/youtube-modal.
     RegisterComponent,
     ButtonComponent,
     YoutubeModalComponent,
+    ThemeToggleComponent,
   ],
   templateUrl: './app.component.html',
 })

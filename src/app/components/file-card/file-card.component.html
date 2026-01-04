@@ -1,17 +1,16 @@
-<!-- Liquid Glass Card -->
+<!-- File Card -->
 <div
-  class="group relative backdrop-blur-xl bg-white/40 border border-white/30 rounded-3xl p-5 shadow-xl shadow-black/5 hover:bg-white/25 hover:border-white/40 hover:shadow-2xl transition-all duration-300"
+  class="group relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md dark:shadow-slate-900/30 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200"
 >
-  <!-- Remove Button -->
   <!-- Remove Button -->
   <app-button
     (click)="remove.emit()"
     palette="red"
-    variant="glass"
+    variant="ghost"
     shape="circle"
     size="sm"
     icon="x"
-    class="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all z-10 shadow-lg rounded-full"
+    class="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-all z-10 bg-white dark:bg-slate-800 shadow-md rounded-full"
     title="Remove file"
   >
   </app-button>
@@ -22,26 +21,26 @@
     <div class="flex-shrink-0">
       @if (item().coverImageUrl) {
         <!-- Cover Image with Status Overlay -->
-        <div class="relative w-14 h-14">
+        <div class="relative w-12 h-12">
           <img
             [src]="item().coverImageUrl"
             alt="Cover"
-            class="w-14 h-14 rounded-xl object-cover shadow-lg border border-white/30"
+            class="w-12 h-12 rounded-lg object-cover shadow-md border border-slate-200 dark:border-slate-700"
           />
           <!-- Status indicator overlay -->
           @if (item().status === 'searching' || item().status === 'loading_details' || item().isAnalyzingBpm) {
-            <div class="absolute inset-0 bg-black/40 rounded-xl flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/50 dark:bg-black/60 rounded-lg flex items-center justify-center">
               <lucide-icon name="loader-circle" class="w-5 h-5 text-white animate-spin"></lucide-icon>
             </div>
           } @else if (item().status === 'done') {
             <div
-              class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white shadow"
+              class="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 shadow"
             >
               <lucide-icon name="check" class="w-3 h-3 text-white"></lucide-icon>
             </div>
           } @else if (item().status === 'error') {
             <div
-              class="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white shadow"
+              class="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white dark:border-slate-800 shadow"
             >
               <lucide-icon name="circle-alert" class="w-3 h-3 text-white"></lucide-icon>
             </div>
@@ -50,17 +49,27 @@
       } @else {
         <!-- Fallback: Status Icon Only -->
         <div
-          class="w-12 h-12 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30 transition-all duration-300"
-          [class.bg-blue-500/20]="item().status === 'searching' || item().status === 'loading_details'"
+          class="w-10 h-10 rounded-lg flex items-center justify-center transition-all duration-200"
+          [class.bg-blue-100]="item().status === 'searching' || item().status === 'loading_details'"
+          [class.dark:bg-blue-900/40]="item().status === 'searching' || item().status === 'loading_details'"
           [class.text-blue-600]="item().status === 'searching' || item().status === 'loading_details'"
-          [class.bg-emerald-500/20]="item().status === 'done'"
+          [class.dark:text-blue-400]="item().status === 'searching' || item().status === 'loading_details'"
+          [class.bg-emerald-100]="item().status === 'done'"
+          [class.dark:bg-emerald-900/40]="item().status === 'done'"
           [class.text-emerald-600]="item().status === 'done'"
-          [class.bg-red-500/20]="item().status === 'error'"
+          [class.dark:text-emerald-400]="item().status === 'done'"
+          [class.bg-red-100]="item().status === 'error'"
+          [class.dark:bg-red-900/40]="item().status === 'error'"
           [class.text-red-600]="item().status === 'error'"
-          [class.bg-purple-500/20]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
+          [class.dark:text-red-400]="item().status === 'error'"
+          [class.bg-purple-100]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
+          [class.dark:bg-purple-900/40]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
           [class.text-purple-600]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
-          [class.bg-slate-500/10]="item().status === 'pending' || item().status === 'ready'"
+          [class.dark:text-purple-400]="!!item().selectedTrack && item().status !== 'done' && item().status !== 'error'"
+          [class.bg-slate-100]="item().status === 'pending' || item().status === 'ready'"
+          [class.dark:bg-slate-700]="item().status === 'pending' || item().status === 'ready'"
           [class.text-slate-500]="item().status === 'pending' || item().status === 'ready'"
+          [class.dark:text-slate-400]="item().status === 'pending' || item().status === 'ready'"
         >
           @if (item().status === 'searching' || item().status === 'loading_details' || item().isAnalyzingBpm) {
             <lucide-icon name="loader-circle" class="w-5 h-5 animate-spin"></lucide-icon>
@@ -80,7 +89,7 @@
     <!-- Title & Artist Info -->
     <div class="flex-1 min-w-0">
       <div class="flex items-center gap-2">
-        <h3 class="font-bold text-slate-800 truncate text-base">
+        <h3 class="font-semibold text-slate-800 dark:text-slate-100 truncate text-sm">
           {{ item().selectedTrack?.title || item().manualTitle || item().originalName }}
         </h3>
 
@@ -89,31 +98,38 @@
           <a
             [href]="getReleaseUrl(release)"
             target="_blank"
+            rel="noopener noreferrer"
             class="flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider hover:opacity-80 transition-opacity"
-            [class.bg-[#CB77FF]]="release.source === 'musicbrainz'"
-            [class.text-white]="release.source === 'musicbrainz'"
-            [class.bg-slate-800]="release.source !== 'musicbrainz'"
-            [class.text-white]="release.source !== 'musicbrainz'"
+            [class.bg-purple-500]="release.source === 'musicbrainz'"
+            [class.text-white]="true"
+            [class.bg-slate-700]="release.source !== 'musicbrainz'"
+            [class.dark:bg-slate-600]="release.source !== 'musicbrainz'"
             [title]="release.source === 'musicbrainz' ? 'View on MusicBrainz' : 'View on Discogs'"
           >
             {{ release.source === 'musicbrainz' ? 'MB' : 'DC' }}
           </a>
         }
 
+        <!-- Info Tooltip -->
         <div class="group/info relative">
-          <lucide-icon name="info" class="w-3.5 h-3.5 text-slate-400 hover:text-slate-600 cursor-help"></lucide-icon>
+          <lucide-icon
+            name="info"
+            class="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 cursor-help"
+          ></lucide-icon>
           <div
-            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 backdrop-blur-xl bg-white/90 border border-white/50 text-xs rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 whitespace-nowrap z-[60]"
+            class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs rounded-lg shadow-lg opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible transition-all duration-200 whitespace-nowrap z-[60]"
           >
-            <span class="text-slate-400 block text-[10px] uppercase tracking-wider mb-0.5">Original</span>
-            <span class="text-slate-700 font-medium">{{ item().originalName }}</span>
+            <span class="text-slate-400 dark:text-slate-500 block text-[10px] uppercase tracking-wider mb-0.5"
+              >Original</span
+            >
+            <span class="text-slate-700 dark:text-slate-200 font-medium">{{ item().originalName }}</span>
           </div>
         </div>
       </div>
-      <p class="text-slate-500 text-sm truncate">
+      <p class="text-slate-500 dark:text-slate-400 text-xs truncate">
         {{ item().selectedRelease?.artist || item().manualArtist || 'Unknown Artist' }}
         @if (item().selectedRelease) {
-          <span class="text-slate-400"> · {{ item().selectedRelease!.title }}</span>
+          <span class="text-slate-400 dark:text-slate-500"> · {{ item().selectedRelease!.title }}</span>
         }
       </p>
     </div>
@@ -121,19 +137,23 @@
     <!-- Status Badge -->
     @if (item().statusMessage) {
       <div
-        class="flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-md border"
-        [class.bg-blue-500/10]="item().status === 'searching' || item().status === 'loading_details'"
+        class="hidden sm:flex flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium"
+        [class.bg-blue-100]="item().status === 'searching' || item().status === 'loading_details'"
+        [class.dark:bg-blue-900/40]="item().status === 'searching' || item().status === 'loading_details'"
         [class.text-blue-700]="item().status === 'searching' || item().status === 'loading_details'"
-        [class.border-blue-300/50]="item().status === 'searching' || item().status === 'loading_details'"
-        [class.bg-emerald-500/10]="item().status === 'done'"
+        [class.dark:text-blue-300]="item().status === 'searching' || item().status === 'loading_details'"
+        [class.bg-emerald-100]="item().status === 'done'"
+        [class.dark:bg-emerald-900/40]="item().status === 'done'"
         [class.text-emerald-700]="item().status === 'done'"
-        [class.border-emerald-300/50]="item().status === 'done'"
-        [class.bg-red-500/10]="item().status === 'error'"
+        [class.dark:text-emerald-300]="item().status === 'done'"
+        [class.bg-red-100]="item().status === 'error'"
+        [class.dark:bg-red-900/40]="item().status === 'error'"
         [class.text-red-700]="item().status === 'error'"
-        [class.border-red-300/50]="item().status === 'error'"
-        [class.bg-slate-500/10]="item().status === 'pending' || item().status === 'ready'"
+        [class.dark:text-red-300]="item().status === 'error'"
+        [class.bg-slate-100]="item().status === 'pending' || item().status === 'ready'"
+        [class.dark:bg-slate-700]="item().status === 'pending' || item().status === 'ready'"
         [class.text-slate-600]="item().status === 'pending' || item().status === 'ready'"
-        [class.border-slate-300/50]="item().status === 'pending' || item().status === 'ready'"
+        [class.dark:text-slate-300]="item().status === 'pending' || item().status === 'ready'"
       >
         {{ item().statusMessage }}
       </div>
@@ -145,45 +165,51 @@
     <app-debug-stepper [data]="item().debugData!" class="block mb-4"></app-debug-stepper>
   }
 
-  <!-- Controls Row: Inputs + Selects + Buttons (Horizontal Layout) -->
-  <div class="flex flex-wrap items-end gap-3">
+  <!-- Controls Row -->
+  <div class="flex flex-wrap items-end gap-2">
     <!-- Artist Input -->
-    <div class="flex-1 min-w-[120px] max-w-[180px]">
+    <div class="flex-1 min-w-[100px] max-w-[160px]">
       <label class="block">
-        <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Artist</span>
+        <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block"
+          >Artist</span
+        >
         <input
           type="text"
           [value]="item().manualArtist"
           (input)="onArtistChange($any($event.target).value)"
           placeholder="Artist..."
-          class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
+          class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder-slate-400 dark:placeholder-slate-500"
         />
       </label>
     </div>
 
     <!-- Title Input -->
-    <div class="flex-1 min-w-[120px] max-w-[180px]">
+    <div class="flex-1 min-w-[100px] max-w-[160px]">
       <label class="block">
-        <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Title</span>
+        <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block"
+          >Title</span
+        >
         <input
           type="text"
           [value]="item().manualTitle"
           (input)="onTitleChange($any($event.target).value)"
           placeholder="Title..."
-          class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all placeholder-slate-400"
+          class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder-slate-400 dark:placeholder-slate-500"
         />
       </label>
     </div>
 
     <!-- Release Select -->
     @if (item().searchResults && item().searchResults.length > 0) {
-      <div class="flex-1 min-w-[200px]">
+      <div class="flex-1 min-w-[180px]">
         <label class="block">
-          <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block">Release</span>
+          <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block"
+            >Release</span
+          >
           <select
             [ngModel]="getSelectedReleaseId()"
             (ngModelChange)="onReleaseSelectChange($event)"
-            class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all cursor-pointer"
+            class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-indigo-400 dark:focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all cursor-pointer"
           >
             <option value="">-- Select --</option>
             @for (release of item().searchResults; track release.source + ':' + release.id) {
@@ -199,34 +225,33 @@
       </div>
     }
 
-    <!-- Empty State / No Results AI CTA -->
+    <!-- AI CTA when error -->
     @if (item().status === 'error' && !aiEnabled()) {
-      <div class="w-full flex justify-center mt-2 mb-1 animate-in fade-in slide-in-from-top-1 duration-300">
-         <app-button
+      <div class="w-full flex justify-center mt-2 mb-1">
+        <app-button
           (click)="retryWithAi.emit()"
           palette="purple"
           variant="solid"
-          shape="default"
           size="sm"
           icon="sparkles"
           title="Try deep scanning with AI"
         >
-          No results? Auto-Fix with AI
+          Auto-Fix with AI
         </app-button>
       </div>
     }
 
     <!-- Track Select -->
     @if (item().tracks && item().tracks.length > 0) {
-      <div class="flex-1 min-w-[180px]">
+      <div class="flex-1 min-w-[160px]">
         <label class="block">
-          <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block"
+          <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1 block"
             >Track ({{ getRealTracks(item().tracks).length }})</span
           >
           <select
             [ngModel]="item().selectedTrack?.position || ''"
             (ngModelChange)="onTrackSelectChange($event)"
-            class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-purple-400/50 focus:ring-2 focus:ring-purple-400/20 transition-all cursor-pointer"
+            class="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:border-purple-400 dark:focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all cursor-pointer"
           >
             <option value="">-- Select --</option>
             @for (track of item().tracks; track track.position + track.title) {
@@ -245,7 +270,7 @@
     }
 
     <!-- Action Buttons -->
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-1.5">
       <!-- Magic Wand (AI Force) -->
       @if (!aiEnabled()) {
         <app-button
@@ -253,6 +278,7 @@
           palette="purple"
           variant="glass"
           shape="square"
+          size="sm"
           icon="sparkles"
           title="Deep Scan with AI"
         >
@@ -266,6 +292,7 @@
         palette="blue"
         variant="glass"
         shape="square"
+        size="sm"
         icon="search"
         title="Search Discogs"
       >
@@ -277,6 +304,7 @@
         [disabled]="!!item().isAnalyzingBpm"
         palette="emerald"
         variant="glass"
+        size="sm"
         icon="activity"
         title="Detect BPM"
       >
@@ -289,6 +317,7 @@
         palette="neutral"
         variant="glass"
         shape="square"
+        size="sm"
         icon="pencil"
         title="Edit Tags"
       >
@@ -300,6 +329,7 @@
           (click)="download.emit()"
           palette="primary"
           variant="solid"
+          size="sm"
           icon="download"
           title="Download with tags"
         >

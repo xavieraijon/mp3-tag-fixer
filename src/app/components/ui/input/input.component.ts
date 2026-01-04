@@ -9,10 +9,14 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="flex flex-col gap-1.5 w-full">
       @if (label()) {
-        <label [for]="id()" class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">
+        <label
+          [for]="id()"
+          class="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider ml-1"
+        >
           {{ label() }}
           @if (required()) {
-            <span class="text-red-500 ml-0.5">*</span>
+            <span class="text-red-500 dark:text-red-400 ml-0.5" aria-hidden="true">*</span>
+            <span class="sr-only">(required)</span>
           }
         </label>
       }
@@ -24,12 +28,11 @@ import { FormsModule } from '@angular/forms';
           [value]="value()"
           [disabled]="disabled()"
           (input)="handleInput($event)"
-          class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:bg-white dark:focus:bg-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/20 dark:focus:ring-indigo-400/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
         />
-        <!-- Optional: Add icon support later if needed -->
       </div>
       @if (hint()) {
-        <p class="text-xs text-slate-400 ml-1">{{ hint() }}</p>
+        <p class="text-xs text-slate-500 dark:text-slate-400 ml-1">{{ hint() }}</p>
       }
     </div>
   `,
@@ -43,7 +46,6 @@ import { FormsModule } from '@angular/forms';
   ],
 })
 export class InputComponent {
-  // Inputs
   label = input<string>('');
   type = input<string>('text');
   placeholder = input<string>('');
@@ -52,7 +54,6 @@ export class InputComponent {
   required = input<boolean>(false);
   hint = input<string>('');
 
-  // Model
   value = model<string | number | undefined>('');
 
   handleInput(event: Event) {

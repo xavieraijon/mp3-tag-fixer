@@ -38,7 +38,9 @@ export class AiSearchService {
   private readonly API_URL = '/api/ai';
 
   // Feature flag - can be toggled by user
-  private readonly _enabled = signal<boolean>(false);
+  private readonly _enabled = signal<boolean>(
+    sessionStorage.getItem('MP3_FIXER_AI_ENABLED') === 'true' // Default false, only true if explicitly 'true'
+  );
   readonly enabled = this._enabled.asReadonly();
 
   // Groq status cache
@@ -54,6 +56,7 @@ export class AiSearchService {
    */
   setEnabled(value: boolean): void {
     this._enabled.set(value);
+    sessionStorage.setItem('MP3_FIXER_AI_ENABLED', String(value));
     console.log(`[AiSearchService] AI ${value ? 'enabled' : 'disabled'}`);
   }
 

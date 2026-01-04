@@ -14,8 +14,6 @@ import { ButtonComponent } from '../ui/button/button.component';
 export class FilterBarComponent {
   // Inputs/Models
   filterText = model<string>('');
-  aiEnabled = model<boolean>(true);
-  debugMode = model<boolean>(false);
   hasFiles = input<boolean>(false);
 
   // Outputs

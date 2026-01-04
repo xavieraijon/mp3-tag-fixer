@@ -24,7 +24,9 @@ export class FilesStore {
   // Global action states
   private readonly _isAnalyzingBpm = signal(false);
   private readonly _isDownloadingZip = signal(false);
-  private readonly _debugMode = signal(false);
+  private readonly _debugMode = signal(
+    sessionStorage.getItem('MP3_FIXER_DEBUG_MODE') === 'true' // Default false
+  );
 
   // === Public Readonly State ===
   readonly files = this._files.asReadonly();
@@ -204,6 +206,7 @@ export class FilesStore {
 
   setDebugMode(value: boolean): void {
     this._debugMode.set(value);
+    sessionStorage.setItem('MP3_FIXER_DEBUG_MODE', String(value));
   }
 
   // === Debug Helpers ===

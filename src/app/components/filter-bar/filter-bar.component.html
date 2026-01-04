@@ -25,65 +25,7 @@
     }
   </div>
 
-  <!-- AI Toggle -->
-  <div
-    class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
-  >
-    <lucide-icon
-      name="sparkles"
-      [class]="aiEnabled() ? 'w-4 h-4 text-violet-500' : 'w-4 h-4 text-slate-400 dark:text-slate-500'"
-    ></lucide-icon>
-    <span class="text-xs font-medium text-slate-600 dark:text-slate-400">AI</span>
-    <button
-      (click)="aiEnabled.set(!aiEnabled())"
-      role="switch"
-      [attr.aria-checked]="aiEnabled()"
-      [attr.aria-label]="aiEnabled() ? 'Disable AI-powered search' : 'Enable AI-powered search'"
-      [class]="
-        aiEnabled()
-          ? 'relative w-9 h-5 bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all duration-200'
-          : 'relative w-9 h-5 bg-slate-300 dark:bg-slate-600 rounded-full transition-all duration-200'
-      "
-    >
-      <span
-        [class]="
-          aiEnabled()
-            ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-            : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-        "
-      ></span>
-    </button>
-  </div>
 
-  <!-- Debug Toggle -->
-  <div
-    class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
-  >
-    <lucide-icon
-      name="bug"
-      [class]="debugMode() ? 'w-4 h-4 text-amber-500' : 'w-4 h-4 text-slate-400 dark:text-slate-500'"
-    ></lucide-icon>
-    <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Debug</span>
-    <button
-      (click)="debugMode.set(!debugMode())"
-      role="switch"
-      [attr.aria-checked]="debugMode()"
-      [attr.aria-label]="debugMode() ? 'Disable debug mode' : 'Enable debug mode'"
-      [class]="
-        debugMode()
-          ? 'relative w-9 h-5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-200'
-          : 'relative w-9 h-5 bg-slate-300 dark:bg-slate-600 rounded-full transition-all duration-200'
-      "
-    >
-      <span
-        [class]="
-          debugMode()
-            ? 'absolute top-0.5 right-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-            : 'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-200'
-        "
-      ></span>
-    </button>
-  </div>
 
   <!-- Action Buttons -->
   <div class="flex items-center gap-2 flex-wrap">

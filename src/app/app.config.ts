@@ -36,6 +36,7 @@ import {
   UploadCloud,
   Moon,
   Sun,
+  Settings,
 } from 'lucide-angular';
 import { authInterceptor } from './interceptors/auth.interceptor';
 
@@ -75,6 +76,7 @@ export const appConfig: ApplicationConfig = {
         UploadCloud,
         Moon,
         Sun,
+        Settings,
       }),
     ),
   ],

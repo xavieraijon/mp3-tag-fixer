@@ -2,18 +2,19 @@ import { Component, inject } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { ThemeService } from '../../../services/theme.service';
 
+import { ButtonComponent } from '../button/button.component';
+
 @Component({
   selector: 'app-theme-toggle',
   standalone: true,
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, ButtonComponent],
   template: `
-    <button
-      type="button"
+    <app-button
       (click)="themeService.toggle()"
-      class="relative p-2.5 rounded-xl glass-card text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 hover:scale-105 active:scale-95"
-      [attr.aria-label]="
-        themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'
-      "
+      palette="neutral"
+      variant="glass"
+      shape="square"
+      [title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
       [attr.aria-pressed]="themeService.isDark()"
     >
       <div class="relative w-5 h-5">
@@ -40,7 +41,7 @@ import { ThemeService } from '../../../services/theme.service';
           [class.scale-0]="themeService.isDark()"
         ></lucide-icon>
       </div>
-    </button>
+    </app-button>
   `,
 })
 export class ThemeToggleComponent {

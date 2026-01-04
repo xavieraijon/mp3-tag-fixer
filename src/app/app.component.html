@@ -49,9 +49,17 @@
           </div>
         </div>
 
-        <!-- Right: Theme Toggle -->
-        <div class="flex items-center gap-3">
+        <!-- Right: Theme Toggle & Settings -->
+        <div class="flex items-center gap-2">
           <app-theme-toggle></app-theme-toggle>
+          <app-button
+            (click)="showSettingsModal.set(true)"
+            palette="primary"
+            variant="ghost"
+            shape="square"
+            icon="settings"
+            title="Settings"
+          ></app-button>
         </div>
       </div>
     </header>
@@ -65,10 +73,6 @@
       <app-filter-bar
         [filterText]="filterQuery"
         (filterTextChange)="filterQuery = $event"
-        [aiEnabled]="aiService.enabled()"
-        (aiEnabledChange)="aiService.setEnabled($event)"
-        [debugMode]="store.debugMode()"
-        (debugModeChange)="store.setDebugMode($event)"
         [hasFiles]="files().length > 0"
         (processVisible)="autoProcessAll()"
         (analyzeBpmAll)="analyzeAllBpm()"
@@ -127,6 +131,11 @@
       (downloaded)="handleYoutubeDownload($event)"
     >
     </app-youtube-modal>
+  }
+
+  <!-- Settings Modal -->
+  @if (showSettingsModal()) {
+    <app-settings-modal (closeModal)="showSettingsModal.set(false)"> </app-settings-modal>
   }
 
   <!-- Auth Modals -->

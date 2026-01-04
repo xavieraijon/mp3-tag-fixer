@@ -40,6 +40,8 @@ MP3 Tag Fixer is a full-stack web application for automatically fixing and enric
 - `node-id3` - Server-side ID3 tag writing
 - `multer` - File upload handling
 - `class-validator` + `class-transformer` - DTO validation
+- `groq-sdk` - Groq LLM for AI-powered search
+- `fpcalc` - AcoustID audio fingerprinting
 
 ## Commands
 
@@ -80,18 +82,32 @@ npm run docker:down    # Stop PostgreSQL container
 ```
 src/app/
 ├── components/           # Standalone Angular components
+│   ├── auth/             # Authentication component (Clerk integration)
+│   ├── debug-stepper/    # Debug mode stepper (visual debugging tool)
 │   ├── dropzone/         # File upload drag-drop zone
 │   ├── file-card/        # Individual file display & controls
 │   ├── filter-bar/       # Search filter + bulk actions
+│   ├── settings-modal/   # Settings/Preferences modal (AI/Debug modes)
+│   ├── snackbar/         # Toast notifications
 │   ├── tag-editor/       # Modal for editing ID3 tags
-│   └── snackbar/         # Toast notifications
+│   ├── ui/               # Reusable UI component library
+│   │   ├── button/       # App button component
+│   │   ├── input/        # App input component
+│   │   └── modal/        # Generic modal component
+│   ├── youtube-input/    # YouTube URL input component
+│   └── youtube-modal/    # YouTube download modal
 ├── services/             # Business logic
-│   ├── file-processor.service.ts   # ID3 read/write, BPM detection
+│   ├── ai-search.service.ts        # AI-powered search (AcoustID + Groq)
+│   ├── auth.service.ts             # Authentication service (Clerk)
 │   ├── discogs.service.ts          # Discogs API integration
-│   ├── search.service.ts           # Multi-strategy search engine
-│   ├── track-matcher.service.ts    # Track matching algorithm
+│   ├── file-processor.service.ts   # ID3 read/write, BPM detection
+│   ├── musicbrainz.service.ts      # MusicBrainz API integration
+│   ├── notification.service.ts     # Toast notification system
+│   ├── search.service.ts           # Multi-strategy search engine (legacy)
 │   ├── string-utils.service.ts     # String normalization utilities
-│   └── notification.service.ts     # Toast notification system
+│   ├── theme.service.ts            # Theme management (dark/light mode)
+│   ├── track-matcher.service.ts    # Track matching algorithm
+│   └── youtube.service.ts          # YouTube download service
 ├── models/               # TypeScript interfaces
 │   ├── processed-file.model.ts
 │   ├── mp3-tags.model.ts
@@ -107,6 +123,12 @@ src/app/
 ```
 api/
 ├── src/
+│   ├── ai/                        # AI integration module
+│   │   ├── ai.service.ts          # AcoustID fingerprinting
+│   │   ├── groq.service.ts        # Groq LLM integration
+│   │   ├── ai.controller.ts       # AI endpoints
+│   │   ├── dto/
+│   │   └── ai.module.ts
 │   ├── auth/                      # Authentication module (Clerk)
 │   │   ├── guards/
 │   │   │   └── clerk-auth.guard.ts    # JWT validation guard
@@ -115,23 +137,35 @@ api/
 │   │   │   └── public.decorator.ts
 │   │   ├── clerk.service.ts       # Clerk integration
 │   │   └── auth.module.ts
-│   ├── users/                     # User management module
-│   │   ├── users.service.ts
-│   │   └── users.module.ts
+│   ├── correction/                # Intelligent search & correction module
+│   │   ├── correction.service.ts  # Multi-strategy search orchestration
+│   │   ├── correction.controller.ts  # Search & ranking endpoints
+│   │   ├── filename-parser.service.ts  # Intelligent filename parsing
+│   │   ├── dto/
+│   │   │   ├── search-request.dto.ts
+│   │   │   └── rank-tracks.dto.ts
+│   │   └── correction.module.ts
+│   ├── discogs/                   # Discogs API integration
+│   │   ├── discogs.service.ts     # Discogs API wrapper
+│   │   ├── discogs.controller.ts  # Search & image proxy endpoints
+│   │   ├── dto/
+│   │   │   └── search.dto.ts
+│   │   └── discogs.module.ts
 │   ├── files/                     # File processing module
 │   │   ├── files.service.ts       # ID3 read/write operations
 │   │   ├── files.controller.ts    # File upload & download endpoints
 │   │   ├── dto/
 │   │   │   └── write-tags.dto.ts
 │   │   └── files.module.ts
-│   ├── discogs/                   # Discogs API integration
-│   │   ├── discogs.service.ts     # Discogs API wrapper
-│   │   ├── search.service.ts      # Multi-strategy search
-│   │   ├── string-utils.service.ts
-│   │   ├── discogs.controller.ts  # Search & image proxy endpoints
+│   ├── musicbrainz/               # MusicBrainz API integration
+│   │   ├── musicbrainz.service.ts # MusicBrainz API wrapper
+│   │   └── musicbrainz.module.ts
+│   ├── payments/                  # Stripe integration
+│   │   ├── payments.service.ts    # Checkout & webhooks
+│   │   ├── payments.controller.ts
 │   │   ├── dto/
-│   │   │   └── search.dto.ts
-│   │   └── discogs.module.ts
+│   │   │   └── create-checkout.dto.ts
+│   │   └── payments.module.ts
 │   ├── tracks/                    # Track persistence module
 │   │   ├── tracks.service.ts      # CRUD operations
 │   │   ├── tracks.controller.ts   # Track management endpoints
@@ -139,21 +173,22 @@ api/
 │   │   │   ├── create-track.dto.ts
 │   │   │   └── update-track.dto.ts
 │   │   └── tracks.module.ts
-│   ├── payments/                  # Stripe integration
-│   │   ├── payments.service.ts    # Checkout & webhooks
-│   │   ├── payments.controller.ts
-│   │   ├── dto/
-│   │   │   └── create-checkout.dto.ts
-│   │   └── payments.module.ts
+│   ├── users/                     # User management module
+│   │   ├── users.service.ts
+│   │   └── users.module.ts
 │   ├── youtube/                   # YouTube audio download
 │   │   ├── youtube.service.ts     # yt-dlp integration
 │   │   ├── youtube.controller.ts  # Download endpoint
 │   │   ├── dto/
 │   │   │   └── youtube-download.dto.ts
 │   │   └── youtube.module.ts
+│   ├── shared/                    # Shared utilities module
+│   │   ├── string-utils.service.ts
+│   │   └── shared.module.ts
 │   ├── prisma/                    # Database module
 │   │   ├── prisma.service.ts
 │   │   └── prisma.module.ts
+│   ├── types/                     # Shared TypeScript types
 │   ├── app.module.ts              # Root module
 │   └── main.ts                    # Application entry point
 ├── prisma/
@@ -234,11 +269,63 @@ api/
 
 ### DiscogsService
 
-- Integrates with Discogs Database API
+- Integrates with Discogs Database API (legacy frontend service)
 - Searches masters and releases
-- Fetches cover images via proxy (CORS bypass)
+- Fetches cover images via backend proxy (CORS bypass)
+- Note: Most search logic now handled by backend CorrectionService
+
+### AiSearchService
+
+- Frontend integration with backend AI endpoints
+- Triggers AcoustID fingerprinting workflow
+- Displays AI-enhanced search results
+- Handles AI search state and error handling
+
+### MusicBrainzService
+
+- Frontend integration with MusicBrainz API
+- Searches recordings and releases
+- Fetches cover art from Cover Art Archive
+- Provides alternative metadata source
+
+### ThemeService
+
+- Manages application theme (dark/light mode)
+- Persists theme preference in sessionStorage
+- Applies theme classes to document root
+- Prefers system theme on first load
+
+### AuthService
+
+- Manages Clerk authentication state
+- Handles user session and token management
+- Provides user data to components
+- Integrates with backend auth endpoints
+
+### YoutubeService
+
+- Frontend service for YouTube download feature
+- Extracts video metadata before download
+- Communicates with backend YouTube endpoint
+- Handles progress and error states
 
 ## Backend Key Services
+
+### AiService (api/src/ai/)
+
+- AcoustID audio fingerprinting using `fpcalc` binary
+- Groq LLM integration for intelligent track identification
+- Fingerprint-based search across AcoustID database
+- AI-powered query enhancement and result interpretation
+
+### CorrectionService (api/src/correction/)
+
+- Centralizes all search intelligence in the backend
+- Multi-strategy search with 60+ fallback permutations
+- Orchestrates calls to Discogs and MusicBrainz APIs
+- Scoring algorithm (0-100 points) for result relevance
+- Track ranking within releases based on position, title, duration
+- Filename parsing with intelligent artist/title extraction
 
 ### FilesService (api/src/files/)
 
@@ -248,9 +335,16 @@ api/
 - In-memory file storage with 30-minute auto-cleanup
 - Sanitizes filenames for safe downloads
 
+### MusicBrainzService (api/src/musicbrainz/)
+
+- Integration with MusicBrainz database API
+- Secondary metadata source alongside Discogs
+- Recording and release search
+- Cover art via Cover Art Archive
+
 ### DiscogsService (api/src/discogs/)
 
-- Multi-strategy search implementation (shared with frontend logic)
+- Interfaces with the Discogs Database API (now simplified)
 - Release/master detail fetching
 - Cover image proxy (bypasses CORS restrictions)
 - Rate limiting (1200ms between API calls)
@@ -392,13 +486,30 @@ model Session {
 
 ### Discogs Module (`/api/discogs`) - Public endpoints
 
-- `GET /api/discogs/search/smart` - Multi-strategy smart search
-- `GET /api/discogs/search/release` - Search by artist + release
-- `GET /api/discogs/search/track` - Search by track name
-- `GET /api/discogs/search` - General query search
 - `GET /api/discogs/release/:id` - Get release details
 - `GET /api/discogs/master/:id` - Get master details
 - `GET /api/discogs/image?url=...` - Proxy cover images (CORS bypass)
+
+### Correction Module (`/api/correction`) - Public endpoints
+
+- `POST /api/correction/search` - Multi-strategy smart search (replaces old Discogs search)
+- `POST /api/correction/rank-tracks` - Rank tracks within a release based on filename
+
+### AI Module (`/api/ai`) - Public endpoints
+
+- `POST /api/ai/fingerprint` - Generate AcoustID fingerprint for audio file
+- `POST /api/ai/search` - AI-powered search using fingerprint + Groq LLM
+
+### MusicBrainz Module (`/api/musicbrainz`) - Public endpoints
+
+- `GET /api/musicbrainz/search/recording` - Search recordings
+- `GET /api/musicbrainz/search/release` - Search releases
+- `GET /api/musicbrainz/recording/:id` - Get recording details
+- `GET /api/musicbrainz/release/:id` - Get release details
+
+### YouTube Module (`/api/youtube`) - Public endpoints
+
+- `POST /api/youtube/download` - Download audio from YouTube URL with metadata
 
 ### Tracks Module (`/api/tracks`) - Protected endpoints
 
@@ -557,6 +668,10 @@ CLERK_SECRET_KEY=sk_test_...
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_ID=price_...
+
+# AI Services (Optional - for AI-powered search)
+GROQ_API_KEY=gsk_...                    # Groq LLM API key
+ACOUSTID_API_KEY=your_acoustid_key      # AcoustID fingerprinting API key
 ```
 
 ## Discogs API Integration

@@ -10,17 +10,21 @@ A modern web application for automatically fixing and enriching MP3 file metadat
 
 ## Features
 
-- **YouTube to MP3** - Download and tag audio directly from YouTube videos
+- **YouTube to MP3** - Download and tag audio directly from YouTube videos with automatic metadata
+- **AI-Powered Search** - AcoustID fingerprinting + Groq LLM for intelligent track identification
 - **Drag & Drop Upload** - Simply drag MP3 files into the browser
-- **Automatic Tag Reading** - Extracts existing ID3 tags and parses filenames
+- **Automatic Tag Reading** - Extracts existing ID3 tags and parses filenames intelligently
 - **Smart Search** - Multi-strategy search algorithm with 60+ fallback strategies
-- **Discogs Integration** - Search releases, masters, and tracks from Discogs database
+- **Dual Database Integration** - Search both Discogs and MusicBrainz databases
 - **Track Matching** - Intelligent matching of files to tracklist entries
 - **Cover Art** - Fetch and embed high-quality album artwork
 - **BPM Detection** - Automatic tempo detection using Web Audio API
 - **Batch Processing** - Process multiple files and download as ZIP
 - **Tag Editor** - Manual editing with real-time preview
-- **Modern UI** - Glassmorphism design with "Vinyl Wave" branding
+- **Theme System** - Dark/light mode with session persistence
+- **Settings Modal** - Configure AI mode, debug mode, and preferences
+- **Modern UI** - Premium glassmorphism design with custom component library
+- **Authentication** - Secure user authentication via Clerk (Passkeys, OAuth, WebAuthn)
 
 ## Tech Stack
 
@@ -95,6 +99,10 @@ DISCOGS_CONSUMER_SECRET="your_secret"
 STRIPE_SECRET_KEY=""
 STRIPE_WEBHOOK_SECRET=""
 
+# AI Services (optional, for AI-powered search)
+GROQ_API_KEY="gsk_..."                  # Groq LLM API
+ACOUSTID_API_KEY="your_acoustid_key"    # AcoustID fingerprinting
+
 # App
 PORT=3000
 FRONTEND_URL="http://localhost:4200"
@@ -127,34 +135,47 @@ mp3-tag-fixer/
 ├── src/                          # Angular Frontend
 │   ├── app/
 │   │   ├── components/           # Standalone components
+│   │   │   ├── auth/             # Authentication (Clerk)
+│   │   │   ├── debug-stepper/    # Debug mode stepper
 │   │   │   ├── dropzone/         # File upload zone
 │   │   │   ├── file-card/        # File display & controls
 │   │   │   ├── filter-bar/       # Search & bulk actions
+│   │   │   ├── settings-modal/   # Settings/preferences modal
+│   │   │   ├── snackbar/         # Notifications
 │   │   │   ├── tag-editor/       # Modal tag editor
-│   │   │   └── snackbar/         # Notifications
+│   │   │   ├── ui/               # UI component library
+│   │   │   │   ├── button/       # App button
+│   │   │   │   ├── input/        # App input
+│   │   │   │   └── modal/        # Generic modal
+│   │   │   ├── youtube-input/    # YouTube URL input
+│   │   │   └── youtube-modal/    # YouTube download modal
 │   │   ├── services/             # Business logic
-│   │   │   ├── ai-search.service.ts
-│   │   │   ├── discogs.service.ts
-│   │   │   ├── search.service.ts
-│   │   │   ├── file-processor.service.ts
-│   │   │   ├── track-matcher.service.ts
-│   │   │   └── youtube.service.ts
+│   │   │   ├── ai-search.service.ts       # AI-powered search
+│   │   │   ├── auth.service.ts            # Authentication
+│   │   │   ├── discogs.service.ts         # Discogs API
+│   │   │   ├── file-processor.service.ts  # ID3 read/write
+│   │   │   ├── musicbrainz.service.ts     # MusicBrainz API
+│   │   │   ├── search.service.ts          # Multi-strategy search
+│   │   │   ├── theme.service.ts           # Theme management
+│   │   │   ├── track-matcher.service.ts   # Track matching
+│   │   │   └── youtube.service.ts         # YouTube downloads
 │   │   ├── models/               # TypeScript interfaces
 │   │   └── store/                # Signal-based state
 │   └── styles.css                # Global styles
 │
 ├── api/                          # NestJS Backend
 │   ├── src/
+│   │   ├── ai/                   # AI Services (AcoustID, Groq)
 │   │   ├── auth/                 # Clerk authentication
-│   │   ├── users/                # User management
-│   │   ├── files/                # MP3 upload & processing
-│   │   ├── correction/           # Tag Search & Intelligence
-│   │   ├── ai/                   # AI (Groq/AcoustID)
+│   │   ├── correction/           # Search & Tag Intelligence
 │   │   ├── discogs/              # Discogs API proxy
+│   │   ├── files/                # MP3 upload & processing
 │   │   ├── musicbrainz/          # MusicBrainz Integration
-│   │   ├── youtube/              # YouTube Download
-│   │   ├── tracks/               # Track history CRUD
 │   │   ├── payments/             # Stripe integration
+│   │   ├── tracks/               # Track history CRUD
+│   │   ├── users/                # User management
+│   │   ├── youtube/              # YouTube Download
+│   │   ├── shared/               # Shared utilities
 │   │   └── prisma/               # Database service
 │   ├── prisma/
 │   │   └── schema.prisma         # Database schema

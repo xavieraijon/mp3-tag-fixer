@@ -135,6 +135,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     filename: string,
     existingArtist?: string,
     existingTitle?: string,
+    hints?: { artist?: string; title?: string; confidence?: number },
   ): Promise<ParseFilenameResponse> {
     if (!this.groq) {
       return this.fallbackParse(filename);
@@ -144,6 +145,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
       filename,
       existingArtist,
       existingTitle,
+      hints,
     );
 
     try {
@@ -204,6 +206,7 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
     filename: string,
     existingArtist?: string,
     existingTitle?: string,
+    hints?: { artist?: string; title?: string; confidence?: number },
   ): string {
     let prompt = `FILENAME: "${filename}"`;
 
@@ -225,6 +228,14 @@ Output: {"artist": "Aphex Twin", "title": "Windowlicker", "confidence": 0.98}`;
       } else if (hasGarbageArtist && hasGarbageTitle) {
         prompt += `\n\n⚠️ DETECTED: Both tags contain garbage. Parse from filename only.`;
       }
+    }
+
+    if (hints) {
+      prompt += `\n\nHEURISTIC HINTS:`;
+      if (hints.confidence !== undefined)
+        prompt += `\n- Previous Confidence: ${hints.confidence}`;
+      if (hints.artist) prompt += `\n- Suggested Artist: "${hints.artist}"`;
+      if (hints.title) prompt += `\n- Suggested Title: "${hints.title}"`;
     }
 
     prompt += `\n\nExtract the correct artist and title. Return ONLY valid JSON.`;

@@ -7,6 +7,15 @@ export interface SearchResult extends DiscogsRelease {
   _score?: number;
 }
 
+export interface SearchOptions {
+  artist: string;
+  title: string;
+  filename?: string;
+  duration?: number;
+  aiConfidence?: number;
+  onProgress?: (message: string) => void;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -14,13 +23,16 @@ export class SearchService {
   private readonly http = inject(HttpClient);
 
   /**
-   * Search for matches using the intelligent backend backend correction module.
+   * Search for matches using the intelligent backend correction module.
+   * Now sends filename and duration for better heuristic analysis.
    */
   async search(
     artist: string,
     title: string,
     onProgress?: (message: string) => void,
     aiConfidence?: number,
+    filename?: string,
+    duration?: number,
   ): Promise<SearchResult[]> {
     if (onProgress) {
       onProgress('Searching via Correction API...');
@@ -32,6 +44,8 @@ export class SearchService {
         .post<any[]>('/api/correction/search', {
           artist,
           title,
+          filename, // Send filename for heuristic parsing
+          duration, // Send duration for track matching
           aiConfidence,
         })
         .toPromise();

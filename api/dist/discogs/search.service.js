@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchService = void 0;
 const common_1 = require("@nestjs/common");
-const string_utils_service_1 = require("./string-utils.service");
+const string_utils_1 = require("../shared/string-utils");
 const discogs_service_1 = require("./discogs.service");
 let SearchService = class SearchService {
     stringUtils;
@@ -180,13 +180,16 @@ let SearchService = class SearchService {
         });
     }
     async executeStrategy(strategy) {
+        const artist = strategy.artist || '';
+        const title = strategy.title || '';
+        const searchType = strategy.searchType || 'all';
         switch (strategy.type) {
             case 'track':
-                return this.discogs.searchByTrack(strategy.artist, strategy.title, strategy.searchType);
+                return this.discogs.searchByTrack(artist, title, searchType);
             case 'query':
-                return this.discogs.searchQuery(strategy.title, strategy.searchType);
+                return this.discogs.searchQuery(strategy.query || title, searchType);
             case 'release':
-                return this.discogs.searchRelease(strategy.artist, strategy.title, strategy.searchType);
+                return this.discogs.searchRelease(artist, title, searchType);
             default:
                 return [];
         }
@@ -321,7 +324,7 @@ let SearchService = class SearchService {
 exports.SearchService = SearchService;
 exports.SearchService = SearchService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [string_utils_service_1.StringUtilsService,
+    __metadata("design:paramtypes", [string_utils_1.StringUtilsService,
         discogs_service_1.DiscogsService])
 ], SearchService);
 //# sourceMappingURL=search.service.js.map

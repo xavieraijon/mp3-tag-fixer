@@ -60,6 +60,10 @@ model Track {
   originalFilename String
   fileHash         String? // For duplicate detection
 
+  // Normalized key for knowledge base lookups
+  // Format: "normalizedartist|normalizedtitle" (lowercase, no special chars)
+  normalizedKey String?
+
   // Extracted/Applied tags
   title       String?
   artist      String?
@@ -91,6 +95,7 @@ model Track {
 
   @@index([userId])
   @@index([fileHash])
+  @@index([normalizedKey])
 }
 
 // ============================================

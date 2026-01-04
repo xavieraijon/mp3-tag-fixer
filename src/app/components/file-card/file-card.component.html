@@ -186,7 +186,7 @@
             class="w-full px-3 py-2 backdrop-blur-md bg-white/40 border border-white/50 rounded-xl text-slate-800 text-sm focus:outline-none focus:bg-white/60 focus:border-blue-400/50 focus:ring-2 focus:ring-blue-400/20 transition-all cursor-pointer"
           >
             <option value="">-- Select --</option>
-            @for (release of item().searchResults; track release.id) {
+            @for (release of item().searchResults; track release.source + ':' + release.id) {
               <option [ngValue]="release.id.toString()">
                 {{ release.source === 'musicbrainz' ? '[MB] ' : '[DC] ' }}{{ release.artist }} - {{ release.title }}
                 @if (release.year) {

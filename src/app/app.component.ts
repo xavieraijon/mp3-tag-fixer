@@ -285,6 +285,8 @@ export class AppComponent {
       title,
       (message) => this.store.updateFile(item, { statusMessage: message }),
       aiConfidence,
+      item.originalName, // Pass filename for heuristic analysis
+      item.currentTags?.duration, // Pass duration for track matching
     );
 
     if (results.length > 0) {

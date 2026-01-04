@@ -1,0 +1,243 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`HeuristicParserService (Regression) should match snapshot for: 01. Scott Brown - Elysium.wav 1`] = `
+{
+  "confidence": 0.8,
+  "hasGarbage": false,
+  "normalizedKey": "01scottbrown|elysium",
+  "primaryCandidate": {
+    "artist": "01. Scott Brown",
+    "title": "Elysium",
+  },
+  "strategies": [
+    {
+      "artist": "01. Scott Brown",
+      "description": "Direct: "01. Scott Brown - Elysium"",
+      "params": {
+        "artist": "01. Scott Brown",
+        "track": "Elysium",
+      },
+      "priority": 0,
+      "query": "01. Scott Brown - Elysium",
+      "title": "Elysium",
+      "type": "exact",
+    },
+    {
+      "description": "Title Only: "Elysium"",
+      "params": {
+        "track": "Elysium",
+      },
+      "priority": 1,
+      "query": "Elysium",
+      "type": "title_only",
+    },
+    {
+      "artist": "01. Scot Brown",
+      "description": "Fuzzy Artist: "01. Scot Brown"",
+      "params": {
+        "artist": "01. Scot Brown",
+        "track": "Elysium",
+      },
+      "priority": 2,
+      "title": "Elysium",
+      "type": "fuzzy",
+    },
+  ],
+}
+`;
+
+exports[`HeuristicParserService (Regression) should match snapshot for: Artist - Title (Remix) (Clean).mp3 1`] = `
+{
+  "confidence": 0.8,
+  "hasGarbage": false,
+  "normalizedKey": "artist|titleremixclean",
+  "primaryCandidate": {
+    "artist": "Artist",
+    "title": "Title (Remix) (Clean)",
+  },
+  "strategies": [
+    {
+      "artist": "Artist",
+      "description": "Direct: "Artist - Title (Remix)"",
+      "params": {
+        "artist": "Artist",
+        "track": "Title (Remix)",
+      },
+      "priority": 0,
+      "query": "Artist - Title (Remix)",
+      "title": "Title (Remix)",
+      "type": "exact",
+    },
+    {
+      "description": "Title Only: "Title (Remix)"",
+      "params": {
+        "track": "Title (Remix)",
+      },
+      "priority": 1,
+      "query": "Title (Remix)",
+      "type": "title_only",
+    },
+  ],
+}
+`;
+
+exports[`HeuristicParserService (Regression) should match snapshot for: Chumi dj vs. dj ruboy-reagee.mp3 1`] = `
+{
+  "confidence": 0.4,
+  "hasGarbage": false,
+  "normalizedKey": undefined,
+  "primaryCandidate": {
+    "artist": "",
+    "title": "Chumi dj vs. dj ruboy-reagee",
+  },
+  "strategies": [
+    {
+      "description": "Title Only: "Chumi dj vs. dj ruboy-reagee"",
+      "params": {
+        "track": "Chumi dj vs. dj ruboy-reagee",
+      },
+      "priority": 0,
+      "query": "Chumi dj vs. dj ruboy-reagee",
+      "type": "title_only",
+    },
+  ],
+}
+`;
+
+exports[`HeuristicParserService (Regression) should match snapshot for: Dj Pastis & Buenri - Pierenque (2000).mp3 1`] = `
+{
+  "confidence": 0.8,
+  "hasGarbage": false,
+  "normalizedKey": "djpastisbuenri|pierenque2000",
+  "primaryCandidate": {
+    "artist": "Dj Pastis & Buenri",
+    "title": "Pierenque (2000)",
+  },
+  "strategies": [
+    {
+      "artist": "Dj Pastis & Buenri",
+      "description": "Direct: "Dj Pastis & Buenri - Pierenque"",
+      "params": {
+        "artist": "Dj Pastis & Buenri",
+        "track": "Pierenque",
+      },
+      "priority": 0,
+      "query": "Dj Pastis & Buenri - Pierenque",
+      "title": "Pierenque",
+      "type": "exact",
+    },
+    {
+      "description": "Title Only: "Pierenque"",
+      "params": {
+        "track": "Pierenque",
+      },
+      "priority": 1,
+      "query": "Pierenque",
+      "type": "title_only",
+    },
+    {
+      "artist": "DjPastis&Buenri",
+      "description": "Fuzzy Artist: "DjPastis&Buenri"",
+      "params": {
+        "artist": "DjPastis&Buenri",
+        "track": "Pierenque",
+      },
+      "priority": 2,
+      "title": "Pierenque",
+      "type": "fuzzy",
+    },
+  ],
+}
+`;
+
+exports[`HeuristicParserService (Regression) should match snapshot for: Makina - Xque Vol 5 - The Second Visit.mp3 1`] = `
+{
+  "confidence": 0.8,
+  "hasGarbage": false,
+  "normalizedKey": "makina|xquevol5thesecondvisit",
+  "primaryCandidate": {
+    "artist": "Makina",
+    "title": "Xque Vol 5 - The Second Visit",
+  },
+  "strategies": [
+    {
+      "artist": "Makina",
+      "description": "Direct: "Makina - Xque Vol 5 - The Second Visit"",
+      "params": {
+        "artist": "Makina",
+        "track": "Xque Vol 5 - The Second Visit",
+      },
+      "priority": 0,
+      "query": "Makina - Xque Vol 5 - The Second Visit",
+      "title": "Xque Vol 5 - The Second Visit",
+      "type": "exact",
+    },
+    {
+      "description": "Title Only: "Xque Vol 5 - The Second Visit"",
+      "params": {
+        "track": "Xque Vol 5 - The Second Visit",
+      },
+      "priority": 1,
+      "query": "Xque Vol 5 - The Second Visit",
+      "type": "title_only",
+    },
+    {
+      "artist": "Macina",
+      "description": "Fuzzy Artist: "Macina"",
+      "params": {
+        "artist": "Macina",
+        "track": "Xque Vol 5 - The Second Visit",
+      },
+      "priority": 2,
+      "title": "Xque Vol 5 - The Second Visit",
+      "type": "fuzzy",
+    },
+  ],
+}
+`;
+
+exports[`HeuristicParserService (Regression) should match snapshot for: OnlyTitle.mp3 1`] = `
+{
+  "confidence": 0.4,
+  "hasGarbage": false,
+  "normalizedKey": undefined,
+  "primaryCandidate": {
+    "artist": "",
+    "title": "OnlyTitle",
+  },
+  "strategies": [
+    {
+      "description": "Title Only: "OnlyTitle"",
+      "params": {
+        "track": "OnlyTitle",
+      },
+      "priority": 0,
+      "query": "OnlyTitle",
+      "type": "title_only",
+    },
+  ],
+}
+`;
+
+exports[`HeuristicParserService (Regression) should match snapshot for: garbage_filename_with_binary_garbage^°¨©.mp3 1`] = `
+{
+  "confidence": 0.2,
+  "hasGarbage": true,
+  "normalizedKey": undefined,
+  "primaryCandidate": {
+    "artist": "",
+    "title": "garbage_filename_with_binary_garbage^°¨©",
+  },
+  "strategies": [
+    {
+      "description": "Title Only: "garbage_filename_with_binary_garbage^°¨©"",
+      "params": {
+        "track": "garbage_filename_with_binary_garbage^°¨©",
+      },
+      "priority": 0,
+      "query": "garbage_filename_with_binary_garbage^°¨©",
+      "type": "title_only",
+    },
+  ],
+}
+`;

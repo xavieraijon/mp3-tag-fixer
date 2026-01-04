@@ -29,6 +29,7 @@ export declare class TracksService {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     findAllByUser(userId: string, options?: {
@@ -61,6 +62,7 @@ export declare class TracksService {
             discogsTrackPos: string | null;
             searchScore: number | null;
             status: import(".prisma/client").$Enums.TrackStatus;
+            normalizedKey: string | null;
             processedAt: Date | null;
         }[];
         total: number;
@@ -89,6 +91,7 @@ export declare class TracksService {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     update(userId: string, id: string, dto: UpdateTrackDto): Promise<{
@@ -115,6 +118,7 @@ export declare class TracksService {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     remove(userId: string, id: string): Promise<{
@@ -141,6 +145,7 @@ export declare class TracksService {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     markAsProcessed(userId: string, id: string): Promise<{
@@ -167,6 +172,7 @@ export declare class TracksService {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     findDuplicates(userId: string, fileHash: string): Promise<{
@@ -193,6 +199,7 @@ export declare class TracksService {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }[]>;
     getStats(userId: string): Promise<{

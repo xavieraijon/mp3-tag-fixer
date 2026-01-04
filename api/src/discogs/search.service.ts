@@ -1,15 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { StringUtilsService } from './string-utils.service';
+import { StringUtilsService } from '../shared/string-utils';
+import { SearchStrategy } from '../shared/interfaces';
 import { DiscogsService, DiscogsRelease } from './discogs.service';
-
-export interface SearchStrategy {
-  type: 'release' | 'track' | 'query';
-  artist: string;
-  title: string;
-  searchType: 'master' | 'release' | 'all';
-  description: string;
-  priority: number;
-}
 
 export interface SearchResult extends DiscogsRelease {
   _score?: number;
@@ -226,21 +218,17 @@ export class SearchService {
    * Executes a single search strategy.
    */
   async executeStrategy(strategy: SearchStrategy): Promise<DiscogsRelease[]> {
+    const artist = strategy.artist || '';
+    const title = strategy.title || '';
+    const searchType = strategy.searchType || 'all';
+
     switch (strategy.type) {
       case 'track':
-        return this.discogs.searchByTrack(
-          strategy.artist,
-          strategy.title,
-          strategy.searchType,
-        );
+        return this.discogs.searchByTrack(artist, title, searchType);
       case 'query':
-        return this.discogs.searchQuery(strategy.title, strategy.searchType);
+        return this.discogs.searchQuery(strategy.query || title, searchType);
       case 'release':
-        return this.discogs.searchRelease(
-          strategy.artist,
-          strategy.title,
-          strategy.searchType,
-        );
+        return this.discogs.searchRelease(artist, title, searchType);
       default:
         return [];
     }

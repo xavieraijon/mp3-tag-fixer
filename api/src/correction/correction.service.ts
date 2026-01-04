@@ -1,535 +1,285 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DiscogsService } from '../discogs/discogs.service';
 import { MusicBrainzService } from '../musicbrainz/musicbrainz.service';
-import { StringUtils } from './utils/string-utils';
-
 import { SearchQueryDto, MatchResult } from './dto/search-query.dto';
-import {
-  RankTracksDto,
-  RankedTrackDto,
-  TrackCandidateDto,
-} from './dto/rank-tracks.dto';
-
-interface SearchStrategy {
-  type: 'release' | 'track' | 'query';
-  artist: string;
-  title: string;
-  searchType: 'master' | 'release' | 'all';
-  description: string;
-  priority: number;
-  source?: 'discogs' | 'musicbrainz';
-}
+import { RankTracksDto } from './dto/rank-tracks.dto';
+import { HeuristicParserService } from './services/heuristic-parser.service';
+import { KnowledgeService } from './services/knowledge.service';
+import { DiscogsMatchService } from './services/discogs-match.service';
+import { SearchStrategy } from '../shared';
+import { GroqService } from '../ai/groq/groq.service';
 
 @Injectable()
 export class CorrectionService {
   private readonly logger = new Logger(CorrectionService.name);
-  private readonly API_DELAY = 1200;
+  private readonly MIN_RESULTS_FOR_GOOD = 3;
   private readonly EXCELLENT_SCORE = 70;
   private readonly GOOD_SCORE = 50;
-  private readonly MIN_RESULTS_FOR_GOOD = 3;
 
   constructor(
     private readonly discogs: DiscogsService,
     private readonly mbService: MusicBrainzService,
+    private readonly heuristicService: HeuristicParserService,
+    private readonly knowledgeService: KnowledgeService,
+    private readonly matchService: DiscogsMatchService,
+    private readonly groqService: GroqService,
   ) {}
 
   async findMatches(query: SearchQueryDto): Promise<MatchResult[]> {
-    const { artist, title, aiConfidence } = query;
-    const strategies = this.generateStrategies(artist, title);
+    const { artist, title, filename } = query;
+    const rawFilename = filename || '';
 
-    let activeStrategies = strategies;
-    if (aiConfidence && aiConfidence >= 0.8) {
-      activeStrategies = strategies.filter(
-        (s) =>
-          s.priority < 10 || !s.description.toLowerCase().includes('typo-fix'),
-      );
-    }
+    // 1. HEURISTIC PHASE
+    this.logger.debug(
+      `Starting Heuristic Phase for: ${rawFilename || artist + ' - ' + title}`,
+    );
+    const heuristic = this.heuristicService.parse(rawFilename, artist, title);
+    const { primaryCandidate, strategies, confidence, hasGarbage } = heuristic;
 
-    this.logger.log(
-      `Generated ${activeStrategies.length} strategies for "${artist} - ${title}"`,
+    this.logger.debug(
+      `Heuristic Result: ${JSON.stringify(primaryCandidate)} (Conf: ${confidence}, Garbage: ${hasGarbage})`,
     );
 
+    // 2. KNOWLEDGE PHASE
+    // Try to find an existing solution in our "Brain"
+    const knowledgeMatch = await this.knowledgeService.findMatch(
+      null, // We don't have fileHash in SearchQueryDto yet, would need to add if available
+      rawFilename,
+      primaryCandidate.artist,
+      primaryCandidate.title,
+    );
+
+    if (knowledgeMatch) {
+      this.logger.log(`Knowledge Base Match found! Returning immediately.`);
+      return [
+        {
+          id: `kb:${knowledgeMatch.originalTrackId}`, // synthetic ID
+          artist: knowledgeMatch.artist,
+          title: knowledgeMatch.title,
+          score: 100,
+          source: 'discogs', // effectively it's a valid result, mimicking discogs structure for frontend
+          type: 'track', // assumption
+          matchDetails: knowledgeMatch,
+        },
+      ];
+    }
+
+    // 3. STORAGE & DISCOGS PHASE
+    // Execute strategies
+    let allResults: MatchResult[] = [];
+    let discogsError = false;
+
+    // Filter strategies if we have high confidence from heuristics or specific hints?
+    // For now run them as generated.
+
+    try {
+      allResults = await this.executeStrategiesAndScore(
+        strategies,
+        primaryCandidate.artist,
+        primaryCandidate.title,
+      );
+    } catch (e) {
+      this.logger.error(`Discogs Search failed: ${e}`);
+      discogsError = true;
+      // If purely technical error, we might want to flag it.
+      // But executeStrategiesAndScore catches individual strategy errors usually.
+      // If it bubbled up, it's serious.
+    }
+
+    const bestScore = allResults.length > 0 ? allResults[0].score || 0 : 0;
+
+    // 4. DECISION / AI FALLBACK
+    // Conditions for AI:
+    // 1. Low Heuristic Confidence OR Garbage Detected
+    // 2. OR (Results exist but best score is low)
+    // 3. AND NO Discogs Technical Errors
+
+    const needsAi =
+      confidence < 0.5 ||
+      hasGarbage ||
+      (allResults.length > 0 && bestScore < this.GOOD_SCORE) ||
+      allResults.length === 0;
+
+    // AI Fallback - only if explicitly requested via aiConfidence parameter
+    // Set to false to disable automatic AI fallback
+    const allowAiFallback = true; // TODO: Make this configurable via settings
+
+    if (needsAi && !discogsError && allowAiFallback && this.groqService.isAvailable()) {
+      // Cap: Check if we already tried AI? implicit in flow: this is the one AI attempt.
+      // We only do this if we haven't passed "aiConfidence" override (which suggests we are already in a retry loop or user driven)
+      // Actually user passed aiConfidence might be from a previous AI run?
+      // For this strict flow, let's assume this is the main entry.
+
+      // Limit: Only 1 call.
+      this.logger.warn(
+        `Triggering AI Fallback: Conf=${confidence}, Garbage=${hasGarbage}, BestScore=${bestScore}`,
+      );
+
+      try {
+        const aiResult = await this.groqService.parseFilename(
+          rawFilename,
+          primaryCandidate.artist,
+          primaryCandidate.title,
+          {
+            artist: primaryCandidate.artist,
+            title: primaryCandidate.title,
+            confidence,
+          },
+        );
+
+        if (aiResult.confidence > 0.5 && aiResult.artist && aiResult.title) {
+          this.logger.log(
+            `AI suggest: ${aiResult.artist} - ${aiResult.title}. Re-running Discogs strategies.`,
+          );
+
+          // Re-generate strategies with AI hints
+          // We use the AI output as the "Primary Candidate" for new strategies
+          const aiStrategies = this.heuristicService.generateStrategies(
+            aiResult.artist,
+            aiResult.title,
+          );
+
+          // Re-search
+          const aiDiscogsResults = await this.executeStrategiesAndScore(
+            aiStrategies,
+            aiResult.artist,
+            aiResult.title,
+          );
+
+          // Merge results (preferring AI sourced if score is higher, or just mix)
+          // We append and re-sort
+          allResults = [...allResults, ...aiDiscogsResults];
+
+          // Re-score all against the AI Candidate? Or keep their score against their own search terms?
+          // Usually score is "Match vs Query". If we changed Query (AI), we have new scores.
+          // We just sort by raw score.
+          allResults.sort((a, b) => (b.score || 0) - (a.score || 0));
+        }
+      } catch (e) {
+        this.logger.error(`AI Fail: ${e}`);
+      }
+    } else if (discogsError) {
+      this.logger.warn(`Skipping AI due to Discogs Technical Error.`);
+    }
+
+    // Remove duplicates by creating a unique key (source + id)
+    const seen = new Set<string>();
+    const uniqueResults = allResults.filter((result) => {
+      const key = `${result.source}:${result.id}`;
+      if (seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+
+    return uniqueResults;
+  }
+
+  private async executeStrategiesAndScore(
+    strategies: SearchStrategy[],
+    targetArtist: string,
+    targetTitle: string,
+  ): Promise<MatchResult[]> {
     const allResults: MatchResult[] = [];
-    const maxAttempts = 15;
-    const strategiesToRun = activeStrategies.slice(0, maxAttempts);
-    const BATCH_SIZE = 4;
+    const BATCH_SIZE = 3;
+
+    // Cap strategies to avoid excessive API calls
+    const strategiesToRun = strategies.slice(0, 10);
 
     for (let i = 0; i < strategiesToRun.length; i += BATCH_SIZE) {
       const batch = strategiesToRun.slice(i, i + BATCH_SIZE);
-
       const batchResults = await Promise.all(
-        batch.map(async (strategy) => {
-          try {
-            const res = await this.executeStrategy(strategy);
-            return res;
-          } catch (e: unknown) {
-            const msg = e instanceof Error ? e.message : String(e);
-            this.logger.warn(
-              `Strategy "${strategy.description}" failed: ${msg}`,
-            );
-            return [];
-          }
-        }),
+        batch.map((s) => this.executeStrategy(s)),
       );
 
-      for (const results of batchResults) {
-        if (results.length > 0) {
-          for (const r of results) {
-            if (!allResults.some((existing) => existing.id == r.id)) {
-              const scored = r;
-              scored.score = this.calculateResultScore(r, artist, title);
-              allResults.push(scored);
-            }
+      for (const resList of batchResults) {
+        for (const res of resList) {
+          if (!allResults.some((r) => r.id === res.id)) {
+            res.score = this.matchService.calculateResultScore(
+              res,
+              targetArtist,
+              targetTitle,
+            );
+            allResults.push(res);
           }
         }
       }
 
+      // Early break check
       allResults.sort((a, b) => (b.score || 0) - (a.score || 0));
-      const topScore = allResults[0]?.score || 0;
+      const top = allResults[0]?.score || 0;
+      if (top >= this.EXCELLENT_SCORE) break;
 
-      if (topScore >= 90) break;
-      if (topScore >= this.EXCELLENT_SCORE) break;
-      if (
-        allResults.length >= this.MIN_RESULTS_FOR_GOOD &&
-        topScore >= this.GOOD_SCORE
-      ) {
-        break;
-      }
-
+      // Rate limit delay
       if (i + BATCH_SIZE < strategiesToRun.length) {
-        await this.delay(this.API_DELAY);
+        await new Promise((r) => setTimeout(r, 1100)); // 1.1s delay
       }
     }
 
     return allResults;
   }
 
-  private generateStrategies(artist: string, title: string): SearchStrategy[] {
-    const strategies: SearchStrategy[] = [];
-    let priority = 0;
-
-    if (artist && title) {
-      strategies.push({
-        type: 'query',
-        artist: '',
-        title: `${artist} - ${title}`,
-        searchType: 'all',
-        description: `Direct: "${artist} - ${title}"`,
-        priority: priority++,
-      });
-
-      strategies.push({
-        type: 'release',
-        artist: artist,
-        title: title,
-        searchType: 'release',
-        description: `MB Direct: "${artist} - ${title}"`,
-        priority: priority,
-        source: 'musicbrainz',
-      });
-      priority++;
-
-      strategies.push({
-        type: 'query',
-        artist: '',
-        title: `${artist} ${title}`,
-        searchType: 'all',
-        description: `Direct: "${artist} ${title}"`,
-        priority: priority++,
-      });
-
-      strategies.push({
-        type: 'track',
-        artist: artist,
-        title: title,
-        searchType: 'all',
-        description: `Track exact: "${artist}" - "${title}"`,
-        priority: priority++,
-      });
-    }
-
-    if (!artist && title) {
-      const titleWithPossibleArtist = title;
-
-      strategies.push({
-        type: 'query',
-        artist: '',
-        title: titleWithPossibleArtist,
-        searchType: 'all',
-        description: `Title only: "${titleWithPossibleArtist}"`,
-        priority: priority++,
-      });
-
-      if (title.includes(' - ')) {
-        const parts = title.split(' - ');
-        const possibleArtist = parts[0].trim();
-        const possibleTitle = parts.slice(1).join(' - ').trim();
-
-        strategies.push({
-          type: 'query',
-          artist: '',
-          title: `${possibleArtist} - ${possibleTitle}`,
-          searchType: 'all',
-          description: `Parsed from title: "${possibleArtist} - ${possibleTitle}"`,
-          priority: priority++,
-        });
-      }
-    }
-
-    const artistVariants = StringUtils.normalizeArtistName(artist);
-    // Unused but useful for future
-    // const titleVariants = StringUtils.normalizeTitleForSearch(title);
-
-    const titleParsed = StringUtils.extractParenthesisInfo(title);
-
-    const fuzzyArtistVariants = StringUtils.generateFuzzyVariants(artist);
-
-    for (const fuzzyArtist of fuzzyArtistVariants.slice(1, 5)) {
-      strategies.push({
-        type: 'query',
-        artist: '',
-        title: `${fuzzyArtist} - ${title}`,
-        searchType: 'all',
-        description: `Typo-fix: "${fuzzyArtist} - ${title}"`,
-        priority: priority++,
-      });
-
-      strategies.push({
-        type: 'track',
-        artist: fuzzyArtist,
-        title: title,
-        searchType: 'all',
-        description: `Typo-fix track: "${fuzzyArtist}" - "${title}"`,
-        priority: priority++,
-      });
-    }
-
-    // Using artistVariants
-    for (const varArtist of artistVariants.slice(1, 3)) {
-      strategies.push({
-        type: 'track',
-        artist: varArtist,
-        title: title,
-        searchType: 'all',
-        description: `Artist Variant: "${varArtist}" - "${title}"`,
-        priority: priority++,
-      });
-    }
-
-    if (titleParsed.base !== title && titleParsed.base.length > 2) {
-      strategies.push({
-        type: 'query',
-        artist: '',
-        title: `${artist} - ${titleParsed.base}`,
-        searchType: 'all',
-        description: `Direct base: "${artist} - ${titleParsed.base}"`,
-        priority: priority++,
-      });
-    }
-
-    // Artist as Release
-    strategies.push({
-      type: 'release',
-      artist: '',
-      title: artist,
-      searchType: 'release',
-      description: `Artist as Release: "${artist}"`,
-      priority: priority++,
-    });
-
-    const cleanArtist = StringUtils.cleanArtistName(artist);
-    if (cleanArtist !== artist && cleanArtist.length > 2) {
-      strategies.push({
-        type: 'track',
-        artist: cleanArtist,
-        title: title,
-        searchType: 'all',
-        description: `Clean Artist: "${cleanArtist}" - "${title}"`,
-        priority: priority++,
-        source: 'discogs',
-      });
-    }
-
-    const seen = new Set<string>();
-    return strategies
-      .sort((a, b) => a.priority - b.priority)
-      .filter((s) => {
-        const key = `${s.type}:${s.artist}:${s.title}:${s.searchType}:${s.source || 'discogs'}`;
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-  }
-
   private async executeStrategy(
     strategy: SearchStrategy,
   ): Promise<MatchResult[]> {
-    if (strategy.source === 'musicbrainz') {
-      const results = await this.mbService.searchReleases(
-        strategy.artist,
-        strategy.title,
-      );
+    try {
+      if (strategy.source === 'musicbrainz') {
+        const results = await this.mbService.searchReleases(
+          strategy.artist || '',
+          strategy.title || '',
+        );
+        return results.map((r) => ({ ...r, source: 'musicbrainz', score: 0 }));
+      }
+
+      let results: any[] = [];
+      // Map 'SearchStrategy' types to Discogs calls
+      switch (strategy.type) {
+        case 'track':
+        case 'split_artist':
+        case 'fuzzy':
+          // Use searchByTrack for these specific artist+title combos
+          results = await this.discogs.searchByTrack(
+            strategy.artist || '',
+            strategy.title || '',
+            strategy.searchType || 'all',
+          );
+          break;
+        case 'query':
+        case 'exact':
+        case 'title_only':
+          // General query search
+          results = await this.discogs.searchQuery(
+            strategy.query || strategy.title || '',
+            strategy.searchType || 'all',
+          );
+          break;
+        case 'release':
+          results = await this.discogs.searchRelease(
+            strategy.artist || '',
+            strategy.title || '',
+            strategy.searchType || 'release',
+          );
+          break;
+      }
+
       return results.map((r) => ({
         ...r,
-        source: 'musicbrainz',
+        source: 'discogs',
         score: 0,
-      }));
-    }
-
-    let results: any[] = [];
-    switch (strategy.type) {
-      case 'track':
-        results = await this.discogs.searchByTrack(
-          strategy.artist,
-          strategy.title,
-          strategy.searchType,
-        );
-        break;
-      case 'query':
-        results = await this.discogs.searchQuery(
-          strategy.title,
-          strategy.searchType,
-        );
-        break;
-      case 'release':
-        results = await this.discogs.searchRelease(
-          strategy.artist,
-          strategy.title,
-          strategy.searchType,
-        );
-        break;
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return results.map((r) => ({
-      ...r,
-      source: 'discogs',
-      score: 0,
-    })) as MatchResult[];
-  }
-
-  /**
-   * Ranks a list of tracks against search criteria
-   */
-  rankTracks(query: RankTracksDto): RankedTrackDto[] {
-    const { artist, title, duration, tracks } = query;
-    const scoredTracks: RankedTrackDto[] = [];
-
-    const searchTitleParsed = StringUtils.extractParenthesisInfo(title);
-    const searchArtistParsed = StringUtils.extractParenthesisInfo(artist);
-
-    for (const track of tracks) {
-      if (!track.title || !track.position) continue;
-
-      let bestScore = -1;
-      let matchDetails = { titleScore: 0, versionScore: 0, durationScore: 0 };
-
-      // Strategy 1: Title vs Track Title
-      const score1 = this.scoreTrackVariant(
-        track,
-        searchTitleParsed.base,
-        searchTitleParsed.mixInfo.toLowerCase(),
-        duration,
-      );
-
-      bestScore = score1.total;
-      matchDetails = score1.details;
-
-      // Strategy 2: Artist vs Track Title (Swapped)
-      if (searchArtistParsed) {
-        const score2 = this.scoreTrackVariant(
-          track,
-          searchArtistParsed.base,
-          searchArtistParsed.mixInfo.toLowerCase(),
-          duration,
-        );
-
-        if (score2.total > bestScore && score2.total > 20) {
-          bestScore = score2.total;
-          matchDetails = score2.details;
-        }
-      }
-
-      scoredTracks.push({
-        ...track,
-        score: bestScore,
-        matchDetails,
-      });
-    }
-
-    return scoredTracks.sort((a, b) => b.score - a.score);
-  }
-
-  private scoreTrackVariant(
-    track: TrackCandidateDto,
-    searchBase: string,
-    searchVersion: string,
-    fileDuration?: number,
-  ) {
-    let titleScore = 0;
-    let versionScore = 0;
-    let durationScore = 0;
-
-    const trackParsed = StringUtils.extractParenthesisInfo(track.title);
-    const trackBase = trackParsed.base;
-    const trackVersion = trackParsed.mixInfo.toLowerCase();
-
-    const searchBaseNorm = StringUtils.normalizeTitleForMatching(searchBase);
-    const trackBaseNorm = StringUtils.normalizeTitleForMatching(trackBase);
-
-    // Title Score (0-40)
-    if (searchBaseNorm === trackBaseNorm) {
-      titleScore = 40;
-    } else if (
-      trackBaseNorm.includes(searchBaseNorm) ||
-      searchBaseNorm.includes(trackBaseNorm)
-    ) {
-      titleScore = 30;
-    } else {
-      const sim = StringUtils.calculateStringSimilarity(
-        searchBaseNorm,
-        trackBaseNorm,
-      );
-      titleScore = sim * 25;
-    }
-
-    // Version Score (0-50)
-    if (searchVersion && trackVersion) {
-      const ns = searchVersion
-        .replace(/[.\-_]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      const nt = trackVersion
-        .replace(/[.\-_]/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      if (ns === nt) {
-        versionScore = 50;
-      } else if (nt.includes(ns) || ns.includes(nt)) {
-        versionScore = 40;
-      } else {
-        const sim = StringUtils.calculateStringSimilarity(ns, nt);
-        if (sim > 0.5) versionScore = sim * 30;
-      }
-    } else if (searchVersion && !trackVersion) {
-      versionScore = -10;
-    } else if (!searchVersion && trackVersion) {
-      versionScore = -5;
-    }
-
-    // Duration Score (0-10)
-    if (fileDuration && track.duration) {
-      const trackSec = this.parseDurationToSeconds(track.duration);
-      if (trackSec > 0) {
-        const diff = Math.abs(fileDuration - trackSec);
-        if (diff <= 3) durationScore = 10;
-        else if (diff <= 10) durationScore = 7;
-        else if (diff <= 20) durationScore = 4;
-        else if (diff <= 30) durationScore = 2;
-      }
-    }
-
-    return {
-      total: titleScore + versionScore + durationScore,
-      details: { titleScore, versionScore, durationScore },
-    };
-  }
-
-  private parseDurationToSeconds(duration: string): number {
-    if (!duration) return 0;
-    const parts = duration.split(':');
-    if (parts.length === 2) {
-      return (parseInt(parts[0], 10) || 0) * 60 + (parseInt(parts[1], 10) || 0);
-    }
-    return 0;
-  }
-
-  private calculateResultScore(
-    result: MatchResult,
-    searchArtist: string,
-    searchTitle: string,
-  ): number {
-    let score = 0;
-    const resultArtist = result.artist || '';
-    const resultTitle = result.title || '';
-
-    const normalizedResultArtist =
-      StringUtils.normalizeArtistForComparison(resultArtist);
-    const normalizedSearchArtist =
-      StringUtils.normalizeArtistForComparison(searchArtist);
-
-    let artistSimilarity = StringUtils.calculateStringSimilarity(
-      normalizedResultArtist,
-      normalizedSearchArtist,
-    );
-
-    if (artistSimilarity < 0.7) {
-      const searchFuzzy = StringUtils.generateFuzzyVariants(searchArtist);
-      const resultFuzzy = StringUtils.generateFuzzyVariants(resultArtist);
-
-      for (const sf of searchFuzzy) {
-        for (const rf of resultFuzzy) {
-          const fuzzySim = StringUtils.calculateStringSimilarity(
-            StringUtils.normalizeArtistForComparison(sf),
-            StringUtils.normalizeArtistForComparison(rf),
-          );
-          if (fuzzySim > artistSimilarity) {
-            artistSimilarity = fuzzySim;
-          }
-        }
-      }
-    }
-
-    let artistScore = 0;
-    if (artistSimilarity >= 0.85) artistScore = 60;
-    else if (artistSimilarity >= 0.7) artistScore = 50;
-    else if (artistSimilarity >= 0.5) artistScore = 30;
-    else if (artistSimilarity >= 0.4) artistScore = 15;
-    else if (artistSimilarity >= 0.3) artistScore = 5;
-
-    score += artistScore;
-
-    const titleParsed = StringUtils.extractParenthesisInfo(searchTitle);
-    const baseTitle = titleParsed.base.toLowerCase();
-    const resultTitleLower = resultTitle.toLowerCase();
-
-    let titleScore = 0;
-
-    const multiTitleParts = resultTitleLower
-      .split(/[/+]|\s+&\s+|\s+and\s+/)
-      .map((p) => p.trim());
-    const isMultiTitleMatch = multiTitleParts.some(
-      (part) => part === baseTitle || part === searchTitle.toLowerCase(),
-    );
-
-    if (resultTitleLower === baseTitle) {
-      titleScore = 30;
-    } else if (isMultiTitleMatch) {
-      titleScore = 30;
-    } else if (resultTitleLower.includes(baseTitle)) {
-      titleScore = 25;
-    } else if (baseTitle.includes(resultTitleLower)) {
-      titleScore = 20;
-    } else {
-      // Simplified word matching
+      })) as MatchResult[];
+    } catch (e) {
       if (
-        baseTitle.includes(resultTitleLower) ||
-        resultTitleLower.includes(baseTitle)
+        e instanceof Error &&
+        (e.message.includes('429') || e.message.includes('50'))
       ) {
-        titleScore = 15;
+        throw e; // Bubble up technical errors to stop AI fallback
       }
+      return [];
     }
-
-    score += titleScore;
-
-    if (result.year) score += 2;
-    if (result.type === 'master') score += 2;
-    if (result.cover_image) score += 1;
-
-    return Math.round(score);
   }
 
-  private delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  rankTracks(query: RankTracksDto) {
+    return this.matchService.rankTracks(query);
   }
 }

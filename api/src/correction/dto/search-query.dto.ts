@@ -8,6 +8,10 @@ export class SearchQueryDto {
   @IsString()
   title: string;
 
+  @IsString()
+  @IsOptional()
+  filename?: string;
+
   @IsOptional()
   @IsNumber()
   duration?: number;

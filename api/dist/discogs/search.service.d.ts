@@ -1,13 +1,6 @@
-import { StringUtilsService } from './string-utils.service';
+import { StringUtilsService } from '../shared/string-utils';
+import { SearchStrategy } from '../shared/interfaces';
 import { DiscogsService, DiscogsRelease } from './discogs.service';
-export interface SearchStrategy {
-    type: 'release' | 'track' | 'query';
-    artist: string;
-    title: string;
-    searchType: 'master' | 'release' | 'all';
-    description: string;
-    priority: number;
-}
 export interface SearchResult extends DiscogsRelease {
     _score?: number;
 }

@@ -3,7 +3,7 @@ import { parseBuffer, IAudioMetadata } from 'music-metadata';
 import * as NodeID3 from 'node-id3';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { FilenameParser } from '../correction/utils/filename-parser';
+import { FilenameParser } from '../shared';
 
 export interface Mp3Tags {
   title?: string;

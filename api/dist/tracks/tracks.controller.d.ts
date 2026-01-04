@@ -29,6 +29,7 @@ export declare class TracksController {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     createMany(userId: string, tracks: CreateTrackDto[]): Promise<import(".prisma/client").Prisma.BatchPayload>;
@@ -57,6 +58,7 @@ export declare class TracksController {
             discogsTrackPos: string | null;
             searchScore: number | null;
             status: import(".prisma/client").$Enums.TrackStatus;
+            normalizedKey: string | null;
             processedAt: Date | null;
         }[];
         total: number;
@@ -90,6 +92,7 @@ export declare class TracksController {
             discogsTrackPos: string | null;
             searchScore: number | null;
             status: import(".prisma/client").$Enums.TrackStatus;
+            normalizedKey: string | null;
             processedAt: Date | null;
         }[];
         count: number;
@@ -118,6 +121,7 @@ export declare class TracksController {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     update(userId: string, id: string, dto: UpdateTrackDto): Promise<{
@@ -144,6 +148,7 @@ export declare class TracksController {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     markAsProcessed(userId: string, id: string): Promise<{
@@ -170,6 +175,7 @@ export declare class TracksController {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
     updateManyStatus(userId: string, body: {
@@ -200,6 +206,7 @@ export declare class TracksController {
         discogsTrackPos: string | null;
         searchScore: number | null;
         status: import(".prisma/client").$Enums.TrackStatus;
+        normalizedKey: string | null;
         processedAt: Date | null;
     }>;
 }

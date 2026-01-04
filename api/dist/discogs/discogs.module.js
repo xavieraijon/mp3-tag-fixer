@@ -11,15 +11,14 @@ const common_1 = require("@nestjs/common");
 const discogs_controller_1 = require("./discogs.controller");
 const discogs_service_1 = require("./discogs.service");
 const search_service_1 = require("./search.service");
-const string_utils_service_1 = require("./string-utils.service");
 let DiscogsModule = class DiscogsModule {
 };
 exports.DiscogsModule = DiscogsModule;
 exports.DiscogsModule = DiscogsModule = __decorate([
     (0, common_1.Module)({
         controllers: [discogs_controller_1.DiscogsController],
-        providers: [discogs_service_1.DiscogsService, search_service_1.SearchService, string_utils_service_1.StringUtilsService],
-        exports: [discogs_service_1.DiscogsService, search_service_1.SearchService, string_utils_service_1.StringUtilsService],
+        providers: [discogs_service_1.DiscogsService, search_service_1.SearchService],
+        exports: [discogs_service_1.DiscogsService, search_service_1.SearchService],
     })
 ], DiscogsModule);
 //# sourceMappingURL=discogs.module.js.map

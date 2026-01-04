@@ -45,7 +45,7 @@ const music_metadata_1 = require("music-metadata");
 const NodeID3 = __importStar(require("node-id3"));
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
-const filename_parser_1 = require("../correction/utils/filename-parser");
+const shared_1 = require("../shared");
 let FilesService = class FilesService {
     uploadDir = path.join(process.cwd(), 'uploads');
     async readTags(buffer) {
@@ -116,7 +116,7 @@ let FilesService = class FilesService {
         }
     }
     parseFilename(filename) {
-        return filename_parser_1.FilenameParser.parseFilename(filename);
+        return shared_1.FilenameParser.parseFilename(filename);
     }
     async saveTemp(file) {
         const filename = `${Date.now()}-${file.originalname}`;

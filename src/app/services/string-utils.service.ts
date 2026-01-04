@@ -778,4 +778,83 @@ export class StringUtilsService {
 
     return false;
   }
+
+  /**
+   * Formats a list of artists into a single string using their 'join' property.
+   * Also cleans Discogs numeric suffixes (e.g., "Artist (2)").
+   */
+  formatArtistName(artists: { name: string; join?: string }[] | undefined): string {
+    if (!artists || artists.length === 0) return '';
+
+    return artists
+      .map((a, index) => {
+        // Clean "Name (2)" -> "Name"
+        const cleanName = a.name.replace(/\s*\(\d+\)$/, '');
+
+        // Handle join string
+        let suffix = '';
+        if (index < artists.length - 1) {
+          // Use provided join or default to " / "
+          // Discogs joins often come as "," or "Vs." or "&".
+          // We add spaces around it if it looks like a word or symbol that needs it.
+          // Actually Discogs 'join' usually needs spaces added around it unless it is ",".
+          const j = a.join ? a.join.trim() : '/';
+          if (j === ',') {
+            suffix = ', ';
+          } else {
+            suffix = ` ${j} `;
+          }
+        }
+        return cleanName + suffix;
+      })
+      .join('')
+      .trim();
+  }
+
+  /**
+   * Determines the best artist name by comparing Release Artist, Track Artist, and Manual Input.
+   * Logic:
+   * 1. Start with Release Artist.
+   * 2. If Track Artist exists:
+   *    - If Track Artist is "richer" (contains Release Artist), use Track Artist.
+   *    - If Release Artist is "richer" (contains Track Artist), use Release Artist.
+   *    - Otherwise, prefer Track Artist (distinct artist).
+   * 3. If Manual Input exists (Heuristic):
+   *    - If Manual Input is "richer" than current best (contains it), use Manual Input.
+   */
+  resolveBestArtist(
+    trackArtists: { name: string; join?: string }[] | undefined,
+    releaseArtist: string,
+    manualArtist?: string
+  ): string {
+    const trackArtist = this.formatArtistName(trackArtists);
+    const normTrack = this.normalizeArtistForComparison(trackArtist);
+    const normRelease = this.normalizeArtistForComparison(releaseArtist);
+    const normManual = manualArtist ? this.normalizeArtistForComparison(manualArtist) : '';
+
+    let bestArtist = releaseArtist;
+
+    if (trackArtist) {
+      if (normTrack.includes(normRelease) && normTrack.length > normRelease.length) {
+        // Track artist is richer (e.g. "Artist feat. X")
+        bestArtist = trackArtist;
+      } else if (normRelease.includes(normTrack) && normRelease.length > normTrack.length) {
+        // Release artist is richer (e.g. "Artist & Partner" vs "Artist")
+        bestArtist = releaseArtist;
+      } else {
+        // Distinct artists, prefer specific track artist
+        bestArtist = trackArtist;
+      }
+    }
+
+    // Heuristic Enrichment
+    if (manualArtist && normManual && bestArtist) {
+      const normBest = this.normalizeArtistForComparison(bestArtist);
+      if (normManual.includes(normBest) && normManual.length > normBest.length) {
+        return manualArtist;
+      }
+    }
+
+    return bestArtist;
+  }
 }

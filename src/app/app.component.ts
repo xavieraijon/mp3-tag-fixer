@@ -463,17 +463,11 @@ export class AppComponent {
 
       if (matchedTrack) {
         // Determine the best artist to populate the manual input
-        let bestArtist = releaseArtist;
-
-        // 1. Prefer specific Track Artist if available
-        if (matchedTrack.artists && matchedTrack.artists.length > 0) {
-          bestArtist = matchedTrack.artists[0].name;
-        }
-        // 2. If Release is "Various" and no track artist, prefer our Heuristic (manualArtist)
-        //    because "Various" is useless for a single track file.
-        else if (this.stringUtils.isVariousArtists(releaseArtist)) {
-            bestArtist = item.manualArtist || releaseArtist;
-        }
+        const bestArtist = this.stringUtils.resolveBestArtist(
+            matchedTrack.artists,
+            releaseArtist,
+            item.manualArtist
+        );
 
         this.store.updateFile(item, {
           releaseDetails: details,
@@ -547,8 +541,11 @@ export class AppComponent {
           .normalizeSuperscripts(release.artist || '')
           .replace(/\*+$/, '')
           .trim();
-        const finalArtist =
-          item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+        const finalArtist = this.stringUtils.resolveBestArtist(
+          track.artists,
+          artistFromRelease,
+          item.manualArtist
+        );
 
         const finalFilename = `${finalArtist} - ${track.title}`;
         // if (track.position) { ... } REMOVED per user request
@@ -641,8 +638,11 @@ export class AppComponent {
             .normalizeSuperscripts(release.artist || '')
             .replace(/\*+$/, '')
             .trim();
-          const finalArtist =
-            item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+          const finalArtist = this.stringUtils.resolveBestArtist(
+            track.artists,
+            artistFromRelease,
+            item.manualArtist
+          );
 
           const finalFilename = `${finalArtist} - ${track.title}`;
           // if (track.position) { ... } REMOVED per user request
@@ -721,9 +721,12 @@ export class AppComponent {
       .normalizeSuperscripts(release.artist || '')
       .replace(/\*+$/, '')
       .trim();
-    const detectedArtist = item.manualArtist || '';
-    const finalArtist =
-      artistFromRelease || track.artists?.[0]?.name || detectedArtist || 'Unknown';
+
+    const finalArtist = this.stringUtils.resolveBestArtist(
+      track.artists,
+      artistFromRelease,
+      item.manualArtist
+    );
 
     const finalTags: Mp3Tags = {
       title: track.title,

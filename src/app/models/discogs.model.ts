@@ -8,7 +8,7 @@ export interface DiscogsRelease {
   resource_url?: string;
   type?: 'release' | 'master';
   artist?: string; // Main artist name for display
-  artists?: { name: string }[];
+  artists?: { name: string; join?: string }[];
   labels?: { name: string }[];
   styles?: string[];
   genres?: string[];
@@ -22,5 +22,5 @@ export interface DiscogsTrack {
   title: string;
   duration?: string;
   type_: string; // 'track'
-  artists?: { name: string }[]; // Track specific artists
+  artists?: { name: string; join?: string }[]; // Track specific artists
 }

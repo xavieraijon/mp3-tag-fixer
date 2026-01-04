@@ -14,7 +14,7 @@ export interface DiscogsRelease {
   genres?: string[];
   styles?: string[];
   artist?: string;
-  artists?: { name: string }[];
+  artists?: { name: string; join?: string }[];
   tracklist?: DiscogsTrack[];
   main_release?: number;
 }
@@ -23,7 +23,7 @@ export interface DiscogsTrack {
   position: string;
   title: string;
   duration?: string;
-  artists?: { name: string }[];
+  artists?: { name: string; join?: string }[];
   type_: string;
 }
 
@@ -45,7 +45,7 @@ interface DiscogsRawDetail {
   id: number;
   title: string;
   year?: number;
-  artists?: { name: string }[];
+  artists?: { name: string; join?: string }[];
   labels?: { name: string }[];
   genres?: string[];
   styles?: string[];
@@ -56,7 +56,7 @@ interface DiscogsRawDetail {
     position: string;
     title: string;
     duration?: string;
-    artists?: { name: string }[];
+    artists?: { name: string; join?: string }[];
     type_: string;
   }[];
   main_release?: number;
@@ -233,8 +233,8 @@ export class DiscogsService {
       id: details.id,
       title: details.title,
       year: details.year,
-      artist: details.artists?.[0]?.name,
-      artists: details.artists?.map((a) => ({ name: a.name })),
+      artist: this.formatArtistName(details.artists),
+      artists: details.artists?.map((a) => ({ name: a.name, join: a.join })),
       labels: details.labels?.map((l) => ({ name: l.name })) || [],
       genres: details.genres || [],
       styles: details.styles || [],
@@ -245,11 +245,35 @@ export class DiscogsService {
         position: t.position,
         title: t.title,
         duration: t.duration,
-        artists: t.artists?.map((a) => ({ name: a.name })),
+        artists: t.artists?.map((a) => ({ name: a.name, join: a.join })),
         type_: t.type_,
       })),
       main_release: details.main_release,
     };
+  }
+
+  private formatArtistName(
+    artists: { name: string; join?: string }[] | undefined,
+  ): string {
+    if (!artists || artists.length === 0) return '';
+    return artists
+      .map((a, index) => {
+        // Clean "Name (2)" -> "Name"
+        const cleanName = a.name.replace(/\s*\(\d+\)$/, '');
+
+        let suffix = '';
+        if (index < artists.length - 1) {
+          const j = a.join ? a.join.trim() : '/';
+          if (j === ',') {
+            suffix = ', ';
+          } else {
+            suffix = ` ${j} `;
+          }
+        }
+        return cleanName + suffix;
+      })
+      .join('')
+      .trim();
   }
 
   /**

@@ -37,6 +37,7 @@ import {
   Moon,
   Sun,
   Settings,
+  Monitor,
 } from 'lucide-angular';
 import { authInterceptor } from './interceptors/auth.interceptor';
 
@@ -77,6 +78,7 @@ export const appConfig: ApplicationConfig = {
         Moon,
         Sun,
         Settings,
+        Monitor,
       }),
     ),
   ],

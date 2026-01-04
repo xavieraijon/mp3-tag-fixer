@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ModalComponent } from '../ui/modal/modal.component';
 import { AiSearchService } from '../../services/ai-search.service';
 import { FilesStore } from '../../store/files.store';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-settings-modal',
@@ -22,6 +23,68 @@ import { FilesStore } from '../../store/files.store';
         <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">Global Preferences</h2>
       </div>
       <div class="space-y-6">
+        <!-- Theme Preference Section -->
+        <div class="flex flex-col gap-3">
+          <h3 class="font-medium text-slate-900 dark:text-slate-100 flex items-center gap-2">
+            <lucide-icon name="moon" class="w-5 h-5 text-indigo-500 dark:text-indigo-400"></lucide-icon>
+            Appearance
+          </h3>
+          <div class="grid grid-cols-3 gap-2 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+            <!-- Light Mode -->
+            <button
+              (click)="themeService.setTheme('light')"
+              class="relative flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              [class.bg-white]="themeService.preference() === 'light'"
+              [class.dark:bg-slate-700]="themeService.preference() === 'light'"
+              [class.shadow-sm]="themeService.preference() === 'light'"
+              [class.text-slate-900]="themeService.preference() === 'light'"
+              [class.dark:text-white]="themeService.preference() === 'light'"
+              [class.text-slate-500]="themeService.preference() !== 'light'"
+              [class.hover:text-slate-700]="themeService.preference() !== 'light'"
+              [class.dark:hover:text-slate-300]="themeService.preference() !== 'light'"
+            >
+              <lucide-icon name="sun" class="w-4 h-4"></lucide-icon>
+              Light
+            </button>
+
+            <!-- Dark Mode -->
+            <button
+              (click)="themeService.setTheme('dark')"
+              class="relative flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              [class.bg-white]="themeService.preference() === 'dark'"
+              [class.dark:bg-slate-700]="themeService.preference() === 'dark'"
+              [class.shadow-sm]="themeService.preference() === 'dark'"
+              [class.text-slate-900]="themeService.preference() === 'dark'"
+              [class.dark:text-white]="themeService.preference() === 'dark'"
+              [class.text-slate-500]="themeService.preference() !== 'dark'"
+              [class.hover:text-slate-700]="themeService.preference() !== 'dark'"
+              [class.dark:hover:text-slate-300]="themeService.preference() !== 'dark'"
+            >
+              <lucide-icon name="moon" class="w-4 h-4"></lucide-icon>
+              Dark
+            </button>
+
+            <!-- System Mode -->
+            <button
+              (click)="themeService.setTheme('system')"
+              class="relative flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+              [class.bg-white]="themeService.preference() === 'system'"
+              [class.dark:bg-slate-700]="themeService.preference() === 'system'"
+              [class.shadow-sm]="themeService.preference() === 'system'"
+              [class.text-slate-900]="themeService.preference() === 'system'"
+              [class.dark:text-white]="themeService.preference() === 'system'"
+              [class.text-slate-500]="themeService.preference() !== 'system'"
+              [class.hover:text-slate-700]="themeService.preference() !== 'system'"
+              [class.dark:hover:text-slate-300]="themeService.preference() !== 'system'"
+            >
+              <lucide-icon name="monitor" class="w-4 h-4"></lucide-icon>
+              System
+            </button>
+          </div>
+        </div>
+
+        <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+
         <!-- AI Toggle Section -->
         <div class="flex flex-col gap-2">
           <div class="flex items-center justify-between">
@@ -88,6 +151,7 @@ import { FilesStore } from '../../store/files.store';
 export class SettingsModalComponent {
   readonly aiService = inject(AiSearchService);
   readonly store = inject(FilesStore);
+  readonly themeService = inject(ThemeService);
 
   closeModal = output<void>();
 }

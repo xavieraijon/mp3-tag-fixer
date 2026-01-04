@@ -20,7 +20,8 @@ export interface SearchStrategy {
     | 'exact'
     | 'split_artist'
     | 'title_only'
-    | 'fuzzy';
+    | 'fuzzy'
+    | 'swap';
 
   /** Artist name for the search */
   artist?: string;

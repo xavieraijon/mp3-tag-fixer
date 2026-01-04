@@ -25,7 +25,7 @@ export class CorrectionService {
     private readonly groqService: GroqService,
   ) {}
 
-  async findMatches(query: SearchQueryDto): Promise<MatchResult[]> {
+  async findMatches(query: SearchQueryDto): Promise<import('./dto/search-query.dto').SearchResponseDto> {
     const { artist, title, filename, useAiFallback = true } = query;
     const rawFilename = filename || '';
 
@@ -53,17 +53,23 @@ export class CorrectionService {
 
     if (knowledgeMatch) {
       this.logger.log(`Knowledge Base Match found! Returning immediately.`);
-      return [
-        {
-          id: `kb:${knowledgeMatch.originalTrackId}`, // synthetic ID
-          artist: knowledgeMatch.artist,
-          title: knowledgeMatch.title,
-          score: 100,
-          source: 'discogs', // effectively it's a valid result, mimicking discogs structure for frontend
-          type: 'track', // assumption
-          matchDetails: knowledgeMatch,
+      return {
+        results: [
+          {
+            id: `kb:${knowledgeMatch.originalTrackId}`, // synthetic ID
+            artist: knowledgeMatch.artist,
+            title: knowledgeMatch.title,
+            score: 100,
+            source: 'discogs', // effectively it's a valid result, mimicking discogs structure for frontend
+            type: 'track', // assumption
+            matchDetails: knowledgeMatch,
+          },
+        ],
+        heuristic: {
+          artist: primaryCandidate.artist,
+          title: primaryCandidate.title,
         },
-      ];
+      };
     }
 
     // 3. STORAGE & DISCOGS PHASE
@@ -177,7 +183,13 @@ export class CorrectionService {
       return true;
     });
 
-    return uniqueResults;
+    return {
+      results: uniqueResults,
+      heuristic: {
+        artist: primaryCandidate.artist,
+        title: primaryCandidate.title,
+      },
+    };
   }
 
   private async executeStrategiesAndScore(

@@ -141,6 +141,8 @@ export class AppComponent {
 
   // === Search ===
 
+    // === Search ===
+
   async search(item: ProcessedFile): Promise<void> {
     // DEBUG MODE FLOW
     if (this.store.debugMode()) {
@@ -243,7 +245,7 @@ export class AppComponent {
     useAiFallback: boolean,
     aiConfidence?: number,
   ) {
-    const results = await this.searchService.search(
+    const response = await this.searchService.search(
       artist,
       title,
       (message) => this.store.updateFile(item, { statusMessage: message }),
@@ -252,6 +254,17 @@ export class AppComponent {
       item.currentTags?.duration, // Pass duration for track matching
       useAiFallback,
     );
+
+    const results = response.results;
+
+    // AUTO-CORRECT INPUTS using Backend Heuristics
+    if (response.heuristic && (response.heuristic.artist || response.heuristic.title)) {
+      console.log(`[Search] Auto-correcting inputs with heuristic data:`, response.heuristic);
+      this.store.updateFile(item, {
+        manualArtist: response.heuristic.artist,
+        manualTitle: response.heuristic.title,
+      });
+    }
 
     if (results.length > 0) {
       const aiLabel = isAcoustid ? ' (🎵 audio match)' : '';
@@ -446,7 +459,22 @@ export class AppComponent {
       // Auto-match track
       const matchedTrack = await this.trackMatcher.findBestMatch(item, tracks);
 
+      const releaseArtist = this.stringUtils.normalizeSuperscripts(details.artist || '').replace(/\*+$/, '').trim();
+
       if (matchedTrack) {
+        // Determine the best artist to populate the manual input
+        let bestArtist = releaseArtist;
+
+        // 1. Prefer specific Track Artist if available
+        if (matchedTrack.artists && matchedTrack.artists.length > 0) {
+          bestArtist = matchedTrack.artists[0].name;
+        }
+        // 2. If Release is "Various" and no track artist, prefer our Heuristic (manualArtist)
+        //    because "Various" is useless for a single track file.
+        else if (this.stringUtils.isVariousArtists(releaseArtist)) {
+            bestArtist = item.manualArtist || releaseArtist;
+        }
+
         this.store.updateFile(item, {
           releaseDetails: details,
           tracks: tracks,
@@ -454,6 +482,9 @@ export class AppComponent {
           coverImageUrl: coverImageUrl,
           status: 'ready',
           statusMessage: `Auto-matched: "${matchedTrack.title}"`,
+          // Update manual inputs to reflect the official match (or smart fallback)
+          manualArtist: bestArtist,
+          manualTitle: matchedTrack.title || item.manualTitle,
         });
       } else {
         this.store.updateFile(item, {
@@ -474,7 +505,11 @@ export class AppComponent {
   }
 
   selectTrack(item: ProcessedFile, track: DiscogsTrack): void {
-    this.store.updateFile(item, { selectedTrack: track });
+    // When manually selecting a track, update the manual title too
+    this.store.updateFile(item, {
+      selectedTrack: track,
+      manualTitle: track.title,
+    });
   }
 
   // === Actions ===
@@ -514,7 +549,11 @@ export class AppComponent {
           .trim();
         const finalArtist =
           item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
-        const cleanName = this.processor.sanitizeFileName(`${finalArtist} - ${track.title}`);
+
+        const finalFilename = `${finalArtist} - ${track.title}`;
+        // if (track.position) { ... } REMOVED per user request
+
+        const cleanName = this.processor.sanitizeFileName(finalFilename);
         saveAs(blob, `${cleanName}.mp3`);
         this.store.updateFile(item, { status: 'done', statusMessage: 'Download started.' });
       }
@@ -604,7 +643,11 @@ export class AppComponent {
             .trim();
           const finalArtist =
             item.manualArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
-          const cleanName = this.processor.sanitizeFileName(`${finalArtist} - ${track.title}`);
+
+          const finalFilename = `${finalArtist} - ${track.title}`;
+          // if (track.position) { ... } REMOVED per user request
+
+          const cleanName = this.processor.sanitizeFileName(finalFilename);
           zip.file(`${cleanName}.mp3`, blob);
           completed++;
           this.notification.show(`Processing: ${completed}/${files.length}...`, 'info', 0);
@@ -618,8 +661,11 @@ export class AppComponent {
       this.notification.show('Generating ZIP file...', 'info', 0);
       try {
         const zipBlob = await zip.generateAsync({ type: 'blob' });
-        const timestamp = new Date().toISOString().slice(0, 10);
-        saveAs(zipBlob, `mp3-tagged-${timestamp}.zip`);
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0, 10).replace(/-/g, '') + '-' +
+                          now.getHours().toString().padStart(2, '0') +
+                          now.getMinutes().toString().padStart(2, '0');
+        saveAs(zipBlob, `mp3-fixed-${timestamp}.zip`);
         this.notification.success(`Download started: ${completed} files in ZIP.`);
       } catch {
         this.notification.error('Failed to generate ZIP file.');
@@ -677,7 +723,7 @@ export class AppComponent {
       .trim();
     const detectedArtist = item.manualArtist || '';
     const finalArtist =
-      detectedArtist || artistFromRelease || track.artists?.[0]?.name || 'Unknown';
+      artistFromRelease || track.artists?.[0]?.name || detectedArtist || 'Unknown';
 
     const finalTags: Mp3Tags = {
       title: track.title,

@@ -274,8 +274,11 @@ export class FilesStore {
       if (!isNaN(num) && num > 0) defaultTrackNum = num;
     }
 
+    // Prioritize artistFromRelease or track artist. Manual is fallback.
+    const artistFromRelease = rel?.artist;
+
     this._editForm.set({
-      artist: getVal('artist', track?.artists?.[0]?.name, rel?.artist, item.manualArtist),
+      artist: getVal('artist', artistFromRelease, track?.artists?.[0]?.name, item.manualArtist),
       title: getVal('title', track?.title, item.manualTitle),
       album: getVal('album', rel?.title, item.currentTags?.album),
       bpm: getVal('bpm', item.currentTags?.bpm),

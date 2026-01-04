@@ -27,6 +27,7 @@ export class SearchQueryDto {
   useAiFallback?: boolean;
 }
 
+
 export class MatchResult {
   id: string | number;
   title: string;
@@ -39,4 +40,12 @@ export class MatchResult {
   type?: string;
   tracklist?: any[];
   matchDetails?: any;
+}
+
+export class SearchResponseDto {
+  results: MatchResult[];
+  heuristic?: {
+    artist: string;
+    title: string;
+  };
 }

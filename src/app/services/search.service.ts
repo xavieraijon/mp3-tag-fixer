@@ -34,15 +34,15 @@ export class SearchService {
     filename?: string,
     duration?: number,
     useAiFallback?: boolean,
-  ): Promise<SearchResult[]> {
+  ): Promise<{ results: SearchResult[]; heuristic?: { artist: string; title: string } }> {
     if (onProgress) {
       onProgress('Searching via Correction API...');
     }
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const results = await this.http
-        .post<any[]>('/api/correction/search', {
+      const response = await this.http
+        .post<any>('/api/correction/search', {
           artist,
           title,
           filename, // Send filename for heuristic parsing
@@ -52,14 +52,19 @@ export class SearchService {
         })
         .toPromise();
 
-      return (results || []).map((r) => ({
+      const results = (response.results || []).map((r: any) => ({
         ...r,
         _score: r.score, // Map backend score to frontend prop
         thumb: r.thumb || r.cover_image,
       }));
+
+      return {
+        results,
+        heuristic: response.heuristic,
+      };
     } catch (e) {
       console.error('Search failed:', e);
-      return [];
+      return { results: [] };
     }
   }
 }

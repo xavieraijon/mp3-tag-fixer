@@ -64,7 +64,7 @@ export class FileProcessorService {
     const safeName = name || '';
     let simplified = safeName.trim().replace(/\s+&\s+/g, '_&_');
     simplified = simplified.replace(/[\s,/]+/g, '_');
-    return simplified.replace(/[^a-zA-Z0-9_.()&]/g, '');
+    return simplified.replace(/[^a-zA-Z0-9_.\-()&]/g, '');
   }
 
   /**

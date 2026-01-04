@@ -264,6 +264,20 @@ export class StringUtilsService {
   }
 
   /**
+   * Checks if an artist name indicates a compilation (Various Artists).
+   */
+  isVariousArtists(artist: string): boolean {
+    if (!artist) return false;
+    const lower = artist.toLowerCase();
+    return (
+      lower === 'various' ||
+      lower === 'various artists' ||
+      lower === 'various production' ||
+      lower.includes('various artists')
+    );
+  }
+
+  /**
    * Checks if a string looks like a raw filename (not a proper tag).
    * A proper tag should be either a pure artist OR a pure title, not both combined.
    */
